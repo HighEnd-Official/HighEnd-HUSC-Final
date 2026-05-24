@@ -1,0 +1,125 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Manrope:wght@400;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  box-sizing: border-box;
+
+  /* HUES Color Token System (Light Mode) */
+  --color-primary: #854c6f;
+  --color-primary-container: #c07fa5;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #4a193a;
+  --color-secondary: #775463;
+  --color-secondary-container: #ffd1e1;
+  --color-surface: #fff8f8;
+  --color-surface-container: #f7ebee;
+  --color-surface-container-low: #fcf1f4;
+  --color-surface-container-high: #f1e5e9;
+  --color-surface-container-highest: #ebe0e3;
+  --color-surface-dim: #e2d7db;
+  --color-on-surface: #1f1a1d;
+  --color-on-surface-variant: #504349;
+  --color-outline: #82737a;
+  --color-outline-variant: #d4c2c9;
+  --color-inverse-primary: #f9b1da;
+  --color-tertiary: #486730;
+  --color-tertiary-container: #7b9d60;
+
+  /* Accent & Typo Mappings */
+  --accent: var(--color-primary);
+  --accent-dark: #6e3e5c;
+  --text-primary: var(--color-on-surface);
+  --text-secondary: var(--color-on-surface-variant);
+  --text-tertiary: var(--color-outline);
+  --border-light: rgba(133, 76, 111, 0.08);
+  --border-medium: rgba(133, 76, 111, 0.16);
+  --border-dark: rgba(133, 76, 111, 0.3);
+  --bg-tertiary: var(--color-surface-container-low);
+}
+
+.dark, [data-theme="dark"] {
+  /* HUES Color Token System (Dark Mode) */
+  --color-primary: #f9b1da;
+  --color-primary-container: #854c6f;
+  --color-on-primary: #4a193a;
+  --color-on-primary-container: #ffd1e1;
+  --color-secondary: #e8c0d0;
+  --color-secondary-container: #5c3b4a;
+  --color-surface: #0c080a;
+  --color-surface-container: #171013;
+  --color-surface-container-low: #110b0d;
+  --color-surface-container-high: #20151a;
+  --color-surface-container-highest: #281b21;
+  --color-surface-dim: #070405;
+  --color-on-surface: #f3eff1;
+  --color-on-surface-variant: #d4c2c9;
+  --color-outline: #9e8c93;
+  --color-outline-variant: #403238;
+  --color-inverse-primary: #854c6f;
+  --color-tertiary: #aed093;
+  --color-tertiary-container: #486730;
+
+  /* Accent & Typo Mappings */
+  --accent: #f9b1da;
+  --accent-dark: #e8a4b8;
+  --text-primary: #f3eff1;
+  --text-secondary: #d4c2c9;
+  --text-tertiary: #9e8c93;
+  --border-light: rgba(249, 177, 218, 0.08);
+  --border-medium: rgba(249, 177, 218, 0.16);
+  --border-dark: rgba(249, 177, 218, 0.3);
+  --bg-tertiary: #171013;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: 'Manrope', sans-serif;
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease;
+}
+
+h1, h2, h3, h4, h5, h6, p, ul, ol, li, button, input, a {
+  margin: 0;
+  padding: 0;
+}
+
+::selection {
+  background: rgba(133,76,111,0.2);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #fcf1f4;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c07fa5;
+  border-radius: 3px;
+}
+
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.3); }
+  60% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+.heartbeat-active {
+  animation: heartbeat 0.45s ease-in-out;
+}
+
