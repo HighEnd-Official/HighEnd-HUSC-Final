@@ -1,16 +1,8 @@
-import { createContext, useContext, useState, useCallback } from "react";
-
-// ── Mock user database (replace with real API later) ──────────────────────
-const MOCK_USERS = [
-  { username: "Admin User",       email: "admin@hues.com",  password: "admin123",  role: "Admin" },
-  { username: "Super Admin",      email: "super@hues.com",  password: "super123",  role: "SuperAdmin" },
-  { username: "HUES Member",      email: "user@hues.com",   password: "user123",   role: "User" },
-];
+import { createContext, useCallback, useContext, useState } from "react";
+import { apiFetch } from "../api/client";
 
 const SESSION_KEY = "hues_session";
-const REGISTERED_USERS_KEY = "hues_registered_users";
 
-// ── Helpers ───────────────────────────────────────────────────────────────
 function loadSession() {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
@@ -20,30 +12,14 @@ function loadSession() {
   }
 }
 
-function saveSession(user) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+function saveSession(session) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 }
 
 function clearSession() {
   localStorage.removeItem(SESSION_KEY);
 }
 
-function getRegisteredUsers() {
-  try {
-    const raw = localStorage.getItem(REGISTERED_USERS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveRegisteredUser(user) {
-  const existing = getRegisteredUsers();
-  existing.push(user);
-  localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(existing));
-}
-
-// ── Context ───────────────────────────────────────────────────────────────
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
@@ -51,59 +27,52 @@ export function AuthProvider({ children }) {
 
   // login(identifier, password) — identifier can be email or username
   // Returns { success: bool, role: string|null, error: string|null }
-  const login = useCallback((identifier, password) => {
-    const identifierLower = identifier.trim().toLowerCase();
+  const login = useCallback(async (identifier, password) => {
+    try {
+      const data = await apiFetch("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ identifier, password }),
+      });
 
-    // Check mock users first
-    const allUsers = [
-      ...MOCK_USERS,
-      ...getRegisteredUsers(),
-    ];
+      const session = {
+        id: data?.user?.id,
+        username: data?.user?.username,
+        email: data?.user?.email,
+        role: data?.user?.role,
+        token: data?.token,
+      };
 
-    const found = allUsers.find(
-      (u) =>
-        (u.email.toLowerCase() === identifierLower ||
-          u.username.toLowerCase() === identifierLower) &&
-        u.password === password
-    );
-
-    if (!found) {
-      return { success: false, role: null, error: "Invalid email or password." };
+      saveSession(session);
+      setUser(session);
+      return { success: true, role: session.role, error: null };
+    } catch (e) {
+      return { success: false, role: null, error: e?.message || "Login failed." };
     }
-
-    const session = {
-      username: found.username,
-      email: found.email,
-      role: found.role,
-      token: btoa(`${found.email}:${Date.now()}`), // lightweight pseudo-token
-    };
-
-    saveSession(session);
-    setUser(session);
-    return { success: true, role: found.role, error: null };
   }, []);
 
   // register(name, email, password) — creates User-role account
   // Returns { success: bool, error: string|null }
-  const register = useCallback((name, email, password) => {
-    const emailLower = email.trim().toLowerCase();
-    const allUsers = [...MOCK_USERS, ...getRegisteredUsers()];
+  const register = useCallback(async (name, email, password) => {
+    try {
+      const data = await apiFetch("/auth/register", {
+        method: "POST",
+        body: JSON.stringify({ username: name, email, password }),
+      });
 
-    const exists = allUsers.some((u) => u.email.toLowerCase() === emailLower);
-    if (exists) {
-      return { success: false, error: "An account with this email already exists." };
+      const session = {
+        id: data?.user?.id,
+        username: data?.user?.username,
+        email: data?.user?.email,
+        role: data?.user?.role,
+        token: data?.token,
+      };
+
+      saveSession(session);
+      setUser(session);
+      return { success: true, error: null };
+    } catch (e) {
+      return { success: false, error: e?.message || "Registration failed." };
     }
-
-    const newUser = {
-      username: name.trim(),
-      email: emailLower,
-      password,
-      role: "User",
-    };
-
-    saveRegisteredUser(newUser);
-
-    return { success: true, error: null };
   }, []);
 
   const logout = useCallback(() => {
@@ -111,11 +80,11 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
-  const isAuthenticated = !!user;
+  const isAuthenticated = !!user?.token;
 
   const hasRole = useCallback(
     (roles) => {
-      if (!user) return false;
+      if (!user?.role) return false;
       if (Array.isArray(roles)) return roles.includes(user.role);
       return user.role === roles;
     },
@@ -134,3 +103,4 @@ export function useAuth() {
   if (!ctx) throw new Error("useAuth must be used inside <AuthProvider>");
   return ctx;
 }
+

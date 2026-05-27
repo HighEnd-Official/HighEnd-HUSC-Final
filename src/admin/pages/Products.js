@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import '../admin.css';
-import { deleteProduct, getProducts, upsertProduct } from '../lib/repo';
+import { deleteProduct, getProducts, upsertProduct } from '../lib/apiRepo';
 import { uid } from '../lib/storage';
 import { formatMoneyLKR } from '../lib/format';
 
@@ -20,10 +20,26 @@ export default function Products() {
   const [editingId, setEditingId] = useState('');
   const [form, setForm] = useState(emptyForm());
   const [query, setQuery] = useState('');
+  const [productsState, setProductsState] = useState([]);
+  const [selected, setSelected] = useState(null);
 
   const products = useMemo(() => {
     void refresh;
-    return getProducts();
+    return productsState;
+  }, [productsState, refresh]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getProducts()
+      .then((list) => {
+        if (!cancelled) setProductsState(list);
+      })
+      .catch(() => {
+        if (!cancelled) setProductsState([]);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [refresh]);
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -57,7 +73,7 @@ export default function Products() {
     setForm(emptyForm());
   }
 
-  function onSave(e) {
+  async function onSave(e) {
     e.preventDefault();
     const price = Number(form.price);
     const cost = Number(form.cost);
@@ -67,7 +83,7 @@ export default function Products() {
     if (!Number.isFinite(cost) || cost < 0) return;
     if (!Number.isFinite(stock) || stock < 0) return;
 
-    upsertProduct({
+    await upsertProduct({
       id: form.id,
       name: form.name.trim(),
       sku: form.sku.trim(),
@@ -81,10 +97,10 @@ export default function Products() {
     cancel();
   }
 
-  function onDelete(productId) {
+  async function onDelete(productId) {
     // eslint-disable-next-line no-alert
     if (!window.confirm('Delete this product?')) return;
-    deleteProduct(productId);
+    await deleteProduct(productId);
     setRefresh((x) => x + 1);
     if (editingId === productId) cancel();
   }
@@ -133,6 +149,9 @@ export default function Products() {
                   <td>{p.stock}</td>
                   <td style={{ textAlign: 'right' }}>
                     <div className="toolbar" style={{ justifyContent: 'flex-end' }}>
+                      <button className="btn" type="button" onClick={() => setSelected(p)}>
+                        View
+                      </button>
                       <button className="btn" type="button" onClick={() => startEdit(p)}>
                         Edit
                       </button>
@@ -250,6 +269,77 @@ export default function Products() {
           )}
         </div>
       </div>
+
+      {selected ? (
+        <div className="card content-card">
+          <div className="toolbar" style={{ justifyContent: 'space-between', marginBottom: 10 }}>
+            <div style={{ fontWeight: 850 }}>Item Details</div>
+            <button className="btn" type="button" onClick={() => setSelected(null)}>
+              Close
+            </button>
+          </div>
+          <div className="grid" style={{ gap: 10 }}>
+            <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+              <div style={{ width: 120, height: 120, borderRadius: 14, overflow: 'hidden', background: 'rgba(255,255,255,0.04)', flexShrink: 0 }}>
+                {selected.imageUrl ? (
+                  <img src={selected.imageUrl} alt={selected.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : null}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 900, fontSize: 16 }}>{selected.name}</div>
+                <div className="muted" style={{ marginTop: 4 }}>
+                  {selected.sku ? `SKU: ${selected.sku}` : ''} {selected.category ? ` · ${selected.category}` : ''}
+                </div>
+                {selected.subtitle ? <div className="muted" style={{ marginTop: 6 }}>{selected.subtitle}</div> : null}
+                {selected.collection ? <div className="muted" style={{ marginTop: 2 }}>{selected.collection}</div> : null}
+                <div style={{ marginTop: 8, fontWeight: 800 }}>
+                  {formatMoneyLKR(selected.price)} <span className="muted" style={{ fontWeight: 600 }}>· stock {selected.stock}</span>
+                </div>
+              </div>
+            </div>
+
+            {selected.description ? (
+              <div>
+                <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>Description</div>
+                <div style={{ lineHeight: 1.55 }}>{selected.description}</div>
+              </div>
+            ) : null}
+
+            {selected.details?.length ? (
+              <div>
+                <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>Details</div>
+                <ul style={{ margin: 0, paddingLeft: 18 }}>
+                  {selected.details.map((d) => (
+                    <li key={d} style={{ marginBottom: 4 }}>{d}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            <div className="toolbar" style={{ flexWrap: 'wrap', gap: 10 }}>
+              {selected.sizes?.length ? (
+                <div className="muted" style={{ fontSize: 12 }}>Sizes: {selected.sizes.join(', ')}</div>
+              ) : null}
+              {selected.colors?.length ? (
+                <div className="muted" style={{ fontSize: 12 }}>Colors: {selected.colors.map((c) => c.name).join(', ')}</div>
+              ) : null}
+            </div>
+
+            {selected.images?.length ? (
+              <div>
+                <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>Images</div>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  {selected.images.slice(0, 8).map((url) => (
+                    <div key={url} style={{ width: 86, height: 86, borderRadius: 12, overflow: 'hidden', background: 'rgba(255,255,255,0.04)' }}>
+                      <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

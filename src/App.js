@@ -26,6 +26,7 @@ import Registration from "./User/Pages/Registration";
 // ── Protected user pages ──────────────────────────────────────────────────
 import Payment      from "./User/Pages/Payment";
 import BankDeposit  from "./User/Pages/BankDeposite";
+import MyOrders     from "./User/Pages/MyOrders";
 
 // ── Misc ──────────────────────────────────────────────────────────────────
 import Unauthorized from "./User/Pages/Unauthorized";
@@ -68,6 +69,7 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/payment"      element={<Payment />} />
               <Route path="/bank-deposit" element={<BankDeposit />} />
+              <Route path="/my-orders"    element={<MyOrders />} />
             </Route>
 
             {/* ── Protected: Admin + SuperAdmin only ── */}

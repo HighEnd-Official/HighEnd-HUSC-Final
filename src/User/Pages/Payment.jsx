@@ -1,8 +1,10 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import NavBar from "../../components/NavBar";
-import Footer from "../../components/Footer";
-import { useCart } from "../../context/CartContext";
+import { useState } from "react"; 
+import { useNavigate } from "react-router-dom"; 
+import NavBar from "../../components/NavBar"; 
+import Footer from "../../components/Footer"; 
+import { useCart } from "../../context/CartContext"; 
+import { useAuth } from "../../context/AuthContext";
+import { apiFetch } from "../../api/client";
 
 /* ─── Styles ─────────────────────────────────────────────────────────────── */
 const STYLES = `
@@ -246,11 +248,12 @@ function Petal({ style }) {
 }
 
 /* ─── Main Payment Component ─────────────────────────────────────────────── */
-const Payment = () => {
-  const navigate = useNavigate();
-  const [paymentMethod, setPaymentMethod] = useState("card");
-  const [submitted, setSubmitted] = useState(false);
-  const [form, setForm] = useState({ cardholderName: "", cardNumber: "", expiry: "", cvc: "" });
+const Payment = () => { 
+  const navigate = useNavigate(); 
+  const [paymentMethod, setPaymentMethod] = useState("card"); 
+  const [submitted, setSubmitted] = useState(false); 
+  const [form, setForm] = useState({ cardholderName: "", cardNumber: "", expiry: "", cvc: "" }); 
+  const [customer, setCustomer] = useState({ name: "", email: "", phone: "", addressLine1: "", addressLine2: "", city: "", postalCode: "", country: "Sri Lanka" });
 
   // — Cart context (replace with real hook in your project) —
   const {
@@ -267,17 +270,57 @@ const Payment = () => {
   removePromoCode = () => {},
   totalPrice = 0,
   clear = () => {},
-} = useCart();
+} = useCart(); 
 
-  const handleChange = (e) => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
+  const { isAuthenticated } = useAuth();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (form.cardholderName && form.cardNumber && form.expiry && form.cvc) {
-      setSubmitted(true);
-      setTimeout(() => { clear(); navigate("/", { replace: true }); }, 3200);
+  const toCents = (amount) => Math.round((Number(amount) || 0) * 100);
+  const buildOrderPayload = (method) => ({
+    paymentMethod: method,
+    promoCode: promoCode || null,
+    shippingCents: toCents(shippingCost),
+    discountCents: toCents(discountAmount),
+    currency: "LKR",
+    customer: {
+      name: customer.name || null,
+      email: customer.email || null,
+      phone: customer.phone || null,
+      addressLine1: customer.addressLine1 || null,
+      addressLine2: customer.addressLine2 || null,
+      city: customer.city || null,
+      postalCode: customer.postalCode || null,
+      country: customer.country || null,
+    },
+    items: (items || []).map((it) => ({
+      productId: null,
+      productName: it.name,
+      unitPriceCents: toCents(it.price),
+      quantity: it.qty,
+      size: it.size || null,
+      color: it.color || null,
+    })),
+  });
+ 
+  const handleChange = (e) => setForm(p => ({ ...p, [e.target.name]: e.target.value })); 
+  const handleCustomerChange = (e) => setCustomer(p => ({ ...p, [e.target.name]: e.target.value }));
+ 
+  const handleSubmit = async (e) => { 
+    e.preventDefault(); 
+    if (!isAuthenticated) { 
+      navigate("/signin", { state: { from: { pathname: "/payment" } } }); 
+      return; 
+    } 
+    if (!items?.length) return;
+    if (!(form.cardholderName && form.cardNumber && form.expiry && form.cvc)) return;
+
+    try {
+      await apiFetch("/orders", { method: "POST", body: JSON.stringify(buildOrderPayload("Card")) });
+      setSubmitted(true); 
+      setTimeout(() => { clear(); navigate("/", { replace: true }); }, 3200); 
+    } catch (err) {
+      alert(err?.message || "Failed to place order.");
     }
-  };
+  }; 
 
   return (
     <div className="pay-body">
@@ -322,13 +365,34 @@ const Payment = () => {
                     Thank you for shopping with HUES. Redirecting you home…
                   </p>
                 </div>
-              ) : (
-                <>
-                  {/* Method tabs */}
-                  <div className="flex gap-8 border-b mb-10" style={{ borderColor: "rgba(210,155,185,0.28)" }}>
-                    {[{ k: "card", label: "Card Payment" }, { k: "bank", label: "Bank Deposit" }].map(({ k, label }) => (
-                      <button key={k} className={`pay-tab${paymentMethod === k ? " active" : ""}`} onClick={() => setPaymentMethod(k)}>
-                        {label}
+              ) : ( 
+                <> 
+                  {/* Shipping details */} 
+                  <div style={{ marginBottom: 26 }}> 
+                    <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 800, letterSpacing: ".18em", textTransform: "uppercase", color: "#9a7088", marginBottom: 12 }}> 
+                      Shipping Details 
+                    </p> 
+                    <div className="flex flex-col gap-6"> 
+                      <div className="grid grid-cols-2 gap-8"> 
+                        <Field label="Full Name" name="name" placeholder="Your name" value={customer.name} onChange={handleCustomerChange} /> 
+                        <Field label="Phone" name="phone" placeholder="07x xxx xxxx" value={customer.phone} onChange={handleCustomerChange} /> 
+                      </div> 
+                      <Field label="Email (optional)" name="email" placeholder="email@example.com" value={customer.email} onChange={handleCustomerChange} /> 
+                      <Field label="Address Line 1" name="addressLine1" placeholder="House no, street" value={customer.addressLine1} onChange={handleCustomerChange} /> 
+                      <Field label="Address Line 2 (optional)" name="addressLine2" placeholder="Apartment, landmark" value={customer.addressLine2} onChange={handleCustomerChange} /> 
+                      <div className="grid grid-cols-3 gap-8"> 
+                        <Field label="City" name="city" placeholder="Colombo" value={customer.city} onChange={handleCustomerChange} /> 
+                        <Field label="Postal Code" name="postalCode" placeholder="00100" value={customer.postalCode} onChange={handleCustomerChange} /> 
+                        <Field label="Country" name="country" placeholder="Sri Lanka" value={customer.country} onChange={handleCustomerChange} /> 
+                      </div> 
+                    </div> 
+                  </div> 
+
+                  {/* Method tabs */} 
+                  <div className="flex gap-8 border-b mb-10" style={{ borderColor: "rgba(210,155,185,0.28)" }}> 
+                    {[{ k: "card", label: "Card Payment" }, { k: "bank", label: "Bank Deposit" }].map(({ k, label }) => ( 
+                      <button key={k} className={`pay-tab${paymentMethod === k ? " active" : ""}`} onClick={() => setPaymentMethod(k)}> 
+                        {label} 
                       </button>
                     ))}
                   </div>

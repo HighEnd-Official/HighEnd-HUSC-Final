@@ -131,22 +131,22 @@ export default function SignIn() {
     return "/";
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setError("");
-    if (!email.trim()) { setError("Please enter your email or username."); return; }
-    if (!password)     { setError("Please enter your password."); return; }
-    if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
-
-    setLoading(true);
-    setTimeout(() => {
-      const result = login(email, password);
-      setLoading(false);
-      if (!result.success) { setError(result.error); return; }
-      setSuccess(true);
-      setTimeout(() => navigate(roleRedirect(result.role), { replace: true }), 1400);
-    }, 900);
-  };
+  const handleSubmit = (e) => { 
+    e.preventDefault(); 
+    setError(""); 
+    if (!email.trim()) { setError("Please enter your email or username."); return; } 
+    if (!password)     { setError("Please enter your password."); return; } 
+    if (password.length < 6) { setError("Password must be at least 6 characters."); return; } 
+ 
+    setLoading(true); 
+    setTimeout(async () => { 
+      const result = await login(email, password); 
+      setLoading(false); 
+      if (!result.success) { setError(result.error); return; } 
+      setSuccess(true); 
+      setTimeout(() => navigate(roleRedirect(result.role), { replace: true }), 1400); 
+    }, 900); 
+  }; 
 
   return (
     <>

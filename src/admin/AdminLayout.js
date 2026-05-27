@@ -46,7 +46,7 @@ export default function AdminLayout() {
         </nav>
 
         <div className="admin-sidehint">
-          Data is stored in your browser (localStorage) for now.
+          Data is loaded from the backend API (products/orders). Expenses remain local for now.
         </div>
 
         {/* Logout */}

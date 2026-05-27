@@ -1,6 +1,6 @@
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import '../admin.css';
-import { getOrders, updateOrderStatus } from '../lib/repo';
+import { getOrders, updateOrderStatus } from '../lib/apiRepo';
 import { ORDER_STATUSES, statusColor } from '../lib/domain';
 import { orderTotals } from '../lib/metrics';
 import { formatMoneyLKR } from '../lib/format';
@@ -19,11 +19,25 @@ export default function Orders() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [query, setQuery] = useState('');
   const [expanded, setExpanded] = useState(() => new Set());
+  const [ordersState, setOrdersState] = useState([]);
 
   const orders = useMemo(() => {
     void refresh;
-    const list = getOrders();
-    return [...list].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+    return [...ordersState].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+  }, [ordersState, refresh]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getOrders()
+      .then((list) => {
+        if (!cancelled) setOrdersState(list);
+      })
+      .catch(() => {
+        if (!cancelled) setOrdersState([]);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [refresh]);
 
   const filtered = useMemo(() => {
@@ -34,7 +48,9 @@ export default function Orders() {
       return (
         String(o.id).toLowerCase().includes(q) ||
         String(o.customerName || '').toLowerCase().includes(q) ||
-        String(o.customerPhone || '').toLowerCase().includes(q)
+        String(o.customerPhone || '').toLowerCase().includes(q) ||
+        String(o.customerEmail || '').toLowerCase().includes(q) ||
+        o.items?.some((it) => String(it.name || '').toLowerCase().includes(q))
       );
     });
   }, [orders, query, statusFilter]);
@@ -48,8 +64,8 @@ export default function Orders() {
     });
   }
 
-  function onStatusChange(orderId, nextStatus) {
-    updateOrderStatus(orderId, nextStatus);
+  async function onStatusChange(orderId, nextStatus) {
+    await updateOrderStatus(orderId, nextStatus);
     setRefresh((x) => x + 1);
   }
 
@@ -141,6 +157,34 @@ export default function Orders() {
                     <tr>
                       <td colSpan={7} style={{ background: 'rgba(255,255,255,0.02)' }}>
                         <div className="grid" style={{ gap: 10 }}>
+                          <div className="toolbar" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                              <div className="muted" style={{ fontSize: 12 }}>Customer</div>
+                              <div style={{ fontWeight: 800 }}>{o.customerName || '-'}</div>
+                              <div className="muted" style={{ fontSize: 12 }}>
+                                {(o.customerPhone || '').trim() ? `Phone: ${o.customerPhone}` : ''}
+                                {(o.customerEmail || '').trim() ? `  Email: ${o.customerEmail}` : ''}
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <div className="muted" style={{ fontSize: 12 }}>Payment</div>
+                              <div style={{ fontWeight: 850 }}>{o.paymentMethod || '-'}</div>
+                              <div className="muted" style={{ fontSize: 12 }}>
+                                Subtotal {formatMoneyLKR(o.subtotal || 0)} · Shipping {formatMoneyLKR(o.shipping || 0)} · Discount {formatMoneyLKR(o.discount || 0)}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>Shipping Address</div>
+                            <div style={{ fontWeight: 700 }}>
+                              {o.address?.line1 || '-'}
+                            </div>
+                            {o.address?.line2 ? <div className="muted" style={{ fontSize: 12 }}>{o.address.line2}</div> : null}
+                            <div className="muted" style={{ fontSize: 12 }}>
+                              {[o.address?.city, o.address?.postalCode, o.address?.country].filter(Boolean).join(' · ')}
+                            </div>
+                          </div>
                           <div className="muted" style={{ fontSize: 12 }}>
                             Items
                           </div>
@@ -148,6 +192,8 @@ export default function Orders() {
                             <thead>
                               <tr>
                                 <th>Product</th>
+                                <th>Size</th>
+                                <th>Color</th>
                                 <th>Qty</th>
                                 <th>Price</th>
                                 <th>Line Total</th>
@@ -157,13 +203,15 @@ export default function Orders() {
                               {o.items.map((it, idx) => (
                                 <tr key={`${o.id}:${idx}`}>
                                   <td style={{ fontWeight: 700 }}>{it.name}</td>
+                                  <td className="muted">{it.size || '-'}</td>
+                                  <td className="muted">{it.color || '-'}</td>
                                   <td>{it.qty}</td>
                                   <td>{formatMoneyLKR(it.price)}</td>
                                   <td style={{ fontWeight: 750 }}>{formatMoneyLKR(it.price * it.qty)}</td>
                                 </tr>
                               ))}
                               <tr>
-                                <td colSpan={3} style={{ textAlign: 'right', fontWeight: 800 }}>
+                                <td colSpan={5} style={{ textAlign: 'right', fontWeight: 800 }}>
                                   Total
                                 </td>
                                 <td style={{ fontWeight: 900 }}>{formatMoneyLKR(totals.revenue)}</td>

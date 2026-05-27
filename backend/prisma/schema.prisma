@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  User
+  Admin
+  SuperAdmin
+}
+
+enum PaymentMethod {
+  Card
+  BankDeposit
+  CashOnDelivery
+}
+
+model User {
+  id           String    @id @default(cuid())
+  username     String
+  email        String    @unique
+  passwordHash String
+  role         UserRole  @default(User)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  orders       Order[]
+}
+
+model Product {
+  id            String          @id @default(cuid())
+  name          String          @unique
+  sku           String?         @unique
+  category      String?
+  subtitle      String?
+  collection    String?
+  description   String?         @db.Text
+  badge         String?
+  badgeColorHex String?
+  priceCents    Int
+  costCents     Int             @default(0)
+  stock         Int             @default(0)
+  coverImageUrl String?
+  originalCents Int?
+  currency      String          @default("LKR")
+  rating        Decimal?        @db.Decimal(3, 2)
+  reviewsCount  Int             @default(0)
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  images        ProductImage[]
+  details       ProductDetail[]
+  sizes         ProductSize[]
+  colors        ProductColor[]
+  orderItems    OrderItem[]
+
+  @@index([isActive])
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  url       String
+  sortOrder Int      @default(0)
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, sortOrder])
+}
+
+model ProductDetail {
+  id        String   @id @default(cuid())
+  productId String
+  text      String
+  sortOrder Int      @default(0)
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, sortOrder])
+}
+
+model ProductSize {
+  id        String   @id @default(cuid())
+  productId String
+  code      String   // e.g. XS, S, M, L, XL
+  sortOrder Int      @default(0)
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, code])
+  @@index([productId, sortOrder])
+}
+
+model ProductColor {
+  id        String   @id @default(cuid())
+  productId String
+  name      String
+  hex       String?
+  sortOrder Int      @default(0)
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, name])
+  @@index([productId, sortOrder])
+}
+
+model Order {
+  id              String         @id @default(cuid())
+  userId          String?
+  status          String         @default("order pending") // simple string status for flexibility
+  currency        String         @default("LKR")
+  subtotalCents   Int
+  shippingCents   Int
+  discountCents   Int            @default(0)
+  totalCents      Int
+  paymentMethod   PaymentMethod
+  promoCode       String?
+  notes           String?        @db.Text
+
+  customerName    String?
+  customerEmail   String?
+  phone           String?
+  addressLine1    String?
+  addressLine2    String?
+  city            String?
+  postalCode      String?
+  country         String?
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  user            User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items           OrderItem[]
+  payments        Payment[]
+
+  @@index([userId, createdAt])
+}
+
+model OrderItem {
+  id            String   @id @default(cuid())
+  orderId       String
+  productId     String?
+  productName   String
+  unitPriceCents Int
+  quantity      Int
+  size          String?
+  color         String?
+
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product       Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  orderId       String
+  method        PaymentMethod
+  status        String        @default("Initiated")
+  amountCents   Int
+  currency      String        @default("LKR")
+  reference     String?
+  attachmentUrl String?
+  createdAt     DateTime      @default(now())
+
+  order         Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+}

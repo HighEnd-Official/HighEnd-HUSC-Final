@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import '../admin.css';
 import {
   Bar,
@@ -12,7 +12,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { addExpense, getExpenses, getOrders } from '../lib/repo';
+import { addExpense, getExpenses } from '../lib/repo';
+import { getOrders } from '../lib/apiRepo';
 import { todayISO } from '../lib/storage';
 import { dashboardSummary, orderTotals, buildDailySeries, buildMonthlySeries } from '../lib/metrics';
 import { formatMoneyLKR } from '../lib/format';
@@ -34,6 +35,7 @@ function tooltipFormatter(value) {
 
 export default function Dashboard() {
   const [refresh, setRefresh] = useState(0);
+  const [ordersState, setOrdersState] = useState([]);
   const [expenseForm, setExpenseForm] = useState({
     date: todayISO(),
     category: 'General',
@@ -43,11 +45,25 @@ export default function Dashboard() {
 
   const orders = useMemo(() => {
     void refresh;
-    return getOrders();
-  }, [refresh]);
+    return ordersState;
+  }, [ordersState, refresh]);
   const expenses = useMemo(() => {
     void refresh;
     return getExpenses();
+  }, [refresh]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getOrders()
+      .then((list) => {
+        if (!cancelled) setOrdersState(list);
+      })
+      .catch(() => {
+        if (!cancelled) setOrdersState([]);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [refresh]);
   const summary = useMemo(
     () => dashboardSummary({ orders, expenses, todayISO: todayISO() }),

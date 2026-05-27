@@ -161,24 +161,24 @@ const Registration = () => {
     setStep(1);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setError("");
-    if (!form.email.trim()) { setError("Please enter your email address."); return; }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.email.trim())) { setError("Please enter a valid email address."); return; }
-    if (!form.password) { setError("Please enter a password."); return; }
-    if (form.password.length < 6) { setError("Password must be at least 6 characters."); return; }
-
-    setLoading(true);
-    setTimeout(() => {
-      const result = register(form.name, form.email, form.password);
-      setLoading(false);
-      if (!result.success) { setError(result.error); return; }
-      setSuccess(true);
-      setTimeout(() => navigate("/signin"), 1800);
-    }, 900);
-  };
+  const handleSubmit = (e) => { 
+    e.preventDefault(); 
+    setError(""); 
+    if (!form.email.trim()) { setError("Please enter your email address."); return; } 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
+    if (!emailRegex.test(form.email.trim())) { setError("Please enter a valid email address."); return; } 
+    if (!form.password) { setError("Please enter a password."); return; } 
+    if (form.password.length < 6) { setError("Password must be at least 6 characters."); return; } 
+ 
+    setLoading(true); 
+    setTimeout(async () => { 
+      const result = await register(form.name, form.email, form.password); 
+      setLoading(false); 
+      if (!result.success) { setError(result.error); return; } 
+      setSuccess(true); 
+      setTimeout(() => navigate("/signin"), 1800); 
+    }, 900); 
+  }; 
 
   return (
     <>

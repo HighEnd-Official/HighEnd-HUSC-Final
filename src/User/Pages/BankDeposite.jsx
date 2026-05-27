@@ -1,8 +1,10 @@
-import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { useCart } from "../../context/CartContext";
-import NavBar from "../../components/NavBar";
-import Footer from "../../components/Footer";
+import { useState, useRef } from "react"; 
+import { useNavigate } from "react-router-dom"; 
+import { useCart } from "../../context/CartContext"; 
+import NavBar from "../../components/NavBar"; 
+import Footer from "../../components/Footer"; 
+import { useAuth } from "../../context/AuthContext";
+import { apiFetch } from "../../api/client";
 
 /* ─── Styles ─────────────────────────────────────────────────────────────── */
 const STYLES = `
@@ -217,9 +219,11 @@ function CopyBtn({ text }) {
 }
 
 /* ─── Main Component ───────────────────────────────────────────────────── */
-const BankDeposit = () => {
-  const navigate = useNavigate();
-  const { clear, totalPrice, items = [], subtotal = 0, shippingCost = 0 } = useCart();
+const BankDeposit = () => { 
+  const navigate = useNavigate(); 
+  const { clear, totalPrice, items = [], subtotal = 0, shippingCost = 0 } = useCart(); 
+  const { isAuthenticated } = useAuth();
+  const [customer, setCustomer] = useState({ name: "", phone: "", email: "", addressLine1: "", addressLine2: "", city: "", postalCode: "", country: "Sri Lanka" });
 
   const [fileName, setFileName] = useState(null);
   const [fileSize, setFileSize] = useState(null);
@@ -231,17 +235,56 @@ const BankDeposit = () => {
     const file = e.target.files?.[0];
     if (file) { setFileName(file.name); setFileSize((file.size / 1024).toFixed(0) + " KB"); }
   };
-  const handleDrop = (e) => {
-    e.preventDefault(); setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) { setFileName(file.name); setFileSize((file.size / 1024).toFixed(0) + " KB"); }
-  };
+  const handleDrop = (e) => { 
+    e.preventDefault(); setIsDragging(false); 
+    const file = e.dataTransfer.files?.[0]; 
+    if (file) { setFileName(file.name); setFileSize((file.size / 1024).toFixed(0) + " KB"); } 
+  }; 
+  const handleCustomerChange = (e) => setCustomer(p => ({ ...p, [e.target.name]: e.target.value }));
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => { clear(); navigate("/", { replace: true }); }, 3500);
-  };
+  const toCents = (amount) => Math.round((Number(amount) || 0) * 100);
+  const buildOrderPayload = () => ({
+    paymentMethod: "BankDeposit",
+    promoCode: null,
+    shippingCents: toCents(shippingCost),
+    discountCents: 0,
+    currency: "LKR",
+    customer: {
+      name: customer.name || null,
+      email: customer.email || null,
+      phone: customer.phone || null,
+      addressLine1: customer.addressLine1 || null,
+      addressLine2: customer.addressLine2 || null,
+      city: customer.city || null,
+      postalCode: customer.postalCode || null,
+      country: customer.country || null,
+    },
+    items: (items || []).map((it) => ({
+      productId: null,
+      productName: it.name,
+      unitPriceCents: toCents(it.price),
+      quantity: it.qty,
+      size: it.size || null,
+      color: it.color || null,
+    })),
+  });
+
+  const handleSubmit = async (e) => { 
+    e.preventDefault(); 
+    if (!isAuthenticated) { 
+      navigate("/signin", { state: { from: { pathname: "/bank-deposit" } } }); 
+      return; 
+    } 
+    if (!items?.length) return;
+
+    try {
+      await apiFetch("/orders", { method: "POST", body: JSON.stringify(buildOrderPayload()) });
+      setSubmitted(true); 
+      setTimeout(() => { clear(); navigate("/", { replace: true }); }, 3500); 
+    } catch (err) {
+      alert(err?.message || "Failed to place order.");
+    }
+  }; 
 
   return (
     <div className="bd-page">
@@ -317,8 +360,8 @@ const BankDeposit = () => {
               ))}
             </div>
 
-            {/* Steps card */}
-            <div className="bd-glass p-8 bd-fade-3">
+            {/* Steps card */} 
+            <div className="bd-glass p-8 bd-fade-3"> 
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:20 }}>
                 <div style={{
                   width:36, height:36, borderRadius:"50%",
@@ -337,10 +380,96 @@ const BankDeposit = () => {
                   <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"#6a4858", lineHeight:1.65, paddingTop:3 }}>{text}</p>
                 </div>
               ))}
-            </div>
-
-            {/* Upload card */}
-            <div className="bd-glass p-8 bd-fade-4">
+            </div> 
+ 
+            {/* Shipping details card */} 
+            <div className="bd-glass p-8 bd-fade-4"> 
+              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:18 }}> 
+                <div style={{ 
+                  width:36, height:36, borderRadius:"50%", 
+                  background:"linear-gradient(135deg,rgba(200,120,160,0.15),rgba(240,180,210,0.10))", 
+                  border:"1.5px solid rgba(210,155,185,0.30)", 
+                  display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, 
+                }}>🏷️</div> 
+                <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, letterSpacing:".20em", textTransform:"uppercase", color:"#b84070" }}> 
+                  Shipping Details 
+                </span> 
+              </div> 
+ 
+              <div style={{ display:"grid", gap:12 }}> 
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}> 
+                  <input 
+                    className="bd-input" 
+                    name="name" 
+                    value={customer.name} 
+                    onChange={handleCustomerChange} 
+                    placeholder="Full name" 
+                    style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }} 
+                  /> 
+                  <input 
+                    className="bd-input" 
+                    name="phone" 
+                    value={customer.phone} 
+                    onChange={handleCustomerChange} 
+                    placeholder="Phone" 
+                    style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }} 
+                  /> 
+                </div> 
+                <input 
+                  className="bd-input" 
+                  name="email" 
+                  value={customer.email} 
+                  onChange={handleCustomerChange} 
+                  placeholder="Email (optional)" 
+                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }} 
+                /> 
+                <input 
+                  className="bd-input" 
+                  name="addressLine1" 
+                  value={customer.addressLine1} 
+                  onChange={handleCustomerChange} 
+                  placeholder="Address line 1" 
+                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }} 
+                /> 
+                <input 
+                  className="bd-input" 
+                  name="addressLine2" 
+                  value={customer.addressLine2} 
+                  onChange={handleCustomerChange} 
+                  placeholder="Address line 2 (optional)" 
+                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }} 
+                /> 
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}> 
+                  <input 
+                    className="bd-input" 
+                    name="city" 
+                    value={customer.city} 
+                    onChange={handleCustomerChange} 
+                    placeholder="City" 
+                    style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }} 
+                  /> 
+                  <input 
+                    className="bd-input" 
+                    name="postalCode" 
+                    value={customer.postalCode} 
+                    onChange={handleCustomerChange} 
+                    placeholder="Postal code" 
+                    style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }} 
+                  /> 
+                  <input 
+                    className="bd-input" 
+                    name="country" 
+                    value={customer.country} 
+                    onChange={handleCustomerChange} 
+                    placeholder="Country" 
+                    style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }} 
+                  /> 
+                </div> 
+              </div> 
+            </div> 
+ 
+            {/* Upload card */} 
+            <div className="bd-glass p-8 bd-fade-4"> 
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:22 }}>
                 <div style={{
                   width:36, height:36, borderRadius:"50%",

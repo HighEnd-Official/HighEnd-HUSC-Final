@@ -918,6 +918,9 @@ export default function NavBar() {
                   </span>
                   {user.role} · {user.username.split(" ")[0]}
                 </span>
+                <ActionBtn onClick={() => navigate("/my-orders")} label="My orders">
+                  <span aria-hidden="true" style={{ fontSize: 14, lineHeight: 1 }}>✦</span>
+                </ActionBtn>
                 <ActionBtn onClick={handleLogout} label="Sign out">
                   <IconLogout/>
                 </ActionBtn>
