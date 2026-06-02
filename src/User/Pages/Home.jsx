@@ -1,11 +1,24 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NavBar from "../../components/NavBar";
 import Footer from "../../components/Footer";
 import QuickView from "./Collection/QuickView";
 import { useCart } from "../../context/CartContext";
+import { apiFetch, getApiBaseUrl } from "../../api/client";
 
-const PRODUCTS = [
+const localProductImages = require.context("../../assets/images", true, /\.(png|jpe?g|webp)$/i);
+const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=600&h=800&fit=crop";
+const normalizeSizeCodes = (sizes = []) =>
+  Array.from(
+    new Set(
+      (Array.isArray(sizes) ? sizes : [])
+        .map((size) => (typeof size === "string" ? size : size?.code))
+        .map((size) => String(size || "").trim())
+        .filter(Boolean)
+    )
+  );
+
+const STATIC_PRODUCTS = [
   {
     id: 1,
     name: "Tailored Crepe Blazer",
@@ -120,15 +133,110 @@ const PRODUCTS = [
   }
 ];
 
+function centsToLkr(cents) {
+  return (Number(cents) || 0) / 100;
+}
+
+function formatLkr(cents) {
+  return `Rs. ${centsToLkr(cents).toLocaleString("en-LK", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function resolveImageUrl(url) {
+  if (!url) return FALLBACK_IMAGE;
+  if (String(url).startsWith("/src/assets/images/")) {
+    const assetKey = `.${String(url).replace("/src/assets/images", "")}`;
+    try {
+      return localProductImages(assetKey);
+    } catch {
+      return FALLBACK_IMAGE;
+    }
+  }
+  if (String(url).startsWith("/uploads/")) {
+    return `${getApiBaseUrl()}${url}`;
+  }
+  return url;
+}
+
+function productToHomeShape(product) {
+  const images = (product.images || []).map((image) => resolveImageUrl(image.url)).filter(Boolean);
+  const mainImage = resolveImageUrl(product.coverImageUrl || product.images?.[0]?.url);
+  const sizes = normalizeSizeCodes(product.sizes);
+  return {
+    id: product.id,
+    name: product.name,
+    price: formatLkr(product.priceCents),
+    priceValue: centsToLkr(product.priceCents),
+    badge: product.badge || "New Arrival",
+    badgeColor: product.badgeColorHex || "#e05585",
+    category: product.category || "Collection",
+    image: mainImage,
+    images: images.length ? images : [mainImage],
+    stars: Math.max(0, Math.min(5, Math.round(Number(product.rating) || 5))),
+    reviews: Number(product.reviewsCount) || 0,
+    description: product.description || product.subtitle || "",
+    collection: product.collection || "The Atelier Collection",
+    stock: Number(product.stock) || 0,
+    details: (product.details || []).map((detail) => detail.text),
+    sizes,
+    sizeSummary: sizes.length > 3 ? `${sizes.slice(0, 2).join(", ")} +${sizes.length - 2}` : sizes.join(", "),
+    hasManagedSizes: true,
+    colors: (product.colors || []).map((color) => ({
+      id: color.id,
+      name: color.name,
+      hex: color.hex,
+    })),
+  };
+}
+
 export default function Home() {
   const navigate = useNavigate();
   const { toggleWishlist, isInWishlist } = useCart();
   const [activeCategory, setActiveCategory] = useState("All");
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [products, setProducts] = useState(STATIC_PRODUCTS);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [productsError, setProductsError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoadingProducts(true);
+    apiFetch("/products")
+      .then((data) => {
+        if (cancelled) return;
+        const nextProducts = (data.products || []).map(productToHomeShape);
+        if (nextProducts.length) {
+          setProducts(nextProducts);
+          setProductsError("");
+        } else {
+          setProductsError("No backend products found.");
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) setProductsError(error?.message || "Unable to load backend products.");
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingProducts(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const categories = useMemo(() => {
+    return ["All", ...Array.from(new Set(products.map((product) => product.category).filter(Boolean)))];
+  }, [products]);
+
+  useEffect(() => {
+    if (!categories.includes(activeCategory)) setActiveCategory("All");
+  }, [activeCategory, categories]);
 
   const filteredProducts = activeCategory === "All"
-    ? PRODUCTS
-    : PRODUCTS.filter(p => p.category === activeCategory);
+    ? products
+    : products.filter(p => p.category === activeCategory);
 
   return (
     <div className="hues-root pt-[72px]">
@@ -375,7 +483,7 @@ export default function Home() {
       </div>
 
       <div className="filter-row">
-        {["All", "Dresses", "Tops", "Trousers", "Bags", "Accessories"].map((cat) => (
+        {categories.map((cat) => (
           <button
             key={cat}
             className={`pill ${activeCategory === cat ? "active" : ""}`}
@@ -386,14 +494,23 @@ export default function Home() {
         ))}
       </div>
 
+      {(isLoadingProducts || productsError) && (
+        <div style={{ textAlign: "center", marginTop: -20, marginBottom: 28, color: "var(--color-on-surface-variant)", fontSize: 12 }}>
+          {isLoadingProducts ? "Loading latest collection..." : productsError}
+        </div>
+      )}
+
       <div className="product-grid">
         {filteredProducts.map((p) => {
           const wishlisted = isInWishlist(p.id);
+          const outOfStock = Number(p.stock) <= 0;
           return (
             <div key={p.id} className="product-card" onClick={() => setSelectedProduct(p)}>
               <div className="product-img-wrap">
                 <img className="product-img" src={p.image} alt={p.name} loading="lazy" />
-                <span className="product-badge" style={{ background: p.badgeColor }}>{p.badge}</span>
+                <span className="product-badge" style={{ background: outOfStock ? "#4a4045" : p.badgeColor }}>
+                  {outOfStock ? "Out of Stock" : p.badge}
+                </span>
                 <button
                   className="quick-view"
                   onClick={(e) => {
@@ -427,6 +544,9 @@ export default function Home() {
                 <div className="stars">
                   {"★".repeat(p.stars) + "☆".repeat(5 - p.stars)}
                   <span>({p.reviews})</span>
+                </div>
+                <div style={{ marginTop: 8, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--color-on-surface-variant)" }}>
+                  {p.sizes?.length ? `Sizes: ${p.sizeSummary || p.sizes.join(", ")}` : "One size / custom fit"}
                 </div>
               </div>
             </div>

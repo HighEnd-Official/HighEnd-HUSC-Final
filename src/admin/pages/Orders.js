@@ -169,6 +169,21 @@ export default function Orders() {
                             <div style={{ textAlign: 'right' }}>
                               <div className="muted" style={{ fontSize: 12 }}>Payment</div>
                               <div style={{ fontWeight: 850 }}>{o.paymentMethod || '-'}</div>
+                              {o.paymentProofUrl ? (
+                                <a
+                                  className="btn"
+                                  href={o.paymentProofUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  style={{ marginTop: 8, display: 'inline-flex' }}
+                                >
+                                  View customer invoice
+                                </a>
+                              ) : (
+                                <div className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+                                  No customer invoice uploaded
+                                </div>
+                              )}
                               <div className="muted" style={{ fontSize: 12 }}>
                                 Subtotal {formatMoneyLKR(o.subtotal || 0)} · Shipping {formatMoneyLKR(o.shipping || 0)} · Discount {formatMoneyLKR(o.discount || 0)}
                               </div>

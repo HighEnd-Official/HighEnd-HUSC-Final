@@ -152,9 +152,10 @@ function WishlistPanel({ wishlist, toggleWishlist, addItem, onClose }) {
                 </span>
                 <button
                   className="hues-wishlist-item__add"
+                  disabled={Number(item.stock) <= 0}
                   onClick={() => addItem(item, "XS", 1)}
                 >
-                  Add to bag
+                  {Number(item.stock) <= 0 ? "Out of stock" : "Add to bag"}
                 </button>
               </div>
               <button
@@ -651,9 +652,15 @@ export default function NavBar() {
           text-transform: uppercase; overflow: hidden;
         }
         .hues-announce__track {
-          display: flex; gap: 80px;
+          display: flex;
+          width: max-content;
           animation: huesMarquee 22s linear infinite;
           white-space: nowrap;
+          will-change: transform;
+        }
+        .hues-announce__track > span {
+          flex: 0 0 auto;
+          padding-right: 80px;
         }
         @keyframes huesMarquee {
           from { transform: translateX(0); }
@@ -853,12 +860,12 @@ export default function NavBar() {
                   {link.dropdown && (
                     <div className="hues-dropdown" role="menu">
                       {link.dropdown.map((d, i) => (
-                        <>
-                          {i === 1 && <div key={`div-${i}`} className="hues-dropdown__divider"/>}
-                          <Link key={d.to} to={d.to} className="hues-dropdown__link" role="menuitem">
+                        <div key={d.to}>
+                          {i === 1 && <div className="hues-dropdown__divider"/>}
+                          <Link to={d.to} className="hues-dropdown__link" role="menuitem">
                             {d.label}
                           </Link>
-                        </>
+                        </div>
                       ))}
                     </div>
                   )}

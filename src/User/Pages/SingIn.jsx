@@ -320,6 +320,7 @@ export default function SignIn() {
           display: flex;
           align-items: center;
           justify-content: center;
+          margin-top: 140px;
           padding: 48px 40px;
           background: #fdf7fa;
           position: relative;
@@ -561,7 +562,7 @@ export default function SignIn() {
                     </header>
 
                     {/* ── Demo hint ── */}
-                    <div
+                    {/* <div
                       className="si-demo-hint"
                       style={{ animation: mounted ? "fadeSlideUp 0.7s 0.5s ease both" : "none" }}
                     >
@@ -569,7 +570,7 @@ export default function SignIn() {
                       admin@hues.com / admin123 &nbsp;<span style={{ color: "#c07fa5" }}>Admin</span><br />
                       super@hues.com / super123 &nbsp;<span style={{ color: "#c07fa5" }}>SuperAdmin</span><br />
                       user@hues.com / user123 &nbsp;&nbsp;&nbsp;<span style={{ color: "#c07fa5" }}>User</span>
-                    </div>
+                    </div> */}
 
                     {/* ── Error ── */}
                     {error && <div className="si-error">✦ {error}</div>}

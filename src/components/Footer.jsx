@@ -101,7 +101,7 @@ export default function Footer() {
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
-            opacity: 0.28,
+            opacity: 0.25,
           }}
         >
           HUES

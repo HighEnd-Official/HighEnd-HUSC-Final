@@ -62,9 +62,11 @@ export const CartProvider = ({ children }) => {
         ...prev,
         {
           id: productId,
+          productId: product.productId || product.id,
           name: product.name,
           price: product.priceValue || product.price,
           image: product.images?.[0] || product.image,
+          stock: Number.isFinite(Number(product.stock)) ? Number(product.stock) : null,
         },
       ];
     });
@@ -76,26 +78,35 @@ export const CartProvider = ({ children }) => {
 
   const addItem = (product, size = "XS", qty = 1) => {
     const parsedPrice = parsePrice(product.priceValue || product.price);
+    const stock = Number(product.stock);
+    if (Number.isFinite(stock) && stock <= 0) return false;
+
+    const requestedQty = Math.max(1, Number(qty) || 1);
     setItems((prev) => {
       const existing = prev.find((p) => p.id === product.id && p.size === size);
       if (existing) {
+        const nextQty = Number.isFinite(stock) ? Math.min(stock, existing.qty + requestedQty) : existing.qty + requestedQty;
         return prev.map((p) =>
-          p.id === product.id && p.size === size ? { ...p, qty: p.qty + qty } : p
+          p.id === product.id && p.size === size ? { ...p, qty: nextQty, stock: Number.isFinite(stock) ? stock : p.stock } : p
         );
       }
       return [
         ...prev,
         {
           id: product.id,
+          productId: product.productId || product.id,
           name: product.name,
           price: parsedPrice,
           priceLabel: product.price || `Rs. ${parsedPrice.toFixed(2)}`,
           size,
-          qty,
+          qty: Number.isFinite(stock) ? Math.min(stock, requestedQty) : requestedQty,
+          stock: Number.isFinite(stock) ? stock : null,
+          color: product.color || "",
           image: product.images?.[0] || product.image,
         },
       ];
     });
+    return true;
   };
 
   const removeItem = (id, size) => {
@@ -104,9 +115,12 @@ export const CartProvider = ({ children }) => {
 
   const changeQuantity = (id, size, qty) => {
     setItems((prev) =>
-      prev.map((p) =>
-        p.id === id && p.size === size ? { ...p, qty: Math.max(1, qty) } : p
-      )
+      prev.map((p) => {
+        if (p.id !== id || p.size !== size) return p;
+        const stock = Number(p.stock);
+        const nextQty = Math.max(1, qty);
+        return { ...p, qty: Number.isFinite(stock) && stock > 0 ? Math.min(stock, nextQty) : nextQty };
+      })
     );
   };
 
@@ -117,23 +131,27 @@ export const CartProvider = ({ children }) => {
 
       if (currentSize === newSize) {
         return prev.map((p) =>
-          p.id === id && p.size === currentSize ? { ...p, qty: Math.max(1, newQty) } : p
+          p.id === id && p.size === currentSize
+            ? { ...p, qty: Number.isFinite(Number(p.stock)) && Number(p.stock) > 0 ? Math.min(Number(p.stock), Math.max(1, newQty)) : Math.max(1, newQty) }
+            : p
         );
       }
 
       const existingTarget = prev.find((p) => p.id === id && p.size === newSize);
       if (existingTarget) {
+        const targetStock = Number(existingTarget.stock);
+        const mergedQty = existingTarget.qty + Math.max(1, newQty);
         return prev
           .filter((p) => !(p.id === id && p.size === currentSize))
           .map((p) =>
             p.id === id && p.size === newSize
-              ? { ...p, qty: p.qty + Math.max(1, newQty) }
+              ? { ...p, qty: Number.isFinite(targetStock) && targetStock > 0 ? Math.min(targetStock, mergedQty) : mergedQty }
               : p
           );
       } else {
         return prev.map((p) =>
           p.id === id && p.size === currentSize
-            ? { ...p, size: newSize, qty: Math.max(1, newQty) }
+            ? { ...p, size: newSize, qty: Number.isFinite(Number(p.stock)) && Number(p.stock) > 0 ? Math.min(Number(p.stock), Math.max(1, newQty)) : Math.max(1, newQty) }
             : p
         );
       }

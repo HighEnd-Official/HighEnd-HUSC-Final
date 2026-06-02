@@ -4,6 +4,31 @@ import { deleteProduct, getProducts, upsertProduct } from '../lib/apiRepo';
 import { uid } from '../lib/storage';
 import { formatMoneyLKR } from '../lib/format';
 
+const acceptedImageTypes = ['image/png', 'image/jpeg', 'image/webp'];
+const sizeOptions = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One Size'];
+const colorPalette = ['#854c6f', '#b84070', '#c07098', '#e090b8', '#6aada9', '#486730', '#1f1a1d', '#f5ede0'];
+const normalizeSizeCodes = (sizes = []) =>
+  Array.from(
+    new Set(
+      (Array.isArray(sizes) ? sizes : [])
+        .map((size) => (typeof size === 'string' ? size : size?.code))
+        .map((size) => String(size || '').trim())
+        .filter(Boolean)
+    )
+  );
+const normalizeColors = (colors = []) =>
+  Array.from(
+    new Map(
+      (Array.isArray(colors) ? colors : [])
+        .map((color) => ({
+          name: String((typeof color === 'string' ? color : color?.name) || '').trim(),
+          hex: String(color?.hex || color?.colorHex || '').trim(),
+        }))
+        .filter((color) => color.name)
+        .map((color) => [color.name.toLowerCase(), color])
+    ).values()
+  );
+
 const emptyForm = () => ({
   id: '',
   name: '',
@@ -13,7 +38,31 @@ const emptyForm = () => ({
   cost: '',
   stock: '',
   imageUrl: '',
+  images: [],
+  imageUploads: [],
+  sizes: [],
+  colors: [],
 });
+
+function fileToImageUpload(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result || '');
+      const [, data = ''] = dataUrl.split(',');
+      resolve({
+        fileName: file.name,
+        contentType: file.type,
+        data,
+        previewUrl: dataUrl,
+      });
+    };
+    reader.onerror = () => reject(reader.error || new Error('Could not read image file.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+const uploadPayload = ({ fileName, contentType, data }) => ({ fileName, contentType, data });
 
 export default function Products() {
   const [refresh, setRefresh] = useState(0);
@@ -22,6 +71,7 @@ export default function Products() {
   const [query, setQuery] = useState('');
   const [productsState, setProductsState] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [imageError, setImageError] = useState('');
 
   const products = useMemo(() => {
     void refresh;
@@ -49,12 +99,26 @@ export default function Products() {
     );
   }, [products, query]);
 
+  const dashboardStats = useMemo(() => {
+    const totalStock = products.reduce((sum, product) => sum + (Number(product.stock) || 0), 0);
+    const sizeCodes = new Set(products.flatMap((product) => normalizeSizeCodes(product.sizes)));
+    const lowStockProducts = products.filter((product) => (Number(product.stock) || 0) <= 10).length;
+    return {
+      totalProducts: products.length,
+      totalStock,
+      sizeCount: sizeCodes.size,
+      lowStockProducts,
+    };
+  }, [products]);
+
   function startNew() {
     setEditingId('__new__');
     setForm({ ...emptyForm(), id: uid('prod') });
+    setImageError('');
   }
 
   function startEdit(product) {
+    const images = product.images?.length ? product.images : product.imageUrl ? [product.imageUrl] : [];
     setEditingId(product.id);
     setForm({
       id: product.id,
@@ -65,12 +129,79 @@ export default function Products() {
       cost: String(product.cost ?? ''),
       stock: String(product.stock ?? ''),
       imageUrl: product.imageUrl || '',
+      images,
+      imageUploads: [],
+      sizes: normalizeSizeCodes(product.sizes),
+      colors: normalizeColors(product.colors),
     });
+    setImageError('');
   }
 
   function cancel() {
     setEditingId('');
     setForm(emptyForm());
+    setImageError('');
+  }
+
+  async function onImageFilesChange(e) {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (!files.length) return;
+
+    const validFiles = files.filter((file) => acceptedImageTypes.includes(file.type) && file.size <= 5 * 1024 * 1024);
+    setImageError(validFiles.length === files.length ? '' : 'Some images were skipped. Use JPG, PNG or WebP under 5 MB.');
+    const uploads = await Promise.all(validFiles.map(fileToImageUpload));
+    setForm((s) => ({ ...s, imageUploads: [...s.imageUploads, ...uploads] }));
+  }
+
+  function addImageUrl() {
+    const url = form.imageUrl.trim();
+    if (!url) return;
+    setForm((s) => ({
+      ...s,
+      imageUrl: '',
+      images: s.images.includes(url) ? s.images : [...s.images, url],
+    }));
+  }
+
+  function removeExistingImage(url) {
+    setForm((s) => ({ ...s, images: s.images.filter((imageUrl) => imageUrl !== url) }));
+  }
+
+  function removeUploadedImage(index) {
+    setForm((s) => ({ ...s, imageUploads: s.imageUploads.filter((_, uploadIndex) => uploadIndex !== index) }));
+  }
+
+  function toggleSize(size) {
+    setForm((s) => ({
+      ...s,
+      sizes: s.sizes.includes(size)
+        ? s.sizes.filter((selectedSize) => selectedSize !== size)
+        : [...s.sizes, size],
+    }));
+  }
+
+  function addColor() {
+    setForm((s) => ({
+      ...s,
+      colors: [...normalizeColors(s.colors), { name: '', hex: '' }],
+    }));
+  }
+
+  function updateColor(index, field, value) {
+    setForm((s) => ({
+      ...s,
+      colors: s.colors.map((color, colorIndex) =>
+        colorIndex === index ? { ...color, [field]: value } : color
+      ),
+    }));
+  }
+
+  function removeColor(index) {
+    setForm((s) => ({
+      ...s,
+      colors: s.colors.filter((_, colorIndex) => colorIndex !== index),
+    }));
   }
 
   async function onSave(e) {
@@ -83,6 +214,11 @@ export default function Products() {
     if (!Number.isFinite(cost) || cost < 0) return;
     if (!Number.isFinite(stock) || stock < 0) return;
 
+    const pendingImageUrl = form.imageUrl.trim();
+    const images = pendingImageUrl && !form.images.includes(pendingImageUrl)
+      ? [...form.images, pendingImageUrl]
+      : form.images;
+
     await upsertProduct({
       id: form.id,
       name: form.name.trim(),
@@ -91,7 +227,11 @@ export default function Products() {
       price,
       cost,
       stock,
-      imageUrl: form.imageUrl.trim(),
+      imageUrl: images[0] || null,
+      images,
+      imageUploads: form.imageUploads.map(uploadPayload),
+      sizes: normalizeSizeCodes(form.sizes),
+      colors: normalizeColors(form.colors),
     });
     setRefresh((x) => x + 1);
     cancel();
@@ -106,16 +246,16 @@ export default function Products() {
   }
 
   return (
-    <div className="grid" style={{ gap: 14 }}>
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Products</h1>
-          <div className="page-subtitle">Add, update and manage your clothing products</div>
+    <div className="grid admin-products-page" style={{ gap: 16 }}>
+      <div className="card content-card admin-hero">
+        <div className="admin-hero__copy">
+          <div className="admin-hero__eyebrow">Catalog Studio</div>
+          <h1 className="page-title" style={{ margin: 0 }}>Products</h1>
+          <div className="page-subtitle">Add, update and manage clothing products, sizes, and media in one clean workspace.</div>
         </div>
-        <div className="page-actions">
+        <div className="admin-hero__actions">
           <input
-            className="input"
-            style={{ width: 280 }}
+            className="input admin-search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search name / SKU / category"
@@ -126,45 +266,100 @@ export default function Products() {
         </div>
       </div>
 
-      <div className="split">
-        <div className="card content-card">
-          <table className="table">
+      <div className="kpi-row admin-kpis">
+        <div className="card kpi-card admin-kpi-card">
+          <div className="kpi-label">Products</div>
+          <div className="kpi-value">{dashboardStats.totalProducts}</div>
+          <div className="kpi-sub">Visible in your catalog</div>
+        </div>
+        <div className="card kpi-card admin-kpi-card">
+          <div className="kpi-label">Total Stock</div>
+          <div className="kpi-value">{dashboardStats.totalStock}</div>
+          <div className="kpi-sub">Across all active variants</div>
+        </div>
+        <div className="card kpi-card admin-kpi-card">
+          <div className="kpi-label">Sizes</div>
+          <div className="kpi-value">{dashboardStats.sizeCount}</div>
+          <div className="kpi-sub">Configured size codes</div>
+        </div>
+        <div className="card kpi-card admin-kpi-card">
+          <div className="kpi-label">Low Stock</div>
+          <div className="kpi-value">{dashboardStats.lowStockProducts}</div>
+          <div className="kpi-sub">At or below 10 units</div>
+        </div>
+      </div>
+
+      <div className="split admin-products-layout">
+        <div className="card content-card admin-table-card">
+          <div className="admin-panel-head">
+            <div>
+              <div className="admin-panel-title">Product catalog</div>
+              <div className="admin-panel-subtitle">{filtered.length} item{filtered.length === 1 ? '' : 's'} shown</div>
+            </div>
+            <div className="badge">
+              <span className="dot" />
+              Managed inventory
+            </div>
+          </div>
+          <table className="table admin-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>SKU</th>
-                <th>Category</th>
+                <th>Product</th>
+                <th>Sizes</th>
                 <th>Price</th>
                 <th>Stock</th>
                 <th />
               </tr>
             </thead>
             <tbody>
-              {filtered.map((p) => (
-                <tr key={p.id}>
-                  <td style={{ fontWeight: 780 }}>{p.name}</td>
-                  <td className="muted">{p.sku || '-'}</td>
-                  <td>{p.category || '-'}</td>
-                  <td style={{ fontWeight: 750 }}>{formatMoneyLKR(p.price)}</td>
-                  <td>{p.stock}</td>
-                  <td style={{ textAlign: 'right' }}>
-                    <div className="toolbar" style={{ justifyContent: 'flex-end' }}>
-                      <button className="btn" type="button" onClick={() => setSelected(p)}>
-                        View
-                      </button>
-                      <button className="btn" type="button" onClick={() => startEdit(p)}>
-                        Edit
-                      </button>
-                      <button className="btn danger" type="button" onClick={() => onDelete(p.id)}>
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {filtered.map((p) => {
+                const rowSizes = normalizeSizeCodes(p.sizes);
+                const stock = Number(p.stock) || 0;
+                return (
+                  <tr key={p.id}>
+                    <td>
+                      <div className="product-cell">
+                        <div className="product-thumb">
+                          {p.imageUrl ? <img src={p.imageUrl} alt={p.name} /> : null}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 800 }}>{p.name}</div>
+                          <div className="muted" style={{ fontSize: 12 }}>{p.sku || p.category || '-'}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="size-chip-list">
+                        {rowSizes.length ? rowSizes.map((size) => (
+                          <span key={size} className="size-chip">{size}</span>
+                        )) : <span className="muted">No sizes</span>}
+                      </div>
+                    </td>
+                    <td style={{ fontWeight: 750 }}>{formatMoneyLKR(p.price)}</td>
+                    <td>
+                      <span className={`stock-pill ${stock <= 10 ? 'warning' : ''} ${stock <= 0 ? 'danger' : ''}`}>
+                        {stock <= 0 ? 'Out' : `${stock} pcs`}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <div className="toolbar" style={{ justifyContent: 'flex-end' }}>
+                        <button className="btn" type="button" onClick={() => setSelected(p)}>
+                          View
+                        </button>
+                        <button className="btn" type="button" onClick={() => startEdit(p)}>
+                          Edit
+                        </button>
+                        <button className="btn danger" type="button" onClick={() => onDelete(p.id)}>
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="muted">
+                  <td colSpan={5} className="muted" style={{ padding: '24px 10px' }}>
                     No products found.
                   </td>
                 </tr>
@@ -173,20 +368,26 @@ export default function Products() {
           </table>
         </div>
 
-        <div className="card content-card">
-          <div className="toolbar" style={{ justifyContent: 'space-between', marginBottom: 10 }}>
-            <div style={{ fontWeight: 850 }}>
-              {editingId ? (editingId === '__new__' ? 'Add Product' : 'Edit Product') : 'Select a product'}
+        <div className="grid" style={{ gap: 14 }}>
+          <div className="card content-card admin-form-card">
+            <div className="admin-panel-head">
+              <div>
+                <div className="admin-panel-title">
+                  {editingId ? (editingId === '__new__' ? 'Add product' : 'Edit product') : 'Product editor'}
+                </div>
+                <div className="admin-panel-subtitle">
+                  {editingId ? 'Update product details, sizes, and images.' : 'Choose an item or create a new one.'}
+                </div>
+              </div>
+              {editingId ? (
+                <button className="btn" type="button" onClick={cancel}>
+                  Cancel
+                </button>
+              ) : null}
             </div>
-            {editingId ? (
-              <button className="btn" type="button" onClick={cancel}>
-                Cancel
-              </button>
-            ) : null}
-          </div>
 
           {editingId ? (
-            <form onSubmit={onSave} className="form-grid">
+            <form onSubmit={onSave} className="form-grid admin-form">
               <div className="field span-2">
                 <div className="field-label">Name</div>
                 <input
@@ -244,15 +445,147 @@ export default function Products() {
                   placeholder="24"
                 />
               </div>
-              <div className="field">
-                <div className="field-label">Image URL (optional)</div>
+              <div className="field span-2">
+                <div className="field-label">Available Sizes</div>
+                <div className="size-checkbox-grid">
+                  {sizeOptions.map((size) => {
+                    const selectedSize = form.sizes.includes(size);
+                    return (
+                      <label key={size} className={`size-check ${selectedSize ? 'checked' : ''}`}>
+                        <input
+                          type="checkbox"
+                          checked={selectedSize}
+                          onChange={() => toggleSize(size)}
+                        />
+                        <span className="size-check__box" aria-hidden="true">
+                          {selectedSize ? '✓' : ''}
+                        </span>
+                        <span className="size-check__text">{size}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <div className="muted" style={{ fontSize: 12 }}>
+                  Selected sizes appear on the product page. Update this list whenever sizes sell out or return.
+                </div>
+              </div>
+              <div className="field span-2">
+                <div className="toolbar" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
+                  <div className="field-label" style={{ marginBottom: 0 }}>Available Colors</div>
+                  <button className="btn" type="button" onClick={addColor}>
+                    Add Color
+                  </button>
+                </div>
+                <div className="color-editor">
+                  {form.colors.length ? form.colors.map((color, index) => (
+                    <div key={`${color.name || 'color'}-${index}`} className="color-editor__row">
+                      <div className="field" style={{ flex: 1 }}>
+                        <div className="field-label">Name</div>
+                        <input
+                          className="input"
+                          value={color.name}
+                          onChange={(e) => updateColor(index, 'name', e.target.value)}
+                          placeholder="e.g. Rose Pink"
+                        />
+                      </div>
+                      <div className="field" style={{ width: 200 }}>
+                        <div className="field-label">Hex</div>
+                        <input
+                          className="input"
+                          value={color.hex}
+                          onChange={(e) => updateColor(index, 'hex', e.target.value)}
+                          placeholder="#b84070"
+                        />
+                      </div>
+                      <div className="color-editor__swatch" style={{ background: color.hex || '#f1e5ea' }} />
+                      <button className="btn danger" type="button" onClick={() => removeColor(index)}>
+                        Remove
+                      </button>
+                    </div>
+                  )) : (
+                    <div className="muted" style={{ fontSize: 12 }}>
+                      No colors added yet. Use Add Color to create available color options.
+                    </div>
+                  )}
+                </div>
+                <div className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+                  Add or update color names and hex codes for the product page.
+                </div>
+                <div className="color-swatch-palette" style={{ marginTop: 10 }}>
+                  {colorPalette.map((hex) => (
+                    <button
+                      key={hex}
+                      type="button"
+                      className="color-swatch-chip"
+                      style={{ background: hex }}
+                      onClick={() => setForm((s) => ({ ...s, colors: [...normalizeColors(s.colors), { name: '', hex }] }))}
+                      aria-label={`Use ${hex} for a new color`}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="field span-2">
+                <div className="field-label">Image URL</div>
                 <input
                   className="input"
                   value={form.imageUrl}
                   onChange={(e) => setForm((s) => ({ ...s, imageUrl: e.target.value }))}
-                  placeholder="https://..."
+                  placeholder="https://... or /src/assets/..."
+                />
+                <div className="toolbar" style={{ justifyContent: 'flex-end' }}>
+                  <button className="btn" type="button" onClick={addImageUrl}>
+                    Add URL
+                  </button>
+                </div>
+              </div>
+              <div className="field span-2">
+                <div className="field-label">Upload Images</div>
+                <input
+                  className="input"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  multiple
+                  onChange={onImageFilesChange}
                 />
               </div>
+              {(form.images.length || form.imageUploads.length) ? (
+                <div className="span-2">
+                  <div className="field-label">Product Images</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(86px, 1fr))', gap: 10 }}>
+                    {form.images.map((url, index) => (
+                      <div key={`${url}-${index}`} style={{ display: 'grid', gap: 6 }}>
+                        <div style={{ height: 86, borderRadius: 12, overflow: 'hidden', background: 'rgba(255,255,255,0.08)' }}>
+                          <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                        <button className="btn danger" type="button" onClick={() => removeExistingImage(url)}>
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                    {form.imageUploads.map((upload, index) => (
+                      <div key={`${upload.fileName}-${index}`} style={{ display: 'grid', gap: 6 }}>
+                        <div style={{ height: 86, borderRadius: 12, overflow: 'hidden', background: 'rgba(255,255,255,0.08)' }}>
+                          <img src={upload.previewUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                        <button className="btn danger" type="button" onClick={() => removeUploadedImage(index)}>
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+                    The first saved image is used as the product cover.
+                  </div>
+                </div>
+              ) : null}
+              <div className="span-2 muted" style={{ fontSize: 12 }}>
+                JPG, PNG and WebP images up to 5 MB each are supported.
+              </div>
+              {imageError ? (
+                <div className="span-2 danger-text" style={{ fontSize: 12 }}>
+                  {imageError}
+                </div>
+              ) : null}
               <div className="span-2 toolbar" style={{ justifyContent: 'flex-end' }}>
                 <button className="btn primary" type="submit">
                   Save Product
@@ -270,76 +603,84 @@ export default function Products() {
         </div>
       </div>
 
-      {selected ? (
-        <div className="card content-card">
-          <div className="toolbar" style={{ justifyContent: 'space-between', marginBottom: 10 }}>
-            <div style={{ fontWeight: 850 }}>Item Details</div>
-            <button className="btn" type="button" onClick={() => setSelected(null)}>
-              Close
-            </button>
-          </div>
-          <div className="grid" style={{ gap: 10 }}>
-            <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-              <div style={{ width: 120, height: 120, borderRadius: 14, overflow: 'hidden', background: 'rgba(255,255,255,0.04)', flexShrink: 0 }}>
-                {selected.imageUrl ? (
-                  <img src={selected.imageUrl} alt={selected.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          {selected ? (
+            <div className="card content-card admin-detail-card">
+              <div className="admin-panel-head">
+                <div>
+                  <div className="admin-panel-title">Item details</div>
+                  <div className="admin-panel-subtitle">Preview the selected product as customers see it.</div>
+                </div>
+                <button className="btn" type="button" onClick={() => setSelected(null)}>
+                  Close
+                </button>
+              </div>
+              <div className="detail-grid">
+                <div className="detail-hero">
+                  <div className="detail-image">
+                    {selected.imageUrl ? <img src={selected.imageUrl} alt={selected.name} /> : null}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 4 }}>{selected.name}</div>
+                    <div className="muted" style={{ marginBottom: 8 }}>
+                      {selected.sku ? `SKU: ${selected.sku}` : 'SKU not set'}{selected.category ? ` · ${selected.category}` : ''}
+                    </div>
+                    {selected.subtitle ? <div className="muted" style={{ marginBottom: 4 }}>{selected.subtitle}</div> : null}
+                    {selected.collection ? <div className="muted" style={{ marginBottom: 8 }}>{selected.collection}</div> : null}
+                    <div style={{ fontWeight: 850, fontSize: 16 }}>
+                      {formatMoneyLKR(selected.price)} <span className="muted" style={{ fontWeight: 600 }}>· stock {selected.stock}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {selected.description ? (
+                  <div>
+                    <div className="field-label" style={{ marginBottom: 6 }}>Description</div>
+                    <div style={{ lineHeight: 1.65 }}>{selected.description}</div>
+                  </div>
+                ) : null}
+
+                {selected.details?.length ? (
+                  <div>
+                    <div className="field-label" style={{ marginBottom: 6 }}>Details</div>
+                    <ul style={{ margin: 0, paddingLeft: 18 }}>
+                      {selected.details.map((d) => (
+                        <li key={d} style={{ marginBottom: 5 }}>{d}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
+                <div className="toolbar" style={{ flexWrap: 'wrap', gap: 8 }}>
+                  {selected.sizes?.length ? (
+                    <div className="size-chip-list">
+                      {selected.sizes.map((size) => (
+                        <span key={size} className="size-chip">{size}</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="muted" style={{ fontSize: 12 }}>No sizes configured</div>
+                  )}
+                  {selected.colors?.length ? (
+                    <div className="muted" style={{ fontSize: 12 }}>Colors: {selected.colors.map((c) => c.name).join(', ')}</div>
+                  ) : null}
+                </div>
+
+                {selected.images?.length ? (
+                  <div>
+                    <div className="field-label" style={{ marginBottom: 8 }}>Images</div>
+                    <div className="detail-gallery">
+                      {selected.images.slice(0, 8).map((url) => (
+                        <div key={url} className="detail-gallery-item">
+                          <img src={url} alt="" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 ) : null}
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 900, fontSize: 16 }}>{selected.name}</div>
-                <div className="muted" style={{ marginTop: 4 }}>
-                  {selected.sku ? `SKU: ${selected.sku}` : ''} {selected.category ? ` · ${selected.category}` : ''}
-                </div>
-                {selected.subtitle ? <div className="muted" style={{ marginTop: 6 }}>{selected.subtitle}</div> : null}
-                {selected.collection ? <div className="muted" style={{ marginTop: 2 }}>{selected.collection}</div> : null}
-                <div style={{ marginTop: 8, fontWeight: 800 }}>
-                  {formatMoneyLKR(selected.price)} <span className="muted" style={{ fontWeight: 600 }}>· stock {selected.stock}</span>
-                </div>
-              </div>
             </div>
-
-            {selected.description ? (
-              <div>
-                <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>Description</div>
-                <div style={{ lineHeight: 1.55 }}>{selected.description}</div>
-              </div>
-            ) : null}
-
-            {selected.details?.length ? (
-              <div>
-                <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>Details</div>
-                <ul style={{ margin: 0, paddingLeft: 18 }}>
-                  {selected.details.map((d) => (
-                    <li key={d} style={{ marginBottom: 4 }}>{d}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-
-            <div className="toolbar" style={{ flexWrap: 'wrap', gap: 10 }}>
-              {selected.sizes?.length ? (
-                <div className="muted" style={{ fontSize: 12 }}>Sizes: {selected.sizes.join(', ')}</div>
-              ) : null}
-              {selected.colors?.length ? (
-                <div className="muted" style={{ fontSize: 12 }}>Colors: {selected.colors.map((c) => c.name).join(', ')}</div>
-              ) : null}
-            </div>
-
-            {selected.images?.length ? (
-              <div>
-                <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>Images</div>
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  {selected.images.slice(0, 8).map((url) => (
-                    <div key={url} style={{ width: 86, height: 86, borderRadius: 12, overflow: 'hidden', background: 'rgba(255,255,255,0.04)' }}>
-                      <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
+          ) : null}
+    </div>
     </div>
   );
 }

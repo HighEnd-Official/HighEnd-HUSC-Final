@@ -1,10 +1,11 @@
-import { useState, useRef } from "react"; 
+import { useEffect, useState, useRef } from "react"; 
 import { useNavigate } from "react-router-dom"; 
 import { useCart } from "../../context/CartContext"; 
 import NavBar from "../../components/NavBar"; 
 import Footer from "../../components/Footer"; 
 import { useAuth } from "../../context/AuthContext";
 import { apiFetch } from "../../api/client";
+import { getDefaultCheckoutAddress, hasCompleteCheckoutAddress, loadCheckoutAddress, saveCheckoutAddress } from "../lib/checkoutAddress";
 
 /* ─── Styles ─────────────────────────────────────────────────────────────── */
 const STYLES = `
@@ -222,28 +223,56 @@ function CopyBtn({ text }) {
 const BankDeposit = () => { 
   const navigate = useNavigate(); 
   const { clear, totalPrice, items = [], subtotal = 0, shippingCost = 0 } = useCart(); 
-  const { isAuthenticated } = useAuth();
-  const [customer, setCustomer] = useState({ name: "", phone: "", email: "", addressLine1: "", addressLine2: "", city: "", postalCode: "", country: "Sri Lanka" });
+  const { isAuthenticated, user } = useAuth();
+  const [customer, setCustomer] = useState(() => getDefaultCheckoutAddress());
 
   const [fileName, setFileName] = useState(null);
   const [fileSize, setFileSize] = useState(null);
+  const [paymentProofFile, setPaymentProofFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const fileInputRef = useRef(null);
+  const allowedProofTypes = ["image/png", "image/jpeg", "application/pdf"];
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    setCustomer(loadCheckoutAddress(user));
+  }, [isAuthenticated, user]);
+
+  const selectPaymentProof = (file) => {
+    if (!file) return;
+    if (!allowedProofTypes.includes(file.type)) {
+      alert("Please upload a PNG, JPG, or PDF deposit slip.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Please upload a deposit slip smaller than 5 MB.");
+      return;
+    }
+    setPaymentProofFile(file);
+    setFileName(file.name);
+    setFileSize((file.size / 1024).toFixed(0) + " KB");
+  };
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
-    if (file) { setFileName(file.name); setFileSize((file.size / 1024).toFixed(0) + " KB"); }
+    selectPaymentProof(file);
   };
   const handleDrop = (e) => { 
     e.preventDefault(); setIsDragging(false); 
     const file = e.dataTransfer.files?.[0]; 
-    if (file) { setFileName(file.name); setFileSize((file.size / 1024).toFixed(0) + " KB"); } 
+    selectPaymentProof(file);
   }; 
   const handleCustomerChange = (e) => setCustomer(p => ({ ...p, [e.target.name]: e.target.value }));
 
   const toCents = (amount) => Math.round((Number(amount) || 0) * 100);
-  const buildOrderPayload = () => ({
+  const fileToBase64 = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || "").split(",")[1] || "");
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+  const buildOrderPayload = async () => ({
     paymentMethod: "BankDeposit",
     promoCode: null,
     shippingCents: toCents(shippingCost),
@@ -260,13 +289,18 @@ const BankDeposit = () => {
       country: customer.country || null,
     },
     items: (items || []).map((it) => ({
-      productId: null,
+      productId: typeof it.productId === "string" ? it.productId : null,
       productName: it.name,
       unitPriceCents: toCents(it.price),
       quantity: it.qty,
       size: it.size || null,
       color: it.color || null,
     })),
+    paymentProof: paymentProofFile ? {
+      fileName: paymentProofFile.name,
+      contentType: paymentProofFile.type,
+      data: await fileToBase64(paymentProofFile),
+    } : null,
   });
 
   const handleSubmit = async (e) => { 
@@ -276,9 +310,14 @@ const BankDeposit = () => {
       return; 
     } 
     if (!items?.length) return;
+    if (!hasCompleteCheckoutAddress(customer)) {
+      alert("Please complete your shipping address before placing the order.");
+      return;
+    }
 
     try {
-      await apiFetch("/orders", { method: "POST", body: JSON.stringify(buildOrderPayload()) });
+      await apiFetch("/orders", { method: "POST", body: JSON.stringify(await buildOrderPayload()) });
+      saveCheckoutAddress(user, customer);
       setSubmitted(true); 
       setTimeout(() => { clear(); navigate("/", { replace: true }); }, 3500); 
     } catch (err) {
@@ -423,14 +462,15 @@ const BankDeposit = () => {
                   placeholder="Email (optional)" 
                   style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }} 
                 /> 
-                <input 
-                  className="bd-input" 
-                  name="addressLine1" 
-                  value={customer.addressLine1} 
-                  onChange={handleCustomerChange} 
-                  placeholder="Address line 1" 
-                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }} 
-                /> 
+                <input
+                  className="bd-input"
+                  name="addressLine1"
+                  value={customer.addressLine1}
+                  onChange={handleCustomerChange}
+                  placeholder="Address line 1"
+                  required
+                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }}
+                />
                 <input 
                   className="bd-input" 
                   name="addressLine2" 
@@ -440,30 +480,33 @@ const BankDeposit = () => {
                   style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }} 
                 /> 
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}> 
-                  <input 
-                    className="bd-input" 
-                    name="city" 
-                    value={customer.city} 
-                    onChange={handleCustomerChange} 
-                    placeholder="City" 
-                    style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }} 
-                  /> 
-                  <input 
-                    className="bd-input" 
-                    name="postalCode" 
-                    value={customer.postalCode} 
-                    onChange={handleCustomerChange} 
-                    placeholder="Postal code" 
-                    style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }} 
-                  /> 
-                  <input 
-                    className="bd-input" 
-                    name="country" 
-                    value={customer.country} 
-                    onChange={handleCustomerChange} 
-                    placeholder="Country" 
-                    style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }} 
-                  /> 
+                <input
+                  className="bd-input"
+                  name="city"
+                  value={customer.city}
+                  onChange={handleCustomerChange}
+                  placeholder="City"
+                  required
+                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }}
+                />
+                <input
+                  className="bd-input"
+                  name="postalCode"
+                  value={customer.postalCode}
+                  onChange={handleCustomerChange}
+                  placeholder="Postal code"
+                  required
+                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }}
+                />
+                <input
+                  className="bd-input"
+                  name="country"
+                  value={customer.country}
+                  onChange={handleCustomerChange}
+                  placeholder="Country"
+                  required
+                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }}
+                />
                 </div> 
               </div> 
             </div> 
@@ -527,7 +570,12 @@ const BankDeposit = () => {
                   </div>
                   <button
                     type="button"
-                    onClick={() => { setFileName(null); setFileSize(null); }}
+                    onClick={() => {
+                      setPaymentProofFile(null);
+                      setFileName(null);
+                      setFileSize(null);
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
                     style={{ background:"none", border:"none", cursor:"pointer", color:"#c0a0b4", fontSize:18, padding:4 }}
                     onMouseEnter={e => e.currentTarget.style.color="#e05070"}
                     onMouseLeave={e => e.currentTarget.style.color="#c0a0b4"}

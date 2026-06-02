@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
+import path from "node:path";
 import { ZodError } from "zod";
 import authRoutes from "./routes/auth.js";
 import productRoutes from "./routes/products.js";
@@ -11,7 +12,7 @@ import adminRoutes from "./routes/admin.js";
 const app = express();
 
 app.use(morgan("dev"));
-app.use(express.json({ limit: "2mb" }));
+app.use(express.json({ limit: "25mb" }));
 
 app.use(
   cors({
@@ -21,6 +22,7 @@ app.use(
 );
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
+app.use("/uploads", express.static(path.resolve("uploads")));
 app.use("/auth", authRoutes);
 app.use("/products", productRoutes);
 app.use("/orders", orderRoutes);

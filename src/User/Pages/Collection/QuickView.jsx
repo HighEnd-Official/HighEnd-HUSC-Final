@@ -2,9 +2,22 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useCart } from "../../../context/CartContext";
 import { useNavigate } from "react-router-dom";
 
+const normalizeSizeCodes = (sizes = []) =>
+  Array.from(
+    new Set(
+      (Array.isArray(sizes) ? sizes : [])
+        .map((size) => (typeof size === "string" ? size : size?.code))
+        .map((size) => String(size || "").trim())
+        .filter(Boolean)
+    )
+  );
+
 const QuickView = ({ product, onClose }) => {
+  const initialSizes = product?.hasManagedSizes
+    ? normalizeSizeCodes(product.sizes)
+    : normalizeSizeCodes(product?.sizes || ["XS", "S", "M", "L", "XL"]);
   const [activeIdx, setActiveIdx] = useState(0);
-  const [selectedSize, setSelectedSize] = useState(() => (product?.sizes && product.sizes.length > 0) ? product.sizes[0] : "XS");
+  const [selectedSize, setSelectedSize] = useState(() => initialSizes[0] || "");
   const [selectedColor, setSelectedColor] = useState(null);
   const [fading, setFading] = useState(false);
   const [added, setAdded] = useState(false);
@@ -64,8 +77,22 @@ const QuickView = ({ product, onClose }) => {
     }
   }, [colorVariants, selectedColor]);
 
+  useEffect(() => {
+    const nextSizes = product?.hasManagedSizes
+      ? normalizeSizeCodes(product.sizes)
+      : normalizeSizeCodes(product?.sizes || ["XS", "S", "M", "L", "XL"]);
+    setSelectedSize(nextSizes[0] || "");
+  }, [product]);
+
   const currentImages = selectedColor?.images || product?.images || [];
   const currentPrice = selectedColor?.price || product?.price;
+  const stock = Number(product?.stock);
+  const hasStockLimit = Number.isFinite(stock);
+  const availableSizes = product?.hasManagedSizes
+    ? normalizeSizeCodes(product.sizes)
+    : normalizeSizeCodes(product?.sizes || ["XS", "S", "M", "L", "XL"]);
+  const outOfStock = hasStockLimit && stock <= 0;
+  const canAddToCart = !outOfStock && availableSizes.length > 0 && selectedColor?.inStock !== false && Boolean(selectedSize);
 
   const handleWishlistClick = () => {
     toggleWishlist(product);
@@ -88,6 +115,12 @@ const QuickView = ({ product, onClose }) => {
   useEffect(() => {
     setActiveIdx(0);
   }, [selectedColor]);
+
+  useEffect(() => {
+    if (hasStockLimit && stock > 0 && qty > stock) {
+      setQty(stock);
+    }
+  }, [hasStockLimit, qty, stock]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -251,6 +284,9 @@ const QuickView = ({ product, onClose }) => {
               <p className="text-[28px] font-light text-[#854c6f]" style={{ fontFamily: "'Playfair Display', serif" }}>
                 {currentPrice}
               </p>
+              <p className="text-[11px] font-semibold tracking-[0.14em] uppercase" style={{ color: outOfStock ? "#b84070" : "#486730" }}>
+                {outOfStock ? "Out of Stock" : hasStockLimit ? `${stock} in stock` : "In Stock"}
+              </p>
             </div>
 
             <div className="h-px w-full bg-gradient-to-r from-transparent via-[#d4c2c9] to-transparent" />
@@ -317,7 +353,7 @@ const QuickView = ({ product, onClose }) => {
                 </button>
               </div>
               <div className="flex flex-wrap gap-2">
-                {(product.sizes || ["XS", "S", "M", "L", "XL"]).map((s) => (
+                {availableSizes.map((s) => (
                   <button
                     key={s}
                     onClick={() => setSelectedSize(s)}
@@ -333,6 +369,14 @@ const QuickView = ({ product, onClose }) => {
                   </button>
                 ))}
               </div>
+              {!availableSizes.length ? (
+                <p className="text-[11px] text-[#b84070]">No sizes are currently available.</p>
+              ) : !selectedSize ? (
+                <p className="text-[11px] text-[#82737a]">Choose a size before adding this item.</p>
+              ) : null}
+              {selectedSize ? (
+                <p className="text-[11px] text-[#486730]">Selected size: {selectedSize}</p>
+              ) : null}
             </div>
 
             {/* Quantity Selector with cute + - */}
@@ -354,8 +398,9 @@ const QuickView = ({ product, onClose }) => {
                 </span>
                 <button
                   type="button"
-                  onClick={() => setQty((q) => q + 1)}
-                  className="w-10 h-10 flex items-center justify-center text-[18px] text-[#854c6f] hover:bg-[#fcf1f4] transition-colors"
+                  onClick={() => setQty((q) => hasStockLimit ? Math.min(stock, q + 1) : q + 1)}
+                  disabled={outOfStock || (hasStockLimit && qty >= stock)}
+                  className="w-10 h-10 flex items-center justify-center text-[18px] text-[#854c6f] hover:bg-[#fcf1f4] disabled:opacity-40 transition-colors"
                 >
                   +
                 </button>
@@ -389,23 +434,27 @@ const QuickView = ({ product, onClose }) => {
           <div className="pt-6 space-y-3 mt-4">
             <div className="flex gap-2">
               <button
-                disabled={added || !selectedColor?.inStock}
+                disabled={added || !canAddToCart}
                 onClick={() => {
+                  if (!canAddToCart) return;
                   const prod = {
                     ...product,
                     id: `${product.id || product.name}-${selectedColor?.id}`,
+                    productId: product.id,
                     name: `${product.name} (${selectedColor?.name})`,
                     color: selectedColor?.name,
                     colorHex: selectedColor?.colorHex,
                     price: currentPrice,
                     images: currentImages,
+                    stock,
                   };
-                  addItem(prod, selectedSize, qty);
-                  setAdded(true);
-                  setTimeout(() => {
-                    setAdded(false);
-                    onClose();
-                  }, 2000);
+                  if (addItem(prod, selectedSize, qty)) {
+                    setAdded(true);
+                    setTimeout(() => {
+                      setAdded(false);
+                      onClose();
+                    }, 2000);
+                  }
                 }}
                 className="flex-1 py-4 rounded-full text-[12px] font-semibold tracking-[0.12em] uppercase transition-all duration-300 text-white shadow-lg hover:shadow-xl"
                 style={{ 
@@ -415,7 +464,7 @@ const QuickView = ({ product, onClose }) => {
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#854c6f")}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#1f1a1d")}
               >
-                {added ? "✨ Added to Bag ✨" : "🛒 Add to Bag"}
+                {!selectedSize ? "Select a Size" : outOfStock ? "Out of Stock" : added ? "✨ Added to Bag ✨" : "🛒 Add to Bag"}
               </button>
               
               <button
@@ -436,34 +485,40 @@ const QuickView = ({ product, onClose }) => {
 
             {/* NEW: Pay Now Button - Links directly to Payment */}
             <button
+              disabled={!canAddToCart}
               onClick={() => {
-                if (selectedColor && selectedSize) {
+                if (selectedColor && selectedSize && canAddToCart) {
                   const prod = {
                     ...product,
                     id: `${product.id || product.name}-${selectedColor?.id}`,
+                    productId: product.id,
                     name: `${product.name} (${selectedColor?.name})`,
                     color: selectedColor?.name,
                     colorHex: selectedColor?.colorHex,
                     price: currentPrice,
                     images: currentImages,
+                    stock,
                   };
-                  addItem(prod, selectedSize, qty);
-                  setTimeout(() => {
-                    onClose();
-                    navigate("/payment");
-                  }, 300);
+                  if (addItem(prod, selectedSize, qty)) {
+                    setTimeout(() => {
+                      onClose();
+                      navigate("/payment");
+                    }, 300);
+                  }
                 }
               }}
               className="w-full py-3 rounded-full text-[13px] font-bold tracking-wide uppercase transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
               style={{ 
-                background: "linear-gradient(135deg, #854c6f 0%, #b5799b 100%)",
-                color: "white"
+                background: canAddToCart ? "linear-gradient(135deg, #854c6f 0%, #b5799b 100%)" : "#9e8a93",
+                color: "white",
+                cursor: canAddToCart ? "pointer" : "not-allowed",
+                opacity: canAddToCart ? 1 : 0.72
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.02)")}
+              onMouseEnter={(e) => { if (canAddToCart) e.currentTarget.style.transform = "scale(1.02)"; }}
               onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
             >
               <span>💳</span>
-              Pay Now — {currentPrice}
+              {!selectedSize ? "Select a Size" : outOfStock ? "Out of Stock" : `Pay Now — ${currentPrice}`}
               <span>→</span>
             </button>
 

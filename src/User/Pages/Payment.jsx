@@ -1,10 +1,11 @@
-import { useState } from "react"; 
+import { useEffect, useState } from "react"; 
 import { useNavigate } from "react-router-dom"; 
 import NavBar from "../../components/NavBar"; 
 import Footer from "../../components/Footer"; 
 import { useCart } from "../../context/CartContext"; 
 import { useAuth } from "../../context/AuthContext";
 import { apiFetch } from "../../api/client";
+import { getDefaultCheckoutAddress, hasCompleteCheckoutAddress, loadCheckoutAddress, saveCheckoutAddress } from "../lib/checkoutAddress";
 
 /* ─── Styles ─────────────────────────────────────────────────────────────── */
 const STYLES = `
@@ -217,13 +218,13 @@ const bankDetails = [
 ];
 
 /* ─── Underline Field ─────────────────────────────────────────────────────── */
-function Field({ label, name, type = "text", placeholder, value, onChange, maxLength, half }) {
+function Field({ label, name, type = "text", placeholder, value, onChange, maxLength, half, required }) {
   return (
     <div className={`flex flex-col gap-2${half ? "" : ""}`}>
       <label
         style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: ".16em", textTransform: "uppercase", color: "#9a7088" }}
       >
-        {label}
+        {label}{required ? " *" : ""}
       </label>
       <div className="pay-field">
         <input
@@ -235,6 +236,7 @@ function Field({ label, name, type = "text", placeholder, value, onChange, maxLe
           className="pay-input"
           maxLength={maxLength}
           autoComplete="off"
+          required={required}
         />
         <div className="pay-field-bar" />
       </div>
@@ -253,7 +255,7 @@ const Payment = () => {
   const [paymentMethod, setPaymentMethod] = useState("card"); 
   const [submitted, setSubmitted] = useState(false); 
   const [form, setForm] = useState({ cardholderName: "", cardNumber: "", expiry: "", cvc: "" }); 
-  const [customer, setCustomer] = useState({ name: "", email: "", phone: "", addressLine1: "", addressLine2: "", city: "", postalCode: "", country: "Sri Lanka" });
+  const [customer, setCustomer] = useState(() => getDefaultCheckoutAddress());
 
   // — Cart context (replace with real hook in your project) —
   const {
@@ -272,7 +274,12 @@ const Payment = () => {
   clear = () => {},
 } = useCart(); 
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    setCustomer(loadCheckoutAddress(user));
+  }, [isAuthenticated, user]);
 
   const toCents = (amount) => Math.round((Number(amount) || 0) * 100);
   const buildOrderPayload = (method) => ({
@@ -292,7 +299,7 @@ const Payment = () => {
       country: customer.country || null,
     },
     items: (items || []).map((it) => ({
-      productId: null,
+      productId: typeof it.productId === "string" ? it.productId : null,
       productName: it.name,
       unitPriceCents: toCents(it.price),
       quantity: it.qty,
@@ -303,6 +310,8 @@ const Payment = () => {
  
   const handleChange = (e) => setForm(p => ({ ...p, [e.target.name]: e.target.value })); 
   const handleCustomerChange = (e) => setCustomer(p => ({ ...p, [e.target.name]: e.target.value }));
+
+  const isAddressComplete = hasCompleteCheckoutAddress(customer);
  
   const handleSubmit = async (e) => { 
     e.preventDefault(); 
@@ -311,10 +320,15 @@ const Payment = () => {
       return; 
     } 
     if (!items?.length) return;
+    if (!isAddressComplete) {
+      alert("Please complete your shipping address before placing the order.");
+      return;
+    }
     if (!(form.cardholderName && form.cardNumber && form.expiry && form.cvc)) return;
 
     try {
       await apiFetch("/orders", { method: "POST", body: JSON.stringify(buildOrderPayload("Card")) });
+      saveCheckoutAddress(user, customer);
       setSubmitted(true); 
       setTimeout(() => { clear(); navigate("/", { replace: true }); }, 3200); 
     } catch (err) {
@@ -378,12 +392,12 @@ const Payment = () => {
                         <Field label="Phone" name="phone" placeholder="07x xxx xxxx" value={customer.phone} onChange={handleCustomerChange} /> 
                       </div> 
                       <Field label="Email (optional)" name="email" placeholder="email@example.com" value={customer.email} onChange={handleCustomerChange} /> 
-                      <Field label="Address Line 1" name="addressLine1" placeholder="House no, street" value={customer.addressLine1} onChange={handleCustomerChange} /> 
+                      <Field label="Address Line 1" name="addressLine1" placeholder="House no, street" value={customer.addressLine1} onChange={handleCustomerChange} required /> 
                       <Field label="Address Line 2 (optional)" name="addressLine2" placeholder="Apartment, landmark" value={customer.addressLine2} onChange={handleCustomerChange} /> 
                       <div className="grid grid-cols-3 gap-8"> 
-                        <Field label="City" name="city" placeholder="Colombo" value={customer.city} onChange={handleCustomerChange} /> 
-                        <Field label="Postal Code" name="postalCode" placeholder="00100" value={customer.postalCode} onChange={handleCustomerChange} /> 
-                        <Field label="Country" name="country" placeholder="Sri Lanka" value={customer.country} onChange={handleCustomerChange} /> 
+                        <Field label="City" name="city" placeholder="Colombo" value={customer.city} onChange={handleCustomerChange} required /> 
+                        <Field label="Postal Code" name="postalCode" placeholder="00100" value={customer.postalCode} onChange={handleCustomerChange} required /> 
+                        <Field label="Country" name="country" placeholder="Sri Lanka" value={customer.country} onChange={handleCustomerChange} required /> 
                       </div> 
                     </div> 
                   </div> 
