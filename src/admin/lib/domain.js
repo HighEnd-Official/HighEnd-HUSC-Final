@@ -13,17 +13,17 @@ export function isRevenueRecognized(status) {
 export function statusColor(status) {
   switch (status) {
     case 'order pending':
-      return '#9fb0d0';
+      return 'var(--color-outline)';
     case 'order approved':
-      return '#43d0ff';
+      return 'var(--color-primary-container)';
     case 'order ready for delivery':
-      return '#7c5cff';
+      return 'var(--color-primary)';
     case 'order delivered':
-      return '#28d17c';
+      return 'var(--color-tertiary)';
     case 'order received':
-      return '#28d17c';
+      return 'var(--color-tertiary)';
     default:
-      return '#9fb0d0';
+      return 'var(--color-outline)';
   }
 }
 

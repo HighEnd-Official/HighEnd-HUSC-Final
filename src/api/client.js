@@ -1,7 +1,10 @@
-const DEFAULT_BASE_URL = "http://localhost:4000";
+const DEFAULT_BASE_URL =
+  typeof window !== "undefined"
+    ? `${window.location.protocol}//${window.location.hostname}:4000`
+    : "http://localhost:4000";
 
 export function getApiBaseUrl() {
-  return (process.env.REACT_APP_API_BASE_URL || DEFAULT_BASE_URL).replace(/\/+$/, "");
+  return (import.meta.env.VITE_API_BASE_URL || DEFAULT_BASE_URL).replace(/\/+$/, "");
 }
 
 function getSessionToken() {
@@ -37,4 +40,3 @@ export async function apiFetch(path, options = {}) {
 
   return data;
 }
-

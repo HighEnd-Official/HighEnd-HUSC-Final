@@ -9,13 +9,12 @@ import { getDefaultCheckoutAddress, hasCompleteCheckoutAddress, loadCheckoutAddr
 
 /* ─── Styles ─────────────────────────────────────────────────────────────── */
 const STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap');
-
+  
   *, *::before, *::after { box-sizing: border-box; }
-  ::selection { background: #f4b8cc; color: #3a0f28; }
+  ::selection { background: var(--color-primary-container); color: var(--color-on-primary-container); }
   ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: #fdf0f6; }
-  ::-webkit-scrollbar-thumb { background: linear-gradient(#c96d99,#e8a0bc); border-radius:6px; }
+  ::-webkit-scrollbar-track { background: var(--color-surface-container-low); }
+  ::-webkit-scrollbar-thumb { background: linear-gradient(var(--color-primary-container),var(--color-primary-container)); border-radius:6px; }
 
   @keyframes bdFadeUp   { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
   @keyframes bdShimmer  { 0%{background-position:-300% center} 100%{background-position:300% center} }
@@ -26,17 +25,17 @@ const STYLES = `
   @keyframes bdRingPulse{ 0%,100%{transform:scale(1);opacity:.45} 50%{transform:scale(1.16);opacity:.9} }
 
   .bd-page {
-    font-family:'DM Sans',sans-serif;
-    background:linear-gradient(-40deg,#fff0f5,#fffafc,#fce8f2,#fdf5f9);
+    font-family: 'Cormorant Garamond', serif;
+    background:linear-gradient(-40deg,var(--color-surface),var(--color-surface),var(--color-surface-container-low),var(--color-surface));
     background-size:400% 400%;
     animation:bdBgPulse 18s ease infinite;
-    min-height:100vh; color:#1e1018;
+    min-height:100vh; color:var(--color-on-surface);
   }
 
   .bd-display { font-family:'Cormorant Garamond',serif; }
 
   .bd-shimmer-title {
-    background:linear-gradient(90deg,#a83860 0%,#d86090 35%,#f4b0cc 50%,#d86090 65%,#a83860 100%);
+    background:linear-gradient(90deg,var(--color-primary) 0%,var(--color-primary-container) 35%,var(--color-primary-container) 50%,var(--color-primary-container) 65%,var(--color-primary) 100%);
     background-size:300% auto;
     -webkit-background-clip:text; background-clip:text;
     -webkit-text-fill-color:transparent;
@@ -44,10 +43,10 @@ const STYLES = `
   }
 
   .bd-glass {
-    background:rgba(255,255,255,0.76);
+    background:var(--color-surface);
     backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
     border:1px solid rgba(230,175,200,0.28);
-    box-shadow:0 6px 36px rgba(180,60,110,0.07), 0 1px 0 rgba(255,255,255,0.85) inset;
+    box-shadow:0 6px 36px rgba(180,60,110,0.07), 0 1px 0 var(--color-surface) inset;
     border-radius:24px;
     transition:box-shadow .4s, transform .4s;
   }
@@ -61,25 +60,25 @@ const STYLES = `
   }
   .bd-row:last-child { border-bottom:none; }
   .bd-row-label {
-    font-family:'DM Sans',sans-serif;
+    font-family: 'Cormorant Garamond', serif;
     font-size:9.5px; font-weight:700; letter-spacing:.20em; text-transform:uppercase;
-    color:#b84070;
+    color:var(--color-primary);
   }
   .bd-row-value {
     font-family:'Cormorant Garamond',serif;
-    font-size:20px; font-weight:400; color:#1e1018; letter-spacing:.02em;
+    font-size:20px; font-weight:400; color:var(--color-on-surface); letter-spacing:.02em;
   }
 
   /* Copy button */
   .bd-copy-btn {
     align-self:flex-start; margin-top:2px;
-    font-family:'DM Sans',sans-serif; font-size:9px; font-weight:700;
+    font-family: 'Cormorant Garamond', serif; font-size:9px; font-weight:700;
     letter-spacing:.14em; text-transform:uppercase;
     border:1.5px solid rgba(210,155,185,0.40); border-radius:999px;
-    background:rgba(255,255,255,0.60); color:#b84070;
+    background:var(--color-surface); color:var(--color-primary);
     padding:3px 10px; cursor:pointer; transition:all .25s;
   }
-  .bd-copy-btn:hover { background:#b84070; color:#fff; border-color:#b84070; }
+  .bd-copy-btn:hover { background:var(--color-primary); color:var(--color-on-primary); border-color:var(--color-primary); }
   .bd-copy-btn.copied { background:rgba(100,170,80,0.12); border-color:rgba(100,170,80,0.40); color:#5a9040; }
 
   /* Drop zone */
@@ -87,13 +86,13 @@ const STYLES = `
     border:2px dashed rgba(210,155,185,0.45);
     border-radius:20px; cursor:pointer;
     transition:all .35s;
-    background:rgba(255,255,255,0.55);
+    background:var(--color-surface);
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:14px; padding:52px 32px; text-align:center;
     position:relative; overflow:hidden;
   }
   .bd-dropzone:hover, .bd-dropzone.dragging {
-    border-color:#b84070;
+    border-color:var(--color-primary);
     background:rgba(184,64,112,0.05);
     box-shadow:0 4px 24px rgba(184,64,112,0.10);
   }
@@ -110,17 +109,17 @@ const STYLES = `
     display:inline-flex; align-items:center; gap:8px;
     padding:8px 16px; border-radius:999px; margin-top:14px;
     background:rgba(184,64,112,0.08); border:1.5px solid rgba(184,64,112,0.22);
-    font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; color:#b84070;
+    font-family: 'Cormorant Garamond', serif; font-size:12px; font-weight:500; color:var(--color-primary);
     max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
 
   /* Submit button */
   .bd-submit-btn {
     width:100%; padding:18px 32px; border:none; cursor:pointer;
-    border-radius:999px; font-family:'DM Sans',sans-serif;
+    border-radius:999px; font-family: 'Cormorant Garamond', serif;
     font-size:11px; font-weight:700; letter-spacing:.22em; text-transform:uppercase;
-    color:#fff;
-    background:linear-gradient(135deg,#9a2850,#c85888,#e090b8);
+    color:var(--color-on-primary);
+    background:linear-gradient(135deg,var(--color-primary-container),var(--color-primary-container),var(--color-primary-container));
     background-size:200% auto;
     box-shadow:0 8px 28px rgba(168,56,94,0.32);
     position:relative; overflow:hidden;
@@ -147,7 +146,7 @@ const STYLES = `
   }
   .bd-success-circle {
     width:80px; height:80px; border-radius:50%; margin:0 auto 20px;
-    background:linear-gradient(135deg,#b84070,#e090b8);
+    background:linear-gradient(135deg,var(--color-primary),var(--color-primary-container));
     display:flex; align-items:center; justify-content:center;
     font-size:32px; position:relative;
     animation:bdSuccess .65s cubic-bezier(.4,0,.2,1) both;
@@ -156,7 +155,7 @@ const STYLES = `
   /* Petal */
   .bd-petal {
     position:absolute; pointer-events:none; user-select:none;
-    opacity:.14; color:#c07098;
+    opacity:.14; color:var(--color-primary-container);
     animation:bdDrift 5.5s ease-in-out infinite;
   }
 
@@ -168,17 +167,17 @@ const STYLES = `
   .bd-step:last-child { border-bottom:none; }
   .bd-step-num {
     width:28px; height:28px; border-radius:50%; flex-shrink:0;
-    background:linear-gradient(135deg,#b84070,#e090b8);
+    background:linear-gradient(135deg,var(--color-primary),var(--color-primary-container));
     display:flex; align-items:center; justify-content:center;
-    font-family:'DM Sans',sans-serif; font-size:11px; font-weight:700; color:#fff;
+    font-family: 'Cormorant Garamond', serif; font-size:11px; font-weight:700; color:var(--color-on-primary);
   }
 
   .bd-info-pill {
     display:inline-flex; align-items:center; gap:6px;
     padding:5px 12px; border-radius:999px;
     background:rgba(200,120,160,0.10); border:1px solid rgba(210,155,185,0.28);
-    font-family:'DM Sans',sans-serif; font-size:10px; font-weight:600;
-    letter-spacing:.10em; text-transform:uppercase; color:#9a6878;
+    font-family: 'Cormorant Garamond', serif; font-size:10px; font-weight:600;
+    letter-spacing:.10em; text-transform:uppercase; color:var(--color-outline);
   }
 
   .bd-fade-1 { animation:bdFadeUp .75s .05s ease both; }
@@ -223,7 +222,7 @@ function CopyBtn({ text }) {
 const BankDeposit = () => { 
   const navigate = useNavigate(); 
   const { clear, totalPrice, items = [], subtotal = 0, shippingCost = 0 } = useCart(); 
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, updateProfile } = useAuth();
   const [customer, setCustomer] = useState(() => getDefaultCheckoutAddress());
 
   const [fileName, setFileName] = useState(null);
@@ -317,7 +316,19 @@ const BankDeposit = () => {
 
     try {
       await apiFetch("/orders", { method: "POST", body: JSON.stringify(await buildOrderPayload()) });
-      saveCheckoutAddress(user, customer);
+      try {
+        const nextUser = await updateProfile({
+          phone: customer.phone || null,
+          addressLine1: customer.addressLine1 || null,
+          addressLine2: customer.addressLine2 || null,
+          city: customer.city || null,
+          postalCode: customer.postalCode || null,
+          country: customer.country || null,
+        });
+        saveCheckoutAddress(nextUser || user, customer);
+      } catch {
+        saveCheckoutAddress(user, customer);
+      }
       setSubmitted(true); 
       setTimeout(() => { clear(); navigate("/", { replace: true }); }, 3500); 
     } catch (err) {
@@ -339,8 +350,8 @@ const BankDeposit = () => {
               display: "inline-flex", alignItems: "center", gap: 8,
               padding: "6px 18px", borderRadius: 999, marginBottom: 22,
               background: "rgba(200,120,160,0.10)", border: "1px solid rgba(210,155,185,0.25)",
-              fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700,
-              letterSpacing: ".20em", textTransform: "uppercase", color: "#b84070",
+              fontFamily: "'Cormorant Garamond', serif", fontSize: 10, fontWeight: 700,
+              letterSpacing: ".20em", textTransform: "uppercase", color: "var(--color-primary)",
             }}
           >
             <span>🏦</span> Bank Deposit
@@ -354,12 +365,12 @@ const BankDeposit = () => {
           </h1>
 
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginBottom: 16 }}>
-            <div style={{ height: 1, width: 48, background: "linear-gradient(90deg,transparent,#c07098)" }} />
-            <span style={{ color: "#c07098", fontSize: 15 }}>✦</span>
-            <div style={{ height: 1, width: 48, background: "linear-gradient(90deg,#c07098,transparent)" }} />
+            <div style={{ height: 1, width: 48, background: "linear-gradient(90deg,transparent,var(--color-primary-container))" }} />
+            <span style={{ color: "var(--color-primary-container)", fontSize: 15 }}>✦</span>
+            <div style={{ height: 1, width: 48, background: "linear-gradient(90deg,var(--color-primary-container),transparent)" }} />
           </div>
 
-          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 15, color: "#9a7088", maxWidth: 520, margin: "0 auto", lineHeight: 1.75 }}>
+          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: "var(--color-outline)", maxWidth: 520, margin: "0 auto", lineHeight: 1.75 }}>
             Transfer the total amount to the account below and upload your deposit slip — we'll take it from there.
           </p>
         </div>
@@ -383,7 +394,7 @@ const BankDeposit = () => {
                   border:"1.5px solid rgba(210,155,185,0.30)",
                   display:"flex", alignItems:"center", justifyContent:"center", fontSize:16,
                 }}>🏛️</div>
-                <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, letterSpacing:".20em", textTransform:"uppercase", color:"#b84070" }}>
+                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:10, fontWeight:700, letterSpacing:".20em", textTransform:"uppercase", color:"var(--color-primary)" }}>
                   Account Details
                 </span>
               </div>
@@ -408,7 +419,7 @@ const BankDeposit = () => {
                   border:"1.5px solid rgba(210,155,185,0.30)",
                   display:"flex", alignItems:"center", justifyContent:"center", fontSize:16,
                 }}>📋</div>
-                <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, letterSpacing:".20em", textTransform:"uppercase", color:"#b84070" }}>
+                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:10, fontWeight:700, letterSpacing:".20em", textTransform:"uppercase", color:"var(--color-primary)" }}>
                   How It Works
                 </span>
               </div>
@@ -416,7 +427,7 @@ const BankDeposit = () => {
               {steps.map(({ text }, i) => (
                 <div key={i} className="bd-step">
                   <div className="bd-step-num">{i + 1}</div>
-                  <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"#6a4858", lineHeight:1.65, paddingTop:3 }}>{text}</p>
+                  <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:14, color:"var(--color-on-surface-variant)", lineHeight:1.65, paddingTop:3 }}>{text}</p>
                 </div>
               ))}
             </div> 
@@ -430,7 +441,7 @@ const BankDeposit = () => {
                   border:"1.5px solid rgba(210,155,185,0.30)", 
                   display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, 
                 }}>🏷️</div> 
-                <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, letterSpacing:".20em", textTransform:"uppercase", color:"#b84070" }}> 
+                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:10, fontWeight:700, letterSpacing:".20em", textTransform:"uppercase", color:"var(--color-primary)" }}> 
                   Shipping Details 
                 </span> 
               </div> 
@@ -443,7 +454,7 @@ const BankDeposit = () => {
                     value={customer.name} 
                     onChange={handleCustomerChange} 
                     placeholder="Full name" 
-                    style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }} 
+                    style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily: "'Cormorant Garamond', serif" }} 
                   /> 
                   <input 
                     className="bd-input" 
@@ -451,7 +462,7 @@ const BankDeposit = () => {
                     value={customer.phone} 
                     onChange={handleCustomerChange} 
                     placeholder="Phone" 
-                    style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }} 
+                    style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily: "'Cormorant Garamond', serif" }} 
                   /> 
                 </div> 
                 <input 
@@ -460,7 +471,7 @@ const BankDeposit = () => {
                   value={customer.email} 
                   onChange={handleCustomerChange} 
                   placeholder="Email (optional)" 
-                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }} 
+                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily: "'Cormorant Garamond', serif" }} 
                 /> 
                 <input
                   className="bd-input"
@@ -469,7 +480,7 @@ const BankDeposit = () => {
                   onChange={handleCustomerChange}
                   placeholder="Address line 1"
                   required
-                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }}
+                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily: "'Cormorant Garamond', serif" }}
                 />
                 <input 
                   className="bd-input" 
@@ -477,7 +488,7 @@ const BankDeposit = () => {
                   value={customer.addressLine2} 
                   onChange={handleCustomerChange} 
                   placeholder="Address line 2 (optional)" 
-                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }} 
+                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily: "'Cormorant Garamond', serif" }} 
                 /> 
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}> 
                 <input
@@ -487,7 +498,7 @@ const BankDeposit = () => {
                   onChange={handleCustomerChange}
                   placeholder="City"
                   required
-                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }}
+                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily: "'Cormorant Garamond', serif" }}
                 />
                 <input
                   className="bd-input"
@@ -496,7 +507,7 @@ const BankDeposit = () => {
                   onChange={handleCustomerChange}
                   placeholder="Postal code"
                   required
-                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }}
+                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily: "'Cormorant Garamond', serif" }}
                 />
                 <input
                   className="bd-input"
@@ -505,7 +516,7 @@ const BankDeposit = () => {
                   onChange={handleCustomerChange}
                   placeholder="Country"
                   required
-                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily:"'DM Sans',sans-serif" }}
+                  style={{ width:"100%", background:"transparent", border:"none", borderBottom:"1.5px solid rgba(210,155,185,0.45)", padding:"10px 0", outline:"none", fontFamily: "'Cormorant Garamond', serif" }}
                 />
                 </div> 
               </div> 
@@ -520,7 +531,7 @@ const BankDeposit = () => {
                   border:"1.5px solid rgba(210,155,185,0.30)",
                   display:"flex", alignItems:"center", justifyContent:"center", fontSize:16,
                 }}>📎</div>
-                <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, letterSpacing:".20em", textTransform:"uppercase", color:"#b84070" }}>
+                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:10, fontWeight:700, letterSpacing:".20em", textTransform:"uppercase", color:"var(--color-primary)" }}>
                   Upload Deposit Slip
                 </span>
               </div>
@@ -551,10 +562,10 @@ const BankDeposit = () => {
                 <div className="bd-dropzone-icon">☁️</div>
 
                 <div>
-                  <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:15, fontWeight:600, color:"#1e1018", marginBottom:4 }}>
+                  <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:15, fontWeight:600, color:"var(--color-on-surface)", marginBottom:4 }}>
                     {isDragging ? "Drop it here ✨" : "Drag & drop your slip"}
                   </p>
-                  <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"#9a7088" }}>or click to browse</p>
+                  <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:12, color:"var(--color-outline)" }}>or click to browse</p>
                 </div>
 
                 <span className="bd-info-pill">PNG · JPG · PDF · Max 5 MB</span>
@@ -576,9 +587,9 @@ const BankDeposit = () => {
                       setFileSize(null);
                       if (fileInputRef.current) fileInputRef.current.value = "";
                     }}
-                    style={{ background:"none", border:"none", cursor:"pointer", color:"#c0a0b4", fontSize:18, padding:4 }}
-                    onMouseEnter={e => e.currentTarget.style.color="#e05070"}
-                    onMouseLeave={e => e.currentTarget.style.color="#c0a0b4"}
+                    style={{ background:"none", border:"none", cursor:"pointer", color:"var(--color-outline)", fontSize:18, padding:4 }}
+                    onMouseEnter={e => e.currentTarget.style.color="var(--color-primary-container)"}
+                    onMouseLeave={e => e.currentTarget.style.color="var(--color-outline)"}
                   >
                     ✕
                   </button>
@@ -594,10 +605,10 @@ const BankDeposit = () => {
                     <div className="bd-success-ring" />
                     <div className="bd-success-circle">✨</div>
                   </div>
-                  <p className="bd-display" style={{ fontSize:32, fontWeight:300, color:"#b84070", marginBottom:8 }}>
+                  <p className="bd-display" style={{ fontSize:32, fontWeight:300, color:"var(--color-primary)", marginBottom:8 }}>
                     Proof Submitted!
                   </p>
-                  <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"#9a7088" }}>
+                  <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:14, color:"var(--color-outline)" }}>
                     We'll verify your transfer and dispatch your order within 1–2 business days. Redirecting…
                   </p>
                 </div>
@@ -616,14 +627,14 @@ const BankDeposit = () => {
                   </button>
 
                   {!fileName && (
-                    <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"#c0a0b4", textAlign:"center", marginTop:10 }}>
+                    <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:11, color:"var(--color-outline)", textAlign:"center", marginTop:10 }}>
                       Please upload your deposit slip to continue.
                     </p>
                   )}
 
                   <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:16, opacity:.65 }}>
                     <span style={{ fontSize:13 }}>🔒</span>
-                    <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:600, letterSpacing:".14em", textTransform:"uppercase", color:"#9a7088" }}>
+                    <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:10, fontWeight:600, letterSpacing:".14em", textTransform:"uppercase", color:"var(--color-outline)" }}>
                       Secure Encrypted Submission
                     </span>
                   </div>
@@ -636,7 +647,7 @@ const BankDeposit = () => {
           <div className="w-full lg:w-[42%]" style={{ position:"sticky", top:110 }}>
             <div className="bd-glass p-8 md:p-10 flex flex-col gap-6">
 
-              <h2 className="bd-display" style={{ fontSize:28, fontWeight:300, color:"#1e1018", marginBottom:4 }}>
+              <h2 className="bd-display" style={{ fontSize:28, fontWeight:300, color:"var(--color-on-surface)", marginBottom:4 }}>
                 Order Summary
               </h2>
 
@@ -653,10 +664,10 @@ const BankDeposit = () => {
                   </div>
                   <div style={{ flex:1, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
                     <div>
-                      <p className="bd-display" style={{ fontSize:17, color:"#1e1018", lineHeight:1.3, marginBottom:4 }}>Rose Silk Petal Scarf</p>
-                      <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:600, letterSpacing:".12em", textTransform:"uppercase", color:"#b0909a" }}>One Size · Blush</p>
+                      <p className="bd-display" style={{ fontSize:17, color:"var(--color-on-surface)", lineHeight:1.3, marginBottom:4 }}>Rose Silk Petal Scarf</p>
+                      <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:10, fontWeight:600, letterSpacing:".12em", textTransform:"uppercase", color:"var(--color-outline)" }}>One Size · Blush</p>
                     </div>
-                    <p className="bd-display" style={{ fontSize:18, color:"#b84070", fontWeight:500 }}>Rs.350.00</p>
+                    <p className="bd-display" style={{ fontSize:18, color:"var(--color-primary)", fontWeight:500 }}>Rs.350.00</p>
                   </div>
                 </div>
               ) : (
@@ -668,12 +679,12 @@ const BankDeposit = () => {
                       </div>
                       <div style={{ flex:1, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
                         <div>
-                          <p className="bd-display" style={{ fontSize:17, color:"#1e1018", lineHeight:1.3, marginBottom:3 }}>{it.name}</p>
-                          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:600, letterSpacing:".12em", textTransform:"uppercase", color:"#b0909a" }}>
+                          <p className="bd-display" style={{ fontSize:17, color:"var(--color-on-surface)", lineHeight:1.3, marginBottom:3 }}>{it.name}</p>
+                          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:10, fontWeight:600, letterSpacing:".12em", textTransform:"uppercase", color:"var(--color-outline)" }}>
                             Size: {it.size} · Qty: {it.qty}
                           </p>
                         </div>
-                        <p className="bd-display" style={{ fontSize:18, color:"#b84070", fontWeight:500 }}>
+                        <p className="bd-display" style={{ fontSize:18, color:"var(--color-primary)", fontWeight:500 }}>
                           Rs.{((Number(it.price) || 0) * it.qty).toFixed(2)}
                         </p>
                       </div>
@@ -685,22 +696,22 @@ const BankDeposit = () => {
               {/* Price rows */}
               <div style={{ display:"flex", flexDirection:"column", gap:12, borderTop:"1px solid rgba(220,160,190,0.22)", paddingTop:18 }}>
                 <div style={{ display:"flex", justifyContent:"space-between" }}>
-                  <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"#9a7088" }}>Subtotal</span>
-                  <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"#1e1018" }}>
+                  <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:14, color:"var(--color-outline)" }}>Subtotal</span>
+                  <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:14, color:"var(--color-on-surface)" }}>
                     Rs.{items.length ? subtotal.toFixed(2) : "350.00"}
                   </span>
                 </div>
                 <div style={{ display:"flex", justifyContent:"space-between" }}>
-                  <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"#9a7088" }}>Shipping</span>
-                  <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, color: shippingCost === 0 ? "#6a9050" : "#1e1018" }}>
+                  <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:14, color:"var(--color-outline)" }}>Shipping</span>
+                  <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:14, color: shippingCost === 0 ? "var(--color-tertiary)" : "var(--color-on-surface)" }}>
                     {items.length
                       ? (shippingCost === 0 ? "✓ Complimentary" : `Rs.${shippingCost.toFixed(2)}`)
                       : "Rs.70.00"}
                   </span>
                 </div>
                 <div style={{ display:"flex", justifyContent:"space-between", paddingTop:14, borderTop:"1px solid rgba(220,160,190,0.22)" }}>
-                  <span className="bd-display" style={{ fontSize:26, fontWeight:300, color:"#1e1018" }}>Total</span>
-                  <span className="bd-display" style={{ fontSize:26, fontWeight:500, color:"#b84070" }}>
+                  <span className="bd-display" style={{ fontSize:26, fontWeight:300, color:"var(--color-on-surface)" }}>Total</span>
+                  <span className="bd-display" style={{ fontSize:26, fontWeight:500, color:"var(--color-primary)" }}>
                     Rs.{items.length ? totalPrice.toFixed(2) : "420.00"}
                   </span>
                 </div>
@@ -710,10 +721,10 @@ const BankDeposit = () => {
               <div style={{ borderRadius:14, padding:"16px 18px", background:"rgba(184,64,112,0.05)", border:"1px solid rgba(184,64,112,0.14)", display:"flex", gap:12, alignItems:"flex-start" }}>
                 <span style={{ fontSize:18, flexShrink:0 }}>ℹ️</span>
                 <div>
-                  <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, letterSpacing:".14em", textTransform:"uppercase", color:"#b84070", marginBottom:5 }}>
+                  <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:10, fontWeight:700, letterSpacing:".14em", textTransform:"uppercase", color:"var(--color-primary)", marginBottom:5 }}>
                     Processing Note
                   </p>
-                  <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:"#6a4858", lineHeight:1.65 }}>
+                  <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:13, color:"var(--color-on-surface-variant)", lineHeight:1.65 }}>
                     Bank transfers typically clear in 1–2 business days. Your order will be dispatched once verification is complete.
                   </p>
                 </div>
@@ -737,3 +748,5 @@ const BankDeposit = () => {
 };
 
 export default BankDeposit;
+
+

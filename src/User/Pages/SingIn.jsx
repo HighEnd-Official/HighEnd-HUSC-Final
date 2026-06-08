@@ -18,7 +18,7 @@ function Blossom({ x, y, delay, size, char }) {
         animation: `blossomDrift ${8 + delay}s ease-in-out ${delay}s infinite`,
         pointerEvents: "none",
         userSelect: "none",
-        color: "#c07fa5",
+        color: "var(--color-primary-container)",
       }}
     >
       {char}
@@ -53,7 +53,7 @@ function FloatInput({ id, label, type = "text", value, onChange, autoComplete, p
           fontWeight: 600,
           letterSpacing: lifted ? "0.28em" : "0.06em",
           textTransform: lifted ? "uppercase" : "none",
-          color: focused ? "#c07fa5" : "#9c7488",
+          color: focused ? "var(--color-primary-container)" : "var(--color-outline)",
           transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
           pointerEvents: "none",
         }}
@@ -78,13 +78,13 @@ function FloatInput({ id, label, type = "text", value, onChange, autoComplete, p
           width: "100%",
           background: "transparent",
           border: "none",
-          borderBottom: `1px solid ${focused ? "#c07fa5" : "#e8d5df"}`,
+          borderBottom: `1px solid ${focused ? "var(--color-primary-container)" : "var(--color-outline-variant)"}`,
           padding: "12px 0 10px",
           fontSize: "15px",
-          color: "#1f1a1d",
+          color: "var(--color-on-surface)",
           outline: "none",
           transition: "border-color 0.3s ease",
-          fontFamily: "'Jost', sans-serif",
+          fontFamily: "'Cormorant Garamond', serif",
         }}
       />
 
@@ -96,7 +96,7 @@ function FloatInput({ id, label, type = "text", value, onChange, autoComplete, p
           left: 0,
           height: "1.5px",
           width: focused ? "100%" : "0%",
-          background: "linear-gradient(90deg, #c07fa5, #e8acd0)",
+          background: "linear-gradient(90deg, var(--color-primary-container), var(--color-primary-container))",
           transition: "width 0.4s cubic-bezier(0.4,0,0.2,1)",
           borderRadius: "2px",
         }}
@@ -151,8 +151,7 @@ export default function SignIn() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap');
-
+        
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         @keyframes blossomDrift {
@@ -190,11 +189,11 @@ export default function SignIn() {
           50%       { transform: scale(1.06); opacity: 0.3; }
         }
 
-        ::selection { background: #e8acd0; color: #4a193a; }
+        ::selection { background: var(--color-primary-container); color: var(--color-on-primary-container); }
 
         .si-root {
-          font-family: 'Jost', sans-serif;
-          background: #fdf7fa;
+          font-family: 'Cormorant Garamond', serif;
+          background: var(--color-surface);
           min-height: 100vh;
           display: flex;
           flex-direction: column;
@@ -204,7 +203,7 @@ export default function SignIn() {
         .si-left {
           position: relative;
           width: 45%;
-          background: linear-gradient(145deg, #2a0e20 0%, #3d1530 40%, #5c2245 100%);
+          background: linear-gradient(145deg, var(--color-surface-container-highest) 0%, var(--color-primary-container) 40%, var(--color-primary) 100%);
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -256,7 +255,7 @@ export default function SignIn() {
           font-weight: 600;
           letter-spacing: 0.38em;
           text-transform: uppercase;
-          color: #e0a3c8;
+          color: var(--color-primary-container);
           margin-bottom: 20px;
           opacity: 0.85;
         }
@@ -265,21 +264,21 @@ export default function SignIn() {
           font-family: 'Cormorant Garamond', serif;
           font-size: clamp(52px, 6vw, 80px);
           font-weight: 300;
-          color: #ffffff;
+          color: var(--color-on-primary);
           letter-spacing: 0.12em;
           line-height: 1;
           margin-bottom: 6px;
         }
 
         .si-left__brand span {
-          color: #e0a3c8;
+          color: var(--color-primary-container);
         }
 
         .si-left__tagline {
           font-size: 11px;
           font-weight: 300;
           letter-spacing: 0.22em;
-          color: rgba(255,255,255,0.55);
+          color: var(--color-surface);
           text-transform: uppercase;
           margin-bottom: 40px;
         }
@@ -287,16 +286,16 @@ export default function SignIn() {
         .si-left__divider {
           width: 40px;
           height: 0.5px;
-          background: linear-gradient(90deg, transparent, #e0a3c8, transparent);
+          background: linear-gradient(90deg, transparent, var(--color-primary-container), transparent);
           margin: 0 auto 40px;
         }
 
         .si-left__quote {
           font-family: 'Cormorant Garamond', serif;
-          font-style: italic;
+          font-style: normal;
           font-size: clamp(16px, 1.8vw, 22px);
           font-weight: 300;
-          color: rgba(255,255,255,0.75);
+          color: var(--color-surface);
           line-height: 1.55;
           max-width: 300px;
           text-align: center;
@@ -311,7 +310,7 @@ export default function SignIn() {
           font-weight: 600;
           letter-spacing: 0.22em;
           text-transform: uppercase;
-          color: #e0a3c8;
+          color: var(--color-primary-container);
         }
 
         /* ── Right form panel ── */
@@ -322,7 +321,7 @@ export default function SignIn() {
           justify-content: center;
           margin-top: 140px;
           padding: 48px 40px;
-          background: #fdf7fa;
+          background: var(--color-surface);
           position: relative;
           overflow: hidden;
         }
@@ -345,24 +344,24 @@ export default function SignIn() {
 
         /* ── Demo hint ── */
         .si-demo-hint {
-          background: #fcf3f8;
-          border: 0.5px solid #e8d5df;
+          background: var(--color-surface-container-low);
+          border: 0.5px solid var(--color-outline-variant);
           border-radius: 10px;
           padding: 12px 16px;
           margin-bottom: 28px;
           font-size: 10.5px;
           line-height: 1.8;
-          color: #7a5468;
+          color: var(--color-outline);
         }
 
         /* ── Error ── */
         .si-error {
-          border-left: 2px solid #d97ca0;
-          background: #fef0f5;
+          border-left: 2px solid var(--color-primary-container);
+          background: var(--color-surface-container-low);
           padding: 12px 16px;
           margin-bottom: 20px;
           font-size: 12px;
-          color: #a0395f;
+          color: var(--color-primary);
           border-radius: 0 6px 6px 0;
           animation: fadeIn 0.3s ease;
         }
@@ -373,10 +372,10 @@ export default function SignIn() {
           padding: 16px;
           border: none;
           border-radius: 50px;
-          background: linear-gradient(135deg, #3d1530 0%, #854c6f 60%, #c07fa5 100%);
+          background: linear-gradient(135deg, var(--color-primary-container) 0%, var(--color-primary) 60%, var(--color-primary-container) 100%);
           background-size: 200% auto;
-          color: #fff;
-          font-family: 'Jost', sans-serif;
+          color: var(--color-on-primary);
+          font-family: 'Cormorant Garamond', serif;
           font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.28em;
@@ -406,7 +405,7 @@ export default function SignIn() {
         .si-success__ring {
           width: 80px; height: 80px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #f8dff0, #f0c8e0);
+          background: linear-gradient(135deg, var(--color-primary-container), var(--color-primary-container));
           display: flex; align-items: center; justify-content: center;
           margin: 0 auto 24px;
           animation: successPop 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
@@ -494,7 +493,7 @@ export default function SignIn() {
                   /* ── Success state ── */
                   <div className="si-success">
                     <div className="si-success__ring">
-                      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#c07fa5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-container)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M4.5 12.75l6 6 9-13.5" />
                       </svg>
                     </div>
@@ -503,14 +502,14 @@ export default function SignIn() {
                         fontFamily: "'Cormorant Garamond', serif",
                         fontSize: 32,
                         fontWeight: 300,
-                        fontStyle: "italic",
-                        color: "#854c6f",
+                        fontStyle: "normal",
+                        color: "var(--color-primary)",
                         marginBottom: 8,
                       }}
                     >
                       Welcome back.
                     </h2>
-                    <p style={{ fontSize: 13, color: "#9c7488", fontWeight: 300 }}>
+                    <p style={{ fontSize: 13, color: "var(--color-outline)", fontWeight: 300 }}>
                       Redirecting you now…
                     </p>
                     <div style={{ marginTop: 24, display: "flex", justifyContent: "center" }}>
@@ -530,14 +529,14 @@ export default function SignIn() {
                           marginBottom: 14,
                         }}
                       >
-                        <span style={{ width: 20, height: 0.5, background: "#c07fa5", display: "block" }} />
+                        <span style={{ width: 20, height: 0.5, background: "var(--color-primary-container)", display: "block" }} />
                         <span
                           style={{
                             fontSize: 9,
                             fontWeight: 600,
                             letterSpacing: "0.3em",
                             textTransform: "uppercase",
-                            color: "#c07fa5",
+                            color: "var(--color-primary-container)",
                           }}
                         >
                           Member Access
@@ -548,15 +547,15 @@ export default function SignIn() {
                           fontFamily: "'Cormorant Garamond', serif",
                           fontSize: "clamp(34px, 5vw, 46px)",
                           fontWeight: 300,
-                          color: "#1f1a1d",
+                          color: "var(--color-on-surface)",
                           lineHeight: 1.1,
                           marginBottom: 8,
                         }}
                       >
-                        Welcome<br />
-                        <em style={{ fontStyle: "italic", color: "#c07fa5" }}>back.</em>
+                        Welcome&nbsp;
+                        <span style={{ fontStyle: "normal", color: "var(--color-primary-container)" }}>Back.</span>
                       </h1>
-                      <p style={{ fontSize: 13, fontWeight: 300, color: "#9c7488", lineHeight: 1.6 }}>
+                      <p style={{ fontSize: 13, fontWeight: 300, color: "var(--color-outline)", lineHeight: 1.6 }}>
                         Sign in to your HUES account to continue.
                       </p>
                     </header>
@@ -566,10 +565,10 @@ export default function SignIn() {
                       className="si-demo-hint"
                       style={{ animation: mounted ? "fadeSlideUp 0.7s 0.5s ease both" : "none" }}
                     >
-                      <strong style={{ color: "#854c6f" }}>✦ Demo Accounts</strong><br />
-                      admin@hues.com / admin123 &nbsp;<span style={{ color: "#c07fa5" }}>Admin</span><br />
-                      super@hues.com / super123 &nbsp;<span style={{ color: "#c07fa5" }}>SuperAdmin</span><br />
-                      user@hues.com / user123 &nbsp;&nbsp;&nbsp;<span style={{ color: "#c07fa5" }}>User</span>
+                      <strong style={{ color: "var(--color-primary)" }}>✦ Demo Accounts</strong><br />
+                      admin@hues.com / admin123 &nbsp;<span style={{ color: "var(--color-primary-container)" }}>Admin</span><br />
+                      super@hues.com / super123 &nbsp;<span style={{ color: "var(--color-primary-container)" }}>SuperAdmin</span><br />
+                      user@hues.com / user123 &nbsp;&nbsp;&nbsp;<span style={{ color: "var(--color-primary-container)" }}>User</span>
                     </div> */}
 
                     {/* ── Error ── */}
@@ -607,11 +606,11 @@ export default function SignIn() {
                               fontSize: 10,
                               fontWeight: 600,
                               letterSpacing: "0.1em",
-                              color: "#c07fa5",
+                              color: "var(--color-primary-container)",
                               cursor: "pointer",
                               textDecoration: "underline",
                               textUnderlineOffset: 3,
-                              fontFamily: "'Jost', sans-serif",
+                              fontFamily: "'Cormorant Garamond', serif",
                             }}
                             onClick={() => alert("Password reset is not yet implemented.")}
                           >
@@ -652,12 +651,12 @@ export default function SignIn() {
                       style={{
                         marginTop: 36,
                         paddingTop: 24,
-                        borderTop: "0.5px solid #e8d5df",
+                        borderTop: "0.5px solid var(--color-outline-variant)",
                         textAlign: "center",
                         animation: mounted ? "fadeSlideUp 0.7s 0.65s ease both" : "none",
                       }}
                     >
-                      <p style={{ fontSize: 12, color: "#9c7488", fontWeight: 300, marginBottom: 10 }}>
+                      <p style={{ fontSize: 12, color: "var(--color-outline)", fontWeight: 300, marginBottom: 10 }}>
                         New to the world of HUES?
                       </p>
                       <Link
@@ -667,19 +666,19 @@ export default function SignIn() {
                           fontWeight: 600,
                           letterSpacing: "0.22em",
                           textTransform: "uppercase",
-                          color: "#1f1a1d",
+                          color: "var(--color-on-surface)",
                           textDecoration: "none",
-                          borderBottom: "1px solid #1f1a1d",
+                          borderBottom: "1px solid var(--color-on-surface)",
                           paddingBottom: 2,
                           transition: "color 0.3s, border-color 0.3s",
                         }}
                         onMouseEnter={e => {
-                          e.target.style.color = "#c07fa5";
-                          e.target.style.borderColor = "#c07fa5";
+                          e.target.style.color = "var(--color-primary-container)";
+                          e.target.style.borderColor = "var(--color-primary-container)";
                         }}
                         onMouseLeave={e => {
-                          e.target.style.color = "#1f1a1d";
-                          e.target.style.borderColor = "#1f1a1d";
+                          e.target.style.color = "var(--color-on-surface)";
+                          e.target.style.borderColor = "var(--color-on-surface)";
                         }}
                       >
                         Join the Inner Circle ✦
@@ -700,3 +699,4 @@ export default function SignIn() {
     </>
   );
 }
+

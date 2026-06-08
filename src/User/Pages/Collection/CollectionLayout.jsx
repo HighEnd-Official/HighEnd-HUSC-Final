@@ -1,9 +1,28 @@
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import NavBar from "../../../components/NavBar";
 import Footer from "../../../components/Footer";
-
-const tabs = ["Blouse", "Dress", "Shirt"];
+import { CATEGORY_GROUPS } from "../../../lib/productCategories";
+const tabs = CATEGORY_GROUPS.map((group) => ({
+  label: group.label,
+  path: group.route,
+  subtitle:
+    group.label === "Dresses"
+      ? "Fluid silhouettes and polished tailoring for effortless occasion dressing."
+      : group.label === "Tops"
+        ? "Refined layers and versatile silhouettes made for everyday styling."
+        : group.label === "Shirts"
+          ? "Sharp tailoring softened by feminine details — effortlessly elevated."
+          : group.label === "Skirts"
+            ? "Fluid skirts and tailored shapes that move beautifully and layer with ease."
+            : group.label === "Pants"
+              ? "Clean-lined pants with a modern fit, built for both structure and comfort."
+              : group.label === "Indian Ethnic Wear"
+                ? "Traditional silhouettes and festive pieces rooted in Indian ethnic wear."
+                : group.label === "Footwear"
+                  ? "Elegant footwear made to complete the look with comfort and style."
+                  : "Finish the look with accessories chosen to complement every collection.",
+}));
 
 /* ─── Floating petal particle ─────────────────────────────────────────── */
 function Petal({ style }) {
@@ -13,18 +32,19 @@ function Petal({ style }) {
       className="hues-petal"
       style={style}
     >
-      ✿
+      
     </span>
   );
 }
 
 /* ─── Hero section ────────────────────────────────────────────────────── */
 function Hero({ activeTab }) {
-  const subtitles = {
-    Blouse: "Delicate layers and artisan detailing — the blouse reimagined for quiet luxury.",
-    Dress:  "Fluid silhouettes and ethereal femininity — find your signature dress.",
-    Shirt:  "Sharp tailoring softened by feminine details — effortlessly elevated.",
-  };
+  const currentTab = tabs.find((tab) => tab.label === activeTab) || tabs[1];
+  const isOverview = activeTab === "All Collections";
+  const title = isOverview ? "The Collection Archive" : `The ${activeTab} Collection`;
+  const subtitle = isOverview
+    ? "Browse every live category from the database, then jump into the collection that fits your mood."
+    : currentTab.subtitle;
 
   return (
     <section className="hues-col-hero">
@@ -50,12 +70,12 @@ function Hero({ activeTab }) {
 
       {/* Title */}
       <h1 className="hues-col-hero__title animate-[huesFadeUp_0.7s_0.1s_ease_both]">
-        The <em>{activeTab}</em> Collection
+        {title}
       </h1>
 
       {/* Subtitle */}
       <p className="hues-col-hero__subtitle animate-[huesFadeUp_0.7s_0.2s_ease_both]">
-        {subtitles[activeTab] || subtitles.Dress}
+        {subtitle}
       </p>
 
       {/* CTA row */}
@@ -63,9 +83,9 @@ function Hero({ activeTab }) {
         <button className="hues-col-hero__btn-primary">
           Shop Now
         </button>
-        <button className="hues-col-hero__btn-outline">
+        {/* <button className="hues-col-hero__btn-outline">
           View Lookbook
-        </button>
+        </button> */}
       </div>
 
       {/* Scroll hint */}
@@ -86,14 +106,14 @@ function TabBar({ activeTab, onTab, onFilter, onSort }) {
         {/* Tabs */}
         <div className="hues-col-tabs__list">
           {tabs.map((tab) => {
-            const active = activeTab === tab;
+            const active = activeTab === tab.label;
             return (
               <button
-                key={tab}
-                onClick={() => onTab(tab)}
+                key={tab.label}
+                onClick={() => onTab(tab.path)}
                 className={`hues-col-tabs__btn ${active ? "hues-col-tabs__btn--active" : ""}`}
               >
-                {tab}
+                {tab.label}
               </button>
             );
           })}
@@ -103,7 +123,7 @@ function TabBar({ activeTab, onTab, onFilter, onSort }) {
         <span className="hues-col-tabs__divider" />
 
         {/* Filter & Sort */}
-        <div className="hues-col-tabs__actions">
+        {/* <div className="hues-col-tabs__actions">
           <button onClick={onFilter} className="hues-col-tabs__action-btn">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
               <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="18" x2="12" y2="18"/>
@@ -116,7 +136,7 @@ function TabBar({ activeTab, onTab, onFilter, onSort }) {
             </svg>
             Sort
           </button>
-        </div>
+        </div> */}
       </div>
     </div>
   );
@@ -155,12 +175,12 @@ function EditorialStrip() {
             details that ensure your presence is felt before it is seen.
           </p>
 
-          <button className="hues-col-editorial__lookbook-btn">
+          {/* <button className="hues-col-editorial__lookbook-btn">
             Explore the Lookbook
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
             </svg>
-          </button>
+          </button> */}
         </div>
 
         {/* Right — newsletter card */}
@@ -203,8 +223,7 @@ function EditorialStrip() {
 
 /* ─── Styles & Keyframes ─────────────────────────────────────────────── */
 const KEYFRAMES = `
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap');
-
+  
   @keyframes huesFadeUp {
     from { opacity: 0; transform: translateY(22px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -222,7 +241,7 @@ const KEYFRAMES = `
     background: var(--color-surface);
     color: var(--color-on-surface);
     min-height: 100vh;
-    font-family: 'Jost', sans-serif;
+    font-family: 'Cormorant Garamond', serif;
     transition: background-color 0.4s ease, color 0.4s ease;
   }
 
@@ -265,7 +284,7 @@ const KEYFRAMES = `
     color: var(--color-on-surface);
     margin-bottom: 12px;
   }
-  .hues-col-hero__title em { font-style: italic; color: var(--color-primary); font-weight: 300; }
+  .hues-col-hero__title em { font-style: normal; color: var(--color-primary); font-weight: 300; }
   .hues-col-hero__subtitle {
     font-size: 15px; font-weight: 300; line-height: 1.7;
     color: var(--color-on-surface-variant);
@@ -410,7 +429,7 @@ const KEYFRAMES = `
   .hues-col-editorial__quote {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: clamp(24px, 3.5vw, 38px);
-    font-weight: 300; line-height: 1.25; italic: italic;
+    font-weight: 300; line-height: 1.25; font-style: normal;
     color: var(--color-on-surface); margin-bottom: 24px;
   }
   .hues-col-editorial__author-row { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
@@ -517,10 +536,11 @@ const CollectionLayout = () => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortOpen,   setSortOpen]   = useState(false);
 
-  const activeTab =
-    tabs.find((t) => location.pathname.toLowerCase().includes(t.toLowerCase())) || "Dress";
-
-  const handleTab = (tab) => navigate(`/collections/${tab.toLowerCase()}`);
+  const activeTab = useMemo(() => {
+    const current = tabs.find((tab) => location.pathname.toLowerCase().startsWith(tab.path));
+    if (current) return current.label;
+    return location.pathname === "/collections" ? "All Collections" : "Dresses";
+  }, [location.pathname]);
 
   return (
     <div className="hues-col-root">
@@ -534,7 +554,7 @@ const CollectionLayout = () => {
       {/* Tab Bar */}
       <TabBar
         activeTab={activeTab}
-        onTab={handleTab}
+        onTab={(path) => navigate(path)}
         onFilter={() => { setFilterOpen(f => !f); setSortOpen(false); }}
         onSort={() => { setSortOpen(s => !s); setFilterOpen(false); }}
       />
@@ -584,3 +604,7 @@ const CollectionLayout = () => {
 };
 
 export default CollectionLayout;
+
+
+
+

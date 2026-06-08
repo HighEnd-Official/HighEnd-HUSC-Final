@@ -1,18 +1,104 @@
 import { useState } from "react";
 import NavBar from "../../components/NavBar";
 import Footer from "../../components/Footer";
+import { apiFetch } from "../../api/client";
+
+function IconBase({ children, size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {children}
+    </svg>
+  );
+}
+
+const IconUser = (props) => (
+  <IconBase {...props}>
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7.5" r="3.5" />
+  </IconBase>
+);
+
+const IconMail = (props) => (
+  <IconBase {...props}>
+    <rect x="3" y="5" width="18" height="14" rx="2" />
+    <path d="m4 7 8 6 8-6" />
+  </IconBase>
+);
+
+const IconMessage = (props) => (
+  <IconBase {...props}>
+    <path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  </IconBase>
+);
+
+const IconClock = (props) => (
+  <IconBase {...props}>
+    <circle cx="12" cy="12" r="8" />
+    <path d="M12 8v4l3 2" />
+  </IconBase>
+);
+
+const IconPhone = (props) => (
+  <IconBase {...props}>
+    <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L8 9.7a16 16 0 0 0 6.3 6.3l1.3-1.2a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.6.6A2 2 0 0 1 22 16.9z" />
+  </IconBase>
+);
+
+const IconSparkle = (props) => (
+  <IconBase {...props}>
+    <path d="M12 2l1.5 5.5L19 9l-5.5 1.5L12 16l-1.5-5.5L5 9l5.5-1.5L12 2z" />
+    <path d="M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8L19 14z" />
+  </IconBase>
+);
+
+const IconLocation = (props) => (
+  <IconBase {...props}>
+    <path d="M12 21s6-5.3 6-10a6 6 0 1 0-12 0c0 4.7 6 10 6 10z" />
+    <circle cx="12" cy="11" r="2.2" />
+  </IconBase>
+);
+
+const IconSend = (props) => (
+  <IconBase {...props}>
+    <path d="M5 12h13" />
+    <path d="M12 5l7 7-7 7" />
+  </IconBase>
+);
+
+const IconInstagram = (props) => (
+  <IconBase {...props}>
+    <rect x="4" y="4" width="16" height="16" rx="4" />
+    <circle cx="12" cy="12" r="3.2" />
+    <circle cx="17" cy="7" r="1" />
+  </IconBase>
+);
+
+const IconPinterest = (props) => (
+  <IconBase {...props}>
+    <path d="M12 21c1.5 0 3-5 3-8.5a4.5 4.5 0 1 0-6.6 4" />
+    <circle cx="12" cy="12" r="8" />
+  </IconBase>
+);
+
+const IconLinkedIn = (props) => (
+  <IconBase {...props}>
+    <rect x="4" y="4" width="16" height="16" rx="2" />
+    <path d="M8 11v5" />
+    <path d="M8 8.5h0" />
+    <path d="M12 16v-3a2 2 0 0 1 4 0v3" />
+  </IconBase>
+);
 
 /* ─── Inject styles ────────────────────────────────────────────────────── */
 const STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Italiana&family=Raleway:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap');
-
+  
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  ::selection { background: #f4b8cc; color: #3a0f28; }
+  ::selection { background: var(--color-primary-container); color: #3a0f28; }
 
   ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: #fdf0f4; }
-  ::-webkit-scrollbar-thumb { background: linear-gradient(#c96d99, #e8a0bc); border-radius: 6px; }
+  ::-webkit-scrollbar-track { background: var(--color-surface-container-low); }
+  ::-webkit-scrollbar-thumb { background: linear-gradient(var(--color-primary-container), var(--color-primary-container)); border-radius: 6px; }
 
   @keyframes floatUp  { from { opacity:0; transform:translateY(40px); } to { opacity:1; transform:translateY(0); } }
   @keyframes drift    { 0%,100% { transform:translateY(0) rotate(0deg); } 50% { transform:translateY(-14px) rotate(3deg); } }
@@ -27,22 +113,22 @@ const STYLES = `
   @keyframes bgShift  { 0%,100%{ background-position:0% 50%; } 50%{ background-position:100% 50%; } }
   @keyframes petalSpin{ 0%{ transform:rotate(0deg) scale(1); opacity:.7; } 100%{ transform:rotate(360deg) scale(1.2); opacity:0; } }
 
-  .font-display { font-family:'Italiana', serif; }
-  .font-body    { font-family:'Raleway', sans-serif; }
+  .font-display { font-family:Gillie Quest; }
+  .font-body    { font-family: 'Italiana', serif; }
 
   .contact-bg {
-    background: linear-gradient(-45deg, #fff0f5, #fff8fb, #fce8f1, #fdf4f8);
+    background: linear-gradient(-45deg, var(--color-surface), var(--color-surface), var(--color-surface-container-low), var(--color-surface));
     background-size: 400% 400%;
     animation: bgShift 14s ease infinite;
     min-height:100vh;
   }
   .contact-bg.dark {
-    background: linear-gradient(-45deg, #120810, #1a0e16, #160b12, #100810);
+    background: linear-gradient(-45deg, var(--color-surface-container-highest), var(--color-surface-container-highest), var(--color-surface-container-highest), var(--color-surface-container-highest));
     background-size: 400% 400%;
   }
 
   .shimmer-title {
-    background: linear-gradient(90deg,#a8385e 0%,#e07aaa 30%,#f5b8d4 50%,#e07aaa 70%,#a8385e 100%);
+    background: linear-gradient(90deg,var(--color-primary) 0%,var(--color-primary-container) 30%,var(--color-primary-container) 50%,var(--color-primary-container) 70%,var(--color-primary) 100%);
     background-size: 300% auto;
     -webkit-background-clip: text;
     background-clip: text;
@@ -50,7 +136,7 @@ const STYLES = `
     animation: shimmer 5s linear infinite;
   }
   .shimmer-title.dark {
-    background: linear-gradient(90deg,#d48aaa 0%,#f0b8d0 30%,#ffd8e8 50%,#f0b8d0 70%,#d48aaa 100%);
+    background: linear-gradient(90deg,var(--color-primary-container) 0%,var(--color-primary-container) 30%,var(--color-surface-container-low) 50%,var(--color-primary-container) 70%,var(--color-primary-container) 100%);
     background-size: 300% auto;
     -webkit-background-clip: text;
     background-clip: text;
@@ -58,11 +144,11 @@ const STYLES = `
   }
 
   .glass-card {
-    background: rgba(255,255,255,0.78);
+    background: var(--color-surface);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(220,160,190,0.25);
-    box-shadow: 0 8px 40px rgba(180,60,110,0.08), 0 1px 0 rgba(255,255,255,0.9) inset;
+    box-shadow: 0 8px 40px rgba(180,60,110,0.08), 0 1px 0 var(--color-surface) inset;
     transition: box-shadow .4s, transform .4s;
   }
   .glass-card:hover {
@@ -86,28 +172,28 @@ const STYLES = `
   }
   .toggle-knob {
     position:absolute; top:4px; left:4px; width:20px; height:20px;
-    border-radius:50%; background:#fff;
+    border-radius:50%; background:var(--color-on-primary);
     box-shadow:0 1px 4px rgba(0,0,0,.18);
     transition:transform .32s cubic-bezier(.4,0,.2,1);
   }
   .toggle-pill.on .toggle-knob { transform:translateX(22px); }
 
   .info-pill {
-    font-family:'Raleway',sans-serif; font-size:10px; font-weight:600;
+    font-family: 'Italiana', serif; font-size:10px; font-weight:600;
     letter-spacing:.12em; text-transform:uppercase;
     padding:3px 10px; border-radius:999px;
-    background:rgba(200,120,160,0.12); color:#b05888;
+    background:rgba(200,120,160,0.12); color:var(--color-primary);
     display:inline-block;
   }
-  .info-pill.dark { background:rgba(180,80,130,0.20); color:#e0a0c4; }
+  .info-pill.dark { background:rgba(180,80,130,0.20); color:var(--color-primary-container); }
 
   .send-btn {
     position:relative; overflow:hidden; border:none; cursor:pointer;
-    font-family:'Raleway',sans-serif; font-size:11px; font-weight:700;
+    font-family: 'Italiana', serif; font-size:11px; font-weight:700;
     letter-spacing:.20em; text-transform:uppercase;
     padding:15px 40px; border-radius:999px;
-    color:#fff; transition:transform .3s, box-shadow .3s;
-    background:linear-gradient(135deg,#a8385e,#d46496,#e8a0c0);
+    color:var(--color-on-primary); transition:transform .3s, box-shadow .3s;
+    background:linear-gradient(135deg,var(--color-primary),var(--color-primary-container),var(--color-primary-container));
     background-size:200% auto;
   }
   .send-btn:hover { transform:translateY(-2px) scale(1.03); box-shadow:0 10px 32px rgba(168,56,94,0.35); background-position:right center; }
@@ -117,18 +203,18 @@ const STYLES = `
     transform:translateX(-100%); transition:transform .6s;
   }
   .send-btn:hover::before { transform:translateX(100%); }
-  .send-btn.dark { background:linear-gradient(135deg,#7a2848,#b44880,#d07090); }
+  .send-btn.dark { background:linear-gradient(135deg,var(--color-primary),var(--color-primary-container),var(--color-primary-container)); }
 
   .social-btn {
     display:inline-flex; align-items:center; gap:6px;
-    font-family:'Raleway',sans-serif; font-size:12px; font-weight:500;
-    color:#a05878; border:1px solid rgba(200,120,160,0.35);
+    font-family: 'Italiana', serif; font-size:12px; font-weight:500;
+    color:var(--color-on-surface-variant); border:1px solid rgba(200,120,160,0.35);
     padding:8px 16px; border-radius:999px;
-    background:rgba(255,255,255,0.55); cursor:pointer; border-style:solid;
+    background:var(--color-surface); cursor:pointer; border-style:solid;
     transition:all .3s;
   }
   .social-btn:hover { background:rgba(200,120,160,0.15); transform:translateY(-2px); box-shadow:0 4px 16px rgba(180,60,110,0.12); }
-  .social-btn.dark { color:#d090b4; border-color:rgba(160,80,120,0.40); background:rgba(28,14,22,0.60); }
+  .social-btn.dark { color:var(--color-outline); border-color:rgba(160,80,120,0.40); background:rgba(28,14,22,0.60); }
   .social-btn.dark:hover { background:rgba(160,80,120,0.20); }
 
   .confetti-piece {
@@ -145,11 +231,11 @@ const STYLES = `
   .fade-in-6 { animation: floatUp 0.75s 0.66s ease both; }
 
   .newsletter-bg {
-    background: linear-gradient(135deg,#b84070,#d46490,#e890b8,#d46490,#b84070);
+    background: linear-gradient(135deg,var(--color-primary),var(--color-primary-container),var(--color-primary-container),var(--color-primary-container),var(--color-primary));
     background-size:300% auto; animation: shimmer 6s linear infinite;
   }
   .newsletter-bg.dark {
-    background: linear-gradient(135deg,#6a1838,#9a3860,#c06090,#9a3860,#6a1838);
+    background: linear-gradient(135deg,var(--color-primary),var(--color-primary-container),var(--color-primary-container),var(--color-primary-container),var(--color-primary));
     background-size:300% auto;
   }
 `;
@@ -177,9 +263,9 @@ function Field({ label, type = "text", placeholder, rows, icon, value, onChange,
     <div className="mb-7 group">
       <label
         className="font-body flex items-center gap-2 mb-2 text-[11px] font-semibold tracking-[0.14em] uppercase"
-        style={{ color: isDark ? "#9a6880" : "#905870" }}
+        style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}
       >
-        <span style={{ fontSize: 14 }}>{icon}</span>
+        <span style={{ display: "inline-flex", width: 18, height: 18, alignItems: "center", justifyContent: "center" }}>{icon}</span>
         {label}
       </label>
       <div className="relative">
@@ -193,8 +279,8 @@ function Field({ label, type = "text", placeholder, rows, icon, value, onChange,
           onBlur={() => setFocused(false)}
           className="font-body w-full bg-transparent outline-none resize-none py-3 text-[15px] leading-relaxed"
           style={{
-            borderBottom: `1.5px solid ${focused ? (isDark ? "#c07898" : "#c07898") : (isDark ? "rgba(150,70,100,0.40)" : "rgba(200,150,180,0.45)")}`,
-            color: isDark ? "#f0dce6" : "#2a1020",
+            borderBottom: `1.5px solid ${focused ? (isDark ? "var(--color-primary-container)" : "var(--color-primary-container)") : (isDark ? "rgba(150,70,100,0.40)" : "rgba(200,150,180,0.45)")}`,
+            color: isDark ? "var(--color-surface)" : "var(--color-on-surface)",
             transition: "border-color .3s",
           }}
         />
@@ -202,7 +288,7 @@ function Field({ label, type = "text", placeholder, rows, icon, value, onChange,
           className="absolute bottom-0 left-0 h-0.5 origin-left"
           style={{
             width: "100%",
-            background: "linear-gradient(90deg,#c07898,#f0b0cc)",
+            background: "linear-gradient(90deg,var(--color-primary-container),var(--color-primary-container))",
             transform: focused ? "scaleX(1)" : "scaleX(0)",
             transition: "transform .45s cubic-bezier(.4,0,.2,1)",
           }}
@@ -226,15 +312,15 @@ function InfoCard({ title, icon, children, dark: isDark }) {
           className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300"
           style={{
             background: hov
-              ? "linear-gradient(135deg,#b84070,#e090b8)"
+              ? "linear-gradient(135deg,var(--color-primary),var(--color-primary-container))"
               : isDark ? "rgba(180,60,110,0.20)" : "rgba(200,120,160,0.12)",
           }}
         >
-          <span style={{ fontSize: 15, filter: hov ? "brightness(10)" : "none", transition: "filter .3s" }}>{icon}</span>
+          <span style={{ display: "inline-flex", width: 18, height: 18, alignItems: "center", justifyContent: "center", color: hov ? "var(--color-on-primary)" : "inherit", transition: "color .3s" }}>{icon}</span>
         </div>
         <h3
           className="font-body text-[10.5px] font-semibold tracking-[0.18em] uppercase"
-          style={{ color: isDark ? "#d090b4" : "#b04878" }}
+          style={{ color: isDark ? "var(--color-outline)" : "var(--color-primary)" }}
         >
           {title}
         </h3>
@@ -246,7 +332,7 @@ function InfoCard({ title, icon, children, dark: isDark }) {
 
 /* ─── Confetti ──────────────────────────────────────────────────────────── */
 function Confetti() {
-  const colors = ["#f4b8d0","#f0d0e8","#e890b8","#fcd4e4","#c07898","#ffeef5"];
+  const colors = ["var(--color-primary-container)","var(--color-primary-container)","var(--color-primary-container)","var(--color-primary-container)","var(--color-primary-container)","var(--color-surface)"];
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
       {Array.from({ length: 18 }).map((_, i) => (
@@ -271,10 +357,29 @@ function Confetti() {
 function ContactGrid({ isDark }) {
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (form.name && form.email && form.message) setSubmitted(true);
+    setError("");
+    if (!form.name || !form.email || !form.message) {
+      setError("Please fill in all fields before sending your message.");
+      return;
+    }
+
+    setSending(true);
+    try {
+      await apiFetch("/contact", {
+        method: "POST",
+        body: JSON.stringify(form),
+      });
+      setSubmitted(true);
+    } catch (err) {
+      setError(err?.message || "Failed to send your message.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -290,18 +395,18 @@ function ContactGrid({ isDark }) {
             <Confetti />
             <div
               className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg,#b84070,#e090b8)", fontSize: 32 }}
+              style={{ background: "linear-gradient(135deg,var(--color-primary),var(--color-primary-container))", fontSize: 32 }}
             >
-              ✨
+              <IconSparkle size={30} />
             </div>
             <p
               className="font-display text-3xl mb-3"
-              style={{ color: isDark ? "#f0c8de" : "#b84070" }}
+              style={{ color: isDark ? "var(--color-primary-container)" : "var(--color-primary)" }}
             >
               Thank you, lovely.
             </p>
-            <p className="font-body text-[14px]" style={{ color: isDark ? "#9a6880" : "#906070" }}>
-              Our team will respond within 24 hours. 💕
+            <p className="font-body text-[14px]" style={{ color: isDark ? "var(--color-outline)" : "var(--color-outline)" }}>
+              Our team will respond within 24 hours. <span style={{ display: "inline-flex", verticalAlign: "middle" }}><IconSparkle size={14} /></span>
             </p>
           </div>
         ) : (
@@ -311,26 +416,30 @@ function ContactGrid({ isDark }) {
                 className="inline-flex w-14 h-14 rounded-full items-center justify-center mb-4"
                 style={{ background: "linear-gradient(135deg,rgba(200,120,160,0.15),rgba(240,180,210,0.10))", fontSize: 26 }}
               >
-                💌
+                <IconMail size={26} />
               </div>
-              <h3 className="font-display text-3xl mb-1" style={{ color: isDark ? "#f0dce8" : "#1f1020" }}>
+              <h3 className="font-display text-3xl mb-1" style={{ color: isDark ? "var(--color-surface)" : "var(--color-on-surface)" }}>
                 Send us a message
               </h3>
-              <p className="font-body text-[13px]" style={{ color: isDark ? "#9a7088" : "#907080" }}>
+              <p className="font-body text-[13px]" style={{ color: isDark ? "var(--color-outline)" : "var(--color-outline)" }}>
                 We'd love to hear from you, darling.
               </p>
             </div>
 
-            <Field label="Full Name"      icon="🌸" placeholder="Sofia Valentini"         value={form.name}    onChange={e => setForm({ ...form, name: e.target.value })}    dark={isDark} />
-            <Field label="Email Address"  icon="💌" type="email" placeholder="sofia@example.com" value={form.email}   onChange={e => setForm({ ...form, email: e.target.value })}   dark={isDark} />
-            <Field label="Your Message"   icon="✦"  rows={4} placeholder="How can we help you today?" value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} dark={isDark} />
+            <Field label="Full Name"      icon={<IconUser size={16} />} placeholder="Sofia Valentini"         value={form.name}    onChange={e => setForm({ ...form, name: e.target.value })}    dark={isDark} />
+            <Field label="Email Address"  icon={<IconMail size={16} />} type="email" placeholder="sofia@example.com" value={form.email}   onChange={e => setForm({ ...form, email: e.target.value })}   dark={isDark} />
+            <Field label="Your Message"   icon={<IconMessage size={16} />}  rows={4} placeholder="How can we help you today?" value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} dark={isDark} />
+
+            {error ? (
+              <div className="font-body text-[13px] mt-3" style={{ color: "var(--color-primary-container)" }}>
+                {error}
+              </div>
+            ) : null}
 
             <div className="flex justify-center mt-8">
-              <button type="submit" className={`send-btn${isDark ? " dark" : ""}`}>
-                Send Inquiry
-                <svg className="inline-block w-4 h-4 ml-2 align-middle" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
+              <button type="submit" className={`send-btn${isDark ? " dark" : ""}`} disabled={sending}>
+                {sending ? "Sending..." : "Send Inquiry"}
+                <span className="inline-flex ml-2 align-middle"><IconSend size={16} /></span>
               </button>
             </div>
           </form>
@@ -345,37 +454,37 @@ function ContactGrid({ isDark }) {
             className="w-full h-full flex items-center justify-center"
             style={{
               background: isDark
-                ? "linear-gradient(135deg,#1a0812,#2e1020,#1a0c18)"
-                : "linear-gradient(135deg,#fce4f0,#fdf0f8,#f8e0ee)",
+                ? "linear-gradient(135deg,var(--color-surface-container-highest),var(--color-surface-container-highest),var(--color-surface-container-highest))"
+                : "linear-gradient(135deg,var(--color-surface-container-low),var(--color-surface-container-low),var(--color-surface-container-low))",
             }}
           >
             <div className="text-center">
               <div className="font-display text-7xl" style={{ color: isDark ? "rgba(200,120,160,0.25)" : "rgba(180,80,130,0.18)", lineHeight: 1 }}>HUES</div>
-              <div className="font-body text-[11px] tracking-[0.32em] uppercase mt-2" style={{ color: isDark ? "#9a6880" : "#c07898" }}>Atelier — Milan</div>
+              <div className="font-body text-[11px] tracking-[0.32em] uppercase mt-2" style={{ color: isDark ? "var(--color-outline)" : "var(--color-primary-container)" }}>Atelier — Milan</div>
             </div>
           </div>
           {/* badge */}
           <span
             className="absolute bottom-3 left-3 font-body text-[10px] font-semibold tracking-[0.12em] uppercase px-3 py-1.5 rounded-full"
             style={{
-              background: isDark ? "rgba(28,14,22,0.88)" : "rgba(255,255,255,0.90)",
-              color: isDark ? "#d090b4" : "#b04878",
+              background: isDark ? "rgba(28,14,22,0.88)" : "var(--color-surface)",
+              color: isDark ? "var(--color-outline)" : "var(--color-primary)",
               backdropFilter: "blur(8px)",
             }}
           >
-            📍 Our Atelier
+            <span style={{ display: "inline-flex", verticalAlign: "middle", marginRight: 6 }}><IconLocation size={14} /></span> Our Atelier
           </span>
         </div>
 
-        <InfoCard title="Concierge Hours" icon="🕐" dark={isDark}>
-          <p className="font-body text-[13px] leading-relaxed mb-1" style={{ color: isDark ? "#c0a0b4" : "#504350" }}>Monday — Friday · 09:00–18:00 CET</p>
-          <p className="font-body text-[13px] leading-relaxed mb-3" style={{ color: isDark ? "#c0a0b4" : "#504350" }}>Saturday · 10:00–14:00 CET</p>
-          <span className={`info-pill${isDark ? " dark" : ""}`}>✨ Urgent inquiries welcome</span>
+        <InfoCard title="Concierge Hours" icon={<IconClock size={16} />} dark={isDark}>
+          <p className="font-body text-[13px] leading-relaxed mb-1" style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}>Monday — Friday · 09:00–18:00 CET</p>
+          <p className="font-body text-[13px] leading-relaxed mb-3" style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}>Saturday · 10:00–14:00 CET</p>
+          <span className={`info-pill${isDark ? " dark" : ""}`}><span style={{ display: "inline-flex", verticalAlign: "middle", marginRight: 5 }}><IconSparkle size={12} /></span>Urgent inquiries welcome</span>
         </InfoCard>
 
-        <InfoCard title="Direct Contact" icon="📞" dark={isDark}>
-          <p className="font-body text-[13px] mb-1" style={{ color: isDark ? "#c0a0b4" : "#504350" }}>concierge@hues.com</p>
-          <p className="font-body text-[13px] mb-3" style={{ color: isDark ? "#c0a0b4" : "#504350" }}>+44 (0) 20 7946 0123</p>
+        <InfoCard title="Direct Contact" icon={<IconPhone size={16} />} dark={isDark}>
+          <p className="font-body text-[13px] mb-1" style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}>concierge@hues.com</p>
+          <p className="font-body text-[13px] mb-3" style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}>+44 (0) 20 7946 0123</p>
           <div className="flex gap-2 flex-wrap">
             {["WhatsApp", "Telegram"].map(s => (
               <span key={s} className={`info-pill${isDark ? " dark" : ""}`}>{s}</span>
@@ -383,9 +492,9 @@ function ContactGrid({ isDark }) {
           </div>
         </InfoCard>
 
-        <InfoCard title="Follow Our Journal" icon="🌸" dark={isDark}>
+        <InfoCard title="Follow Our Journal" icon={<IconSparkle size={16} />} dark={isDark}>
           <div className="flex flex-wrap gap-2 mt-1">
-            {[{ n: "Instagram", e: "📸" }, { n: "Pinterest", e: "📌" }, { n: "LinkedIn", e: "💼" }].map(s => (
+            {[{ n: "Instagram", e: <IconInstagram size={14} /> }, { n: "Pinterest", e: <IconPinterest size={14} /> }, { n: "LinkedIn", e: <IconLinkedIn size={14} /> }].map(s => (
               <button key={s.n} type="button" className={`social-btn${isDark ? " dark" : ""}`}>
                 <span>{s.e}</span> {s.n}
               </button>
@@ -403,10 +512,10 @@ function LocationSection({ isDark }) {
     <section className="mt-28 pt-14" style={{ borderTop: `1px solid ${isDark ? "rgba(130,50,90,0.30)" : "rgba(210,150,180,0.30)"}` }}>
       <div className="text-center mb-14">
         <span style={{ fontSize: 36, display: "block", marginBottom: 8 }}>🌿</span>
-        <h2 className="font-display text-4xl md:text-5xl" style={{ color: isDark ? "#f0dce8" : "#1f1020" }}>
+        <h2 className="font-display text-4xl md:text-5xl" style={{ color: isDark ? "var(--color-surface)" : "var(--color-on-surface)" }}>
           Visit Our Atelier
         </h2>
-        <div className="mx-auto mt-3 h-px w-16 origin-left" style={{ background: "linear-gradient(90deg,#c07898,transparent)", animationName: "lineGrow", animationDuration: "0.8s", animationFillMode: "both" }} />
+        <div className="mx-auto mt-3 h-px w-16 origin-left" style={{ background: "linear-gradient(90deg,var(--color-primary-container),transparent)", animationName: "lineGrow", animationDuration: "0.8s", animationFillMode: "both" }} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
@@ -421,9 +530,9 @@ function LocationSection({ isDark }) {
             }}
           />
           <div className="relative z-10 text-center">
-            <div style={{ fontSize: 48, marginBottom: 8 }}>📍</div>
-            <div className="font-display text-xl" style={{ color: isDark ? "#e0c0d4" : "#8a3060" }}>Via della Spiga, 14</div>
-            <div className="font-body text-[13px] mt-1" style={{ color: isDark ? "#9a6880" : "#907080" }}>Milano MI, Italy</div>
+            <div style={{ fontSize: 48, marginBottom: 8, display: "inline-flex" }}><IconLocation size={48} /></div>
+            <div className="font-display text-xl" style={{ color: isDark ? "var(--color-primary-container)" : "var(--color-primary)" }}>Via della Spiga, 14</div>
+            <div className="font-body text-[13px] mt-1" style={{ color: isDark ? "var(--color-outline)" : "var(--color-outline)" }}>Milano MI, Italy</div>
           </div>
           {/* Decorative grid lines */}
           {Array.from({ length: 5 }).map((_, i) => (
@@ -436,15 +545,15 @@ function LocationSection({ isDark }) {
 
         <div className="space-y-5 text-center lg:text-left">
           <div className="inline-flex items-center gap-2">
-            <div className="w-8 h-px" style={{ background: "linear-gradient(90deg,#c07898,transparent)" }} />
-            <span className="font-body text-[10.5px] font-semibold tracking-[0.22em] uppercase" style={{ color: isDark ? "#d090b4" : "#b04878" }}>The Atelier</span>
+            <div className="w-8 h-px" style={{ background: "linear-gradient(90deg,var(--color-primary-container),transparent)" }} />
+            <span className="font-body text-[10.5px] font-semibold tracking-[0.22em] uppercase" style={{ color: isDark ? "var(--color-outline)" : "var(--color-primary)" }}>The Atelier</span>
           </div>
 
-          <h2 className="font-display text-5xl md:text-6xl" style={{ color: isDark ? "#f0dce8" : "#1f1020", lineHeight: 1.05 }}>
+          <h2 className="font-display text-5xl md:text-6xl" style={{ color: isDark ? "var(--color-surface)" : "var(--color-on-surface)", lineHeight: 1.05 }}>
             Milan Flagship
           </h2>
 
-          <p className="font-body text-[15px] leading-relaxed" style={{ color: isDark ? "#b08898" : "#504350" }}>
+          <p className="font-body text-[15px] leading-relaxed" style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}>
             Via della Spiga, 14<br />20121 Milano MI, Italy<br />
             <span style={{ fontSize: 13, opacity: .8 }}>🚇 Montenapoleone (2 min walk)</span>
           </p>
@@ -453,7 +562,7 @@ function LocationSection({ isDark }) {
             className="p-4 rounded-xl"
             style={{ background: isDark ? "rgba(180,60,110,0.10)" : "rgba(240,180,210,0.18)" }}
           >
-            <p className="font-body text-[13px] italic leading-relaxed" style={{ color: isDark ? "#b08898" : "#685060" }}>
+            <p className="font-body text-[13px] leading-relaxed" style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}>
               "Appointments recommended for private viewings and bespoke consultations."
             </p>
           </div>
@@ -462,7 +571,7 @@ function LocationSection({ isDark }) {
             <button
               type="button"
               className="font-body text-[11px] font-bold tracking-[0.16em] uppercase px-6 py-3 rounded-full text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
-              style={{ background: "linear-gradient(135deg,#a8385e,#d46496)", boxShadow: "0 4px 16px rgba(168,56,94,0.28)" }}
+              style={{ background: "linear-gradient(135deg,var(--color-primary),var(--color-primary-container))", boxShadow: "0 4px 16px rgba(168,56,94,0.28)" }}
             >
               Book Appointment
             </button>
@@ -471,7 +580,7 @@ function LocationSection({ isDark }) {
               className="font-body text-[11px] font-bold tracking-[0.16em] uppercase px-6 py-3 rounded-full transition-all duration-300 hover:-translate-y-0.5"
               style={{
                 border: `2px solid ${isDark ? "rgba(200,110,160,0.50)" : "rgba(168,56,94,0.45)"}`,
-                color: isDark ? "#d090b4" : "#a8385e",
+                color: isDark ? "var(--color-outline)" : "var(--color-primary)",
                 background: "transparent",
               }}
             >
@@ -496,18 +605,18 @@ function Newsletter({ isDark }) {
 
   return (
     <section className={`mt-24 py-16 px-8 md:px-20 rounded-3xl text-center relative overflow-hidden newsletter-bg${isDark ? " dark" : ""}`}>
-      <Petal style={{ top: 18, left: "8%", color: "#fff", animationDelay: "0s" }} />
-      <Petal style={{ top: 30, right: "6%", color: "#fff", animationDelay: "1.2s", fontSize: 16 }} />
-      <Petal style={{ bottom: 18, left: "20%", color: "#fff", animationDelay: "2s", fontSize: 14 }} />
+      <Petal style={{ top: 18, left: "8%", color: "var(--color-on-primary)", animationDelay: "0s" }} />
+      <Petal style={{ top: 30, right: "6%", color: "var(--color-on-primary)", animationDelay: "1.2s", fontSize: 16 }} />
+      <Petal style={{ bottom: 18, left: "20%", color: "var(--color-on-primary)", animationDelay: "2s", fontSize: 14 }} />
 
       <div className="max-w-2xl mx-auto relative z-10">
-        <div style={{ fontSize: 36, marginBottom: 8 }}>💌</div>
+        <div style={{ fontSize: 36, marginBottom: 8, display: "inline-flex" }}><IconMail size={36} /></div>
         <h3 className="font-display text-3xl md:text-4xl text-white mb-2">Stay Connected</h3>
-        <p className="font-body text-[14px] mb-8" style={{ color: "rgba(255,255,255,0.80)" }}>
+        <p className="font-body text-[14px] mb-8" style={{ color: "var(--color-surface)" }}>
           Receive updates on new collections, exclusive events, and design insights.
         </p>
         {done ? (
-          <div className="font-body text-white text-[15px] font-medium py-3 px-6 rounded-full" style={{ background: "rgba(255,255,255,0.20)", backdropFilter: "blur(8px)" }}>
+          <div className="font-body text-white text-[15px] font-medium py-3 px-6 rounded-full" style={{ background: "var(--color-surface)", backdropFilter: "blur(8px)" }}>
             🎉 Thank you for subscribing! You're wonderful.
           </div>
         ) : (
@@ -518,19 +627,19 @@ function Newsletter({ isDark }) {
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              className="font-body flex-1 px-5 py-3 rounded-full border-none outline-none text-[#2a1020] text-[14px]"
-              style={{ background: "rgba(255,255,255,0.94)" }}
+              className="font-body flex-1 px-5 py-3 rounded-full border-none outline-none text-[var(--color-on-surface)] text-[14px]"
+              style={{ background: "var(--color-surface)" }}
             />
             <button
               type="submit"
               className="font-body font-bold text-[11px] tracking-[0.16em] uppercase px-6 py-3 rounded-full transition-all duration-300 hover:shadow-xl hover:scale-105"
-              style={{ background: "rgba(255,255,255,0.20)", color: "#fff", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.35)" }}
+              style={{ background: "var(--color-surface)", color: "var(--color-on-primary)", backdropFilter: "blur(8px)", border: "1px solid var(--color-surface)" }}
             >
               Subscribe 💖
             </button>
           </form>
         )}
-        <p className="font-body text-[10px] mt-4" style={{ color: "rgba(255,255,255,0.45)" }}>
+        <p className="font-body text-[10px] mt-4" style={{ color: "var(--color-surface)" }}>
           Unsubscribe anytime. We respect your privacy.
         </p>
       </div>
@@ -550,14 +659,14 @@ export default function Contact() {
         {/* ── Minimal top bar with toggle ── */}
         <div> <NavBar />
         
-          <span className="font-display text-2xl" style={{ color: isDark ? "#f0c8de" : "#b84070" }}>HUES</span>
+          <span className="font-display text-2xl" style={{ color: isDark ? "var(--color-primary-container)" : "var(--color-primary)" }}>HUES</span>
           <div className="flex items-center gap-3">
-            <span className="font-body text-[10px] font-semibold tracking-[0.16em] uppercase" style={{ color: isDark ? "#9a6880" : "#c07898" }}>
+            <span className="font-body text-[10px] font-semibold tracking-[0.16em] uppercase" style={{ color: isDark ? "var(--color-outline)" : "var(--color-primary-container)" }}>
               {isDark ? "Dark" : "Light"}
             </span>
             <button
               className={`toggle-pill${isDark ? " on" : ""}`}
-              style={{ background: isDark ? "#7a3858" : "#e0a0c0" }}
+              style={{ background: isDark ? "var(--color-primary)" : "var(--color-primary-container)" }}
               onClick={() => setIsDark(d => !d)}
               aria-label="Toggle dark mode"
             >
@@ -575,7 +684,7 @@ export default function Contact() {
               style={{
                 background: isDark ? "rgba(180,60,110,0.15)" : "rgba(200,120,160,0.10)",
                 border: `1px solid ${isDark ? "rgba(180,60,110,0.25)" : "rgba(200,120,160,0.20)"}`,
-                color: isDark ? "#d090b4" : "#b04878",
+                color: isDark ? "var(--color-outline)" : "var(--color-primary)",
                 fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase",
               }}
             >
@@ -588,7 +697,7 @@ export default function Contact() {
                 fontSize: "clamp(48px,7vw,88px)",
                 lineHeight: 1.05,
                 marginBottom: 16,
-                color: isDark ? "#f0dce8" : "#1f1020",
+                color: isDark ? "var(--color-surface)" : "var(--color-on-surface)",
               }}
             >
               Connect with{" "}
@@ -597,14 +706,14 @@ export default function Contact() {
 
             {/* Decorative rule */}
             <div className="flex items-center justify-center gap-4 mb-8 fade-in-3">
-              <div className="h-px w-12" style={{ background: "linear-gradient(90deg,transparent,#c07898)" }} />
-              <span style={{ color: "#c07898", fontSize: 16 }}>✦</span>
-              <div className="h-px w-12" style={{ background: "linear-gradient(90deg,#c07898,transparent)" }} />
+              <div className="h-px w-12" style={{ background: "linear-gradient(90deg,transparent,var(--color-primary-container))" }} />
+              <span style={{ color: "var(--color-primary-container)", fontSize: 16, display: "inline-flex" }}><IconSparkle size={16} /></span>
+              <div className="h-px w-12" style={{ background: "linear-gradient(90deg,var(--color-primary-container),transparent)" }} />
             </div>
 
             <p
               className="font-body text-[16px] md:text-[17px] leading-relaxed max-w-2xl mx-auto fade-in-4"
-              style={{ color: isDark ? "#9a7888" : "#705060" }}
+              style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}
             >
               We believe in deliberate conversation and timeless service. Whether you have a question
               about our collections or a bespoke request, we are here to assist.
@@ -630,3 +739,5 @@ export default function Contact() {
     </>
   );
 }
+
+

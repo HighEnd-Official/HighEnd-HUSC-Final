@@ -1,8 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
-import logoImg from "../assets/logo/logo.jpg";
+import { useTheme } from "../context/ThemeContext";
+import { getApiBaseUrl } from "../api/client";
+import { CATEGORY_GROUPS } from "../lib/productCategories";
+import logoImg from "../assets/logo/logo.png";
+import logoDarkImg from "../assets/logo/logow.png";
 
 /* ─── Nav Links ─────────────────────────────────────────────────────────── */
 const PUBLIC_LINKS = [
@@ -10,14 +14,9 @@ const PUBLIC_LINKS = [
   {
     label: "Collections",
     to: "/collections",
-    dropdown: [
-      { label: "All Collections", to: "/collections/AllCollections" },
-      { label: "Blouse",          to: "/collections/blouse" },
-      { label: "Dress",           to: "/collections/dress" },
-      { label: "Shirt",           to: "/collections/shirt" },
-    ],
+    dropdown: CATEGORY_GROUPS,
   },
-  { label: "About",      to: "/about" },
+  { label: "About", to: "/about" },
   { label: "Contact Us", to: "/contact" },
 ];
 
@@ -35,79 +34,83 @@ function useScrolled(threshold = 20) {
 /* ─── SVG Icons ──────────────────────────────────────────────────────────── */
 const IconSearch = () => (
   <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/>
+    <circle cx="11" cy="11" r="7" /><line x1="16.5" y1="16.5" x2="22" y2="22" />
   </svg>
 );
 
 const IconBag = () => (
   <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
-    <line x1="3" y1="6" x2="21" y2="6"/>
-    <path d="M16 10a4 4 0 01-8 0"/>
+    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <path d="M16 10a4 4 0 01-8 0" />
   </svg>
 );
 
 const IconHeart = ({ filled }) => (
   <svg width="19" height="19" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ transition: "fill 0.35s ease" }}>
-    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
   </svg>
 );
 
 const IconPerson = () => (
   <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-    <circle cx="12" cy="7" r="4"/>
+    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
   </svg>
 );
 
 const IconLogout = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
-    <polyline points="16 17 21 12 16 7"/>
-    <line x1="21" y1="12" x2="9" y2="12"/>
+    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
   </svg>
 );
 
-const IconChevron = ({ rotated }) => (
-  <svg width="9" height="5" viewBox="0 0 10 6" fill="none" style={{ transition: "transform 0.3s", transform: rotated ? "rotate(180deg)" : "rotate(0deg)" }}>
-    <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+const IconParcel = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3.5 7.5L12 3l8.5 4.5L12 12 3.5 7.5Z" />
+    <path d="M3.5 7.5V16.5L12 21l8.5-4.5V7.5" />
+    <path d="M12 12v9" />
+    <path d="M7.5 5.5l9 4.5" />
   </svg>
 );
 
 const IconClose = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
   </svg>
 );
 
 const IconMenu = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="3" y1="6"  x2="21" y2="6"/>
-    <line x1="3" y1="12" x2="21" y2="12"/>
-    <line x1="3" y1="18" x2="21" y2="18"/>
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <line x1="3" y1="12" x2="21" y2="12" />
+    <line x1="3" y1="18" x2="21" y2="18" />
   </svg>
 );
 
 /* ─── Logo ───────────────────────────────────────────────────────────────── */
-function Logo() {
+function Logo({ isDark }) {
   return (
-      <img
-        src={logoImg}
-        alt="HUES"
-        className="hues-logo__image"
-      />
+    <img
+      src={isDark ? logoDarkImg : logoImg}
+      alt="HUES"
+      className="hues-logo__image"
+      decoding="async"
+    />
   );
 }
 
 /* ─── Icon Action Button ─────────────────────────────────────────────────── */
-function ActionBtn({ onClick, label, children, badge, dot }) {
+function ActionBtn({ onClick, label, children, badge, dot, className = "" }) {
   return (
-    <button onClick={onClick} className="hues-action-btn" aria-label={label} title={label}>
+    <button onClick={onClick} className={`hues-action-btn ${className}`.trim()} aria-label={label} title={label}>
       {children}
       {badge > 0 && (
         <span className="hues-badge">{badge}</span>
       )}
-      {dot && !badge && <span className="hues-dot" aria-hidden="true"/>}
+      {dot && !badge && <span className="hues-dot" aria-hidden="true" />}
     </button>
   );
 }
@@ -128,7 +131,7 @@ function WishlistPanel({ wishlist, toggleWishlist, addItem, onClose }) {
             </button>
           )}
           <button className="hues-wishlist-panel__close" onClick={onClose} aria-label="Close wishlist">
-            <IconClose/>
+            <IconClose />
           </button>
         </div>
       </div>
@@ -143,7 +146,7 @@ function WishlistPanel({ wishlist, toggleWishlist, addItem, onClose }) {
           wishlist.map(item => (
             <div key={item.id} className="hues-wishlist-item">
               <div className="hues-wishlist-item__img">
-                <img src={item.image} alt={item.name} loading="lazy"/>
+                <img src={item.image} alt={item.name} loading="lazy" />
               </div>
               <div className="hues-wishlist-item__info">
                 <span className="hues-wishlist-item__name">{item.name}</span>
@@ -163,7 +166,7 @@ function WishlistPanel({ wishlist, toggleWishlist, addItem, onClose }) {
                 onClick={() => toggleWishlist(item)}
                 aria-label={`Remove ${item.name}`}
               >
-                <IconClose/>
+                <IconClose />
               </button>
             </div>
           ))
@@ -174,8 +177,22 @@ function WishlistPanel({ wishlist, toggleWishlist, addItem, onClose }) {
 }
 
 /* ─── Mobile Drawer ─────────────────────────────────────────────────────── */
-function MobileDrawer({ open, onClose, isAuthenticated, user, hasRole, handleLogout, navigate }) {
+function MobileDrawer({
+  open,
+  onClose,
+  isAuthenticated,
+  user,
+  hasRole,
+  handleLogout,
+  navigate,
+  avatarSrc,
+  userInitial,
+  isActiveRoute,
+  isCollectionsActive,
+  currentPath,
+}) {
   const [openDropdown, setOpenDropdown] = useState(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -208,13 +225,13 @@ function MobileDrawer({ open, onClose, isAuthenticated, user, hasRole, handleLog
         <div className="hues-drawer__head">
           <Link to="/" className="hues-logo" onClick={onClose} aria-label="HUES home">
             <img
-              src={logoImg}
+              src={theme === "dark" ? logoDarkImg : logoImg}
               alt="HUES"
               className="hues-logo__image"
             />
           </Link>
           <button className="hues-drawer__close" onClick={onClose} aria-label="Close menu">
-            <IconClose/>
+            <IconClose />
           </button>
         </div>
 
@@ -225,23 +242,28 @@ function MobileDrawer({ open, onClose, isAuthenticated, user, hasRole, handleLog
               {link.dropdown ? (
                 <>
                   <button
-                    className="hues-drawer__link hues-drawer__link--toggle"
-                    onClick={() => setOpenDropdown(p => p === link.label ? null : link.label)}
+                    className={`hues-drawer__link hues-drawer__link--toggle${isCollectionsActive ? " hues-drawer__link--active" : ""}`}
+                    type="button"
+                    onClick={() => setOpenDropdown((current) => (current === link.label ? null : link.label))}
                     aria-expanded={openDropdown === link.label}
                   >
-                    {link.label}
-                    <IconChevron rotated={openDropdown === link.label}/>
+                  {link.label}
                   </button>
                   <div className={`hues-drawer__sub ${openDropdown === link.label ? "hues-drawer__sub--open" : ""}`}>
-                    {link.dropdown.map(d => (
-                      <button key={d.to} className="hues-drawer__sublink" onClick={() => go(d.to)}>
-                        {d.label}
+                    {link.dropdown.map((group) => (
+                      <button
+                        key={group.label}
+                        type="button"
+                        className={`hues-drawer__sublink hues-drawer__sublink--group${currentPath.startsWith(group.route) ? " hues-drawer__sublink--active" : ""}`}
+                        onClick={() => go(group.route)}
+                      >
+                        {group.label}
                       </button>
                     ))}
                   </div>
                 </>
               ) : (
-                <button className="hues-drawer__link" onClick={() => go(link.to)}>
+                <button className={`hues-drawer__link${isActiveRoute(link.to) ? " hues-drawer__link--active" : ""}`} onClick={() => go(link.to)}>
                   {link.label}
                 </button>
               )}
@@ -250,7 +272,7 @@ function MobileDrawer({ open, onClose, isAuthenticated, user, hasRole, handleLog
 
           {isAuthenticated && hasRole(["Admin", "SuperAdmin"]) && (
             <div className="hues-drawer__item">
-              <button className="hues-drawer__link hues-drawer__link--admin" onClick={() => go("/admin")}>
+              <button className={`hues-drawer__link hues-drawer__link--admin${isActiveRoute("/admin") ? " hues-drawer__link--active" : ""}`} onClick={() => go("/admin")}>
                 Dashboard
               </button>
             </div>
@@ -259,24 +281,42 @@ function MobileDrawer({ open, onClose, isAuthenticated, user, hasRole, handleLog
 
         {/* footer auth */}
         <div className="hues-drawer__foot">
+          <div className="hues-drawer__quick-actions">
+            <button className="hues-drawer__quick-action" type="button" onClick={onClose}>
+              <IconSearch /> Search
+            </button>
+            <button className="hues-drawer__quick-action hues-drawer__quick-action--bag" type="button" onClick={() => go("/payment")}>
+              <IconBag /> Cart
+            </button>
+          </div>
           {isAuthenticated ? (
             <>
               <div className="hues-drawer__user">
-                <span className="hues-user-pill__avatar" style={{ width: 28, height: 28, fontSize: 11 }}>
-                  {(user.username || "U")[0].toUpperCase()}
+                <span className="hues-user-pill__avatar" style={{ width: 28, height: 28, fontSize: 11, overflow: "hidden" }}>
+                  {avatarSrc ? (
+                    <img src={avatarSrc} alt="" aria-hidden="true" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    userInitial
+                  )}
                 </span>
                 <div>
                   <div className="hues-drawer__user-name">{user.username}</div>
                   <div className="hues-drawer__user-role">{user.role}</div>
                 </div>
               </div>
+              <button className="hues-drawer__signin" onClick={() => { navigate("/profile"); onClose(); }}>
+                <IconPerson /> Profile
+              </button>
+              <button className="hues-drawer__signin" onClick={() => { navigate("/my-orders"); onClose(); }}>
+                <IconParcel /> Orders
+              </button>
               <button className="hues-drawer__signout" onClick={() => { handleLogout(); onClose(); }}>
-                <IconLogout/> Sign out
+                <IconLogout /> Sign out
               </button>
             </>
           ) : (
             <button className="hues-drawer__signin" onClick={() => go("/signin")}>
-              <IconPerson/> Sign in
+              <IconPerson /> Sign in
             </button>
           )}
         </div>
@@ -287,15 +327,23 @@ function MobileDrawer({ open, onClose, isAuthenticated, user, hasRole, handleLog
 
 /* ─── Main NavBar ────────────────────────────────────────────────────────── */
 export default function NavBar() {
-  const scrolled      = useScrolled(30);
+  const scrolled = useScrolled(30);
   const [showWishlist, setShowWishlist] = useState(false);
-  const [heartPulse, setHeartPulse]   = useState(false);
-  const [mobileOpen, setMobileOpen]   = useState(false);
+  const [heartPulse, setHeartPulse] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [desktopDropdownOpen, setDesktopDropdownOpen] = useState(null);
   const wishlistRef = useRef(null);
 
+  const { theme } = useTheme();
   const { isAuthenticated, user, logout, hasRole } = useAuth();
   const { totalItems, wishlist = [], addItem, toggleWishlist } = useCart();
+  const location = useLocation();
   const navigate = useNavigate();
+  const avatarSrc = user?.avatarUrl
+    ? (String(user.avatarUrl).startsWith("http") ? user.avatarUrl : `${getApiBaseUrl()}${user.avatarUrl}`)
+    : "";
+  const userInitial = (user?.username || "U")[0].toUpperCase();
+  const userFirstName = (user?.username || "User").split(" ")[0];
 
   const handleCloseMobile = useCallback(() => setMobileOpen(false), []);
 
@@ -322,31 +370,49 @@ export default function NavBar() {
     navigate("/", { replace: true });
   };
 
+  const isActiveRoute = useCallback(
+    (path) => path === "/" ? location.pathname === "/" : location.pathname === path || location.pathname.startsWith(`${path}/`),
+    [location.pathname]
+  );
+
+  const isCollectionsActive = location.pathname === "/collections" || location.pathname.startsWith("/collections/");
+  const activeCollectionSubcategory = new URLSearchParams(location.search).get("sub") || "";
+
+  const announcements = [
+    "Free shipping on orders over Rs. 5,000",
+    "New arrivals every Friday",
+    "Complimentary gift wrapping",
+    "Private styling appointments available",
+    "Free shipping on orders over Rs. 5,000",
+    "New arrivals every Friday",
+    "Complimentary gift wrapping",
+    "Private styling appointments available",
+  ];
+
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap');
-
+        
         :root {
-          --hues-rose:    #8a3a60;
-          --hues-blush:   #c07fa5;
-          --hues-petal:   #fce8f0;
-          --hues-cream:   #fff8f9;
-          --hues-ink:     #1c1018;
-          --hues-muted:   #7a5068;
-          --hues-border:  rgba(180,130,155,0.22);
-          --hues-shadow:  rgba(138,58,96,0.12);
+          --hues-rose:    #6f1f2f;
+          --hues-blush:   #c46a74;
+          --hues-petal:   #f9ecec;
+          --hues-cream:   #fff8f7;
+          --hues-ink:     var(--color-on-surface);
+          --hues-muted:   #6c4950;
+          --hues-border:  rgba(111,31,47,0.22);
+          --hues-shadow:  rgba(111,31,47,0.12);
           --hues-r:       4px;
           --nav-h:        64px;
           --ff-display:   'Cormorant Garamond', Georgia, serif;
           --ff-body:      'Jost', 'Helvetica Neue', sans-serif;
         }
         .dark {
-          --hues-cream:   #110a0e;
-          --hues-petal:   #1e0f17;
+          --hues-cream:   #110c0d;
+          --hues-petal:   #201215;
           --hues-ink:     #f0e4eb;
-          --hues-muted:   #b08098;
-          --hues-border:  rgba(180,100,140,0.18);
+          --hues-muted:   #d7c6c7;
+          --hues-border:  rgba(232,169,180,0.18);
           --hues-shadow:  rgba(0,0,0,0.35);
         }
 
@@ -381,19 +447,20 @@ export default function NavBar() {
           display: flex; align-items: center;
           text-decoration: none;
           flex-shrink: 0;
+          line-height: 0;
         }
         .hues-logo__image {
-          height: 150px;
+          height: 36px;
           width: auto;
           object-fit: contain;
           display: block;
           border-radius: 6px;
           transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), opacity 0.3s, filter 0.3s;
-          filter: drop-shadow(0 2px 8px rgba(180,140,200,0.18));
+          filter: drop-shadow(0 2px 8px rgba(111,31,47,0.18));
         }
         .hues-logo:hover .hues-logo__image {
           transform: scale(1.06);
-          filter: drop-shadow(0 4px 16px rgba(180,140,210,0.32)) brightness(1.04);
+          filter: drop-shadow(0 4px 16px rgba(111,31,47,0.32)) brightness(1.04);
           opacity: 0.92;
         }
 
@@ -424,6 +491,8 @@ export default function NavBar() {
         }
         .hues-link:hover { color: var(--hues-rose); }
         .hues-link:hover::after { width: 100%; }
+        .hues-link--active { color: var(--hues-rose); }
+        .hues-link--active::after { width: 100%; }
         .hues-link--admin { color: var(--hues-rose); }
 
         .hues-link__chevron {
@@ -435,7 +504,8 @@ export default function NavBar() {
         /* ── Dropdown ── */
         .hues-dropdown {
           position: absolute; top: calc(100% - 2px); left: -20px;
-          min-width: 190px;
+          min-width: 320px;
+          max-width: 560px;
           background: var(--hues-cream);
           border: 0.5px solid var(--hues-border);
           border-radius: 0 0 var(--hues-r) var(--hues-r);
@@ -445,8 +515,19 @@ export default function NavBar() {
           transform: translateY(6px);
           transition: opacity 0.25s, transform 0.25s cubic-bezier(.25,1,.5,1);
         }
-        .hues-links__item:hover .hues-dropdown {
+        .hues-links__item:hover .hues-dropdown,
+        .hues-dropdown--open {
           opacity: 1; pointer-events: auto; transform: translateY(0);
+        }
+        .hues-dropdown--collection {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 4px 0;
+          padding: 8px 0;
+        }
+        .hues-dropdown__group {
+          display: flex;
+          flex-direction: column;
         }
         .hues-dropdown__link {
           display: block; padding: 12px 24px;
@@ -457,7 +538,20 @@ export default function NavBar() {
           transition: background 0.2s, color 0.2s;
           white-space: nowrap;
         }
+        .hues-dropdown__link--group {
+          font-weight: 700;
+          color: var(--hues-rose);
+        }
+        .hues-dropdown__link--child {
+          padding-left: 34px;
+          font-size: 12px;
+          letter-spacing: 0.12em;
+        }
         .hues-dropdown__link:hover {
+          background: var(--hues-petal);
+          color: var(--hues-rose);
+        }
+        .hues-dropdown__link--active {
           background: var(--hues-petal);
           color: var(--hues-rose);
         }
@@ -566,11 +660,11 @@ export default function NavBar() {
         }
         .hues-wishlist-panel__clear {
           font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
-          color: #c0605a; background: none; border: none; cursor: pointer;
+          color: #9b4a57; background: none; border: none; cursor: pointer;
           text-transform: uppercase; font-family: var(--ff-body);
           transition: color 0.2s;
         }
-        .hues-wishlist-panel__clear:hover { color: #e04040; }
+        .hues-wishlist-panel__clear:hover { color: #6f1f2f; }
         .hues-wishlist-panel__close {
           display: flex; align-items: center; justify-content: center;
           width: 26px; height: 26px; border-radius: 50%;
@@ -639,34 +733,44 @@ export default function NavBar() {
           color: var(--hues-muted); flex-shrink: 0;
           transition: background 0.2s, color 0.2s;
         }
-        .hues-wishlist-item__remove:hover { background: #fce8e8; color: #d04040; }
+        .hues-wishlist-item__remove:hover { background: #f9ecec; color: #6f1f2f; }
 
         /* ── Announce bar ── */
         .hues-announce {
-          position: fixed; left: 0; right: 0; top: var(--nav-h); z-index: 199;
+          position: fixed;
+          left: 0;
+          right: 0;
+          top: var(--nav-h);
+          z-index: 199;
           height: 34px;
-          background: var(--hues-rose); color: rgba(236,236,230,0.92);
-          display: flex; align-items: center; justify-content: center;
+          background: var(--hues-rose);
+          color: rgba(236,236,230,0.92);
+          display: flex;
+          align-items: center;
+          overflow: hidden;
           font-family: var(--ff-body);
-          font-size: 11px; font-weight: 500; letter-spacing: 0.18em;
-          text-transform: uppercase; overflow: hidden;
+          font-size: 11px;
+          font-weight: 500;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
         }
+
         .hues-announce__track {
           display: flex;
           width: max-content;
-          animation: huesMarquee 22s linear infinite;
           white-space: nowrap;
-          will-change: transform;
+          animation: marquee 50s linear infinite;
         }
-        .hues-announce__track > span {
-          flex: 0 0 auto;
+
+        .hues-announce__item {
+          flex-shrink: 0;
           padding-right: 80px;
         }
-        @keyframes huesMarquee {
+
+        @keyframes marquee {
           from { transform: translateX(0); }
-          to   { transform: translateX(-50%); }
+          to { transform: translateX(-50%); }
         }
-        .hues-announce__sep { color: rgba(255,255,255,0.4); margin: 0 4px; }
 
         /* ── Hamburger ── */
         .hues-hamburger {
@@ -687,8 +791,12 @@ export default function NavBar() {
           background: rgba(28,16,24,0.45);
           backdrop-filter: blur(4px);
           opacity: 0; transition: opacity 0.35s ease;
+          pointer-events: none;
         }
-        .hues-drawer-backdrop--open { opacity: 1; }
+        .hues-drawer-backdrop--open {
+          opacity: 1;
+          pointer-events: auto;
+        }
 
         /* ── Drawer panel ── */
         .hues-drawer {
@@ -699,9 +807,13 @@ export default function NavBar() {
           transform: translateX(-100%);
           transition: transform 0.38s cubic-bezier(.25,1,.5,1);
           overflow: hidden;
-          box-shadow: 4px 0 40px rgba(138,58,96,0.18);
+          box-shadow: 4px 0 40px rgba(111,31,47,0.18);
+          pointer-events: none;
         }
-        .hues-drawer--open { transform: translateX(0); }
+        .hues-drawer--open {
+          transform: translateX(0);
+          pointer-events: auto;
+        }
         .hues-drawer__head {
           display: flex; align-items: center; justify-content: space-between;
           padding: 0 20px; height: var(--nav-h);
@@ -732,6 +844,10 @@ export default function NavBar() {
           color: var(--hues-rose);
           background: color-mix(in srgb, var(--hues-petal) 50%, transparent);
         }
+        .hues-drawer__link--active {
+          color: var(--hues-rose);
+          background: color-mix(in srgb, var(--hues-petal) 50%, transparent);
+        }
         .hues-drawer__link--admin { color: var(--hues-rose); }
         .hues-drawer__link--toggle { gap: 8px; }
         .hues-drawer__sub {
@@ -739,7 +855,11 @@ export default function NavBar() {
           transition: max-height 0.32s cubic-bezier(.25,1,.5,1);
           background: color-mix(in srgb, var(--hues-petal) 35%, transparent);
         }
-        .hues-drawer__sub--open { max-height: 400px; }
+        .hues-drawer__sub--open { max-height: 1200px; }
+        .hues-drawer__group {
+          border-bottom: 0.5px solid var(--hues-border);
+        }
+        .hues-drawer__group:last-child { border-bottom: none; }
         .hues-drawer__sublink {
           display: block; width: 100%; padding: 12px 24px 12px 36px;
           font-family: var(--ff-body); font-size: 11px; font-weight: 500;
@@ -748,7 +868,21 @@ export default function NavBar() {
           background: none; border: none; cursor: pointer; text-align: left;
           transition: color 0.2s;
         }
+        .hues-drawer__sublink--group {
+          font-weight: 700;
+          color: var(--hues-rose);
+          padding-left: 24px;
+        }
+        .hues-drawer__subcategories {
+          padding-bottom: 6px;
+        }
+        .hues-drawer__sublink--child {
+          padding-left: 40px;
+          font-size: 10px;
+          letter-spacing: 0.12em;
+        }
         .hues-drawer__sublink:hover { color: var(--hues-rose); }
+        .hues-drawer__sublink--active { color: var(--hues-rose); }
         .hues-drawer__foot {
           padding: 20px 24px;
           border-top: 0.5px solid var(--hues-border);
@@ -774,45 +908,137 @@ export default function NavBar() {
           border-radius: var(--hues-r); cursor: pointer;
           transition: background 0.25s, color 0.25s;
         }
-        .hues-drawer__signout { color: #c0605a; }
-        .hues-drawer__signout:hover { background: #fce8e8; }
+        .hues-drawer__signout { color: #9b4a57; }
+        .hues-drawer__signout:hover { background: #f9ecec; }
         .hues-drawer__signin { color: var(--hues-rose); }
         .hues-drawer__signin:hover { background: var(--hues-petal); }
 
         /* ── Responsive ── */
         @media (max-width: 768px) {
-          .hues-nav { padding: 0 16px; }
+          .hues-nav {
+            padding: 0 14px;
+            backdrop-filter: blur(18px) saturate(180%);
+          }
           .hues-links { display: none; }
           .hues-user-pill { display: none; }
-          .hues-hamburger { display: flex; }
+          .hues-nav__inner { position: relative; }
+          .hues-hamburger {
+            display: flex;
+            width: 42px;
+            height: 42px;
+            border: 0.5px solid var(--hues-border);
+            background: color-mix(in srgb, var(--hues-petal) 35%, transparent);
+          }
+          .hues-hamburger:active { transform: scale(0.96); }
           .hues-drawer-backdrop { display: block; }
+          .hues-nav__inner { gap: 8px; }
+          .hues-nav__left {
+            gap: 12px;
+            min-width: 0;
+            flex: 1 1 0;
+          }
+          .hues-logo {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+          }
+          .hues-logo__image { height: 36px; }
+          .hues-nav__right {
+            gap: 6px;
+            flex: 0 0 auto;
+            margin-left: auto;
+            position: relative;
+            z-index: 2;
+          }
+          .hues-nav__action--search,
+          .hues-nav__desktop-only {
+            display: none !important;
+          }
+          .hues-nav__action--wishlist {
+            display: block;
+          }
+          .hues-action-btn {
+            width: 38px;
+            height: 38px;
+            border: 0.5px solid var(--hues-border);
+            border-radius: 50%;
+            background: color-mix(in srgb, var(--hues-petal) 28%, transparent);
+          }
+          .hues-action-btn:active { transform: scale(0.96); }
           .hues-wishlist-panel {
             position: fixed; top: var(--nav-h);
             left: 0; right: 0; width: 100%;
             border-radius: 0 0 var(--hues-r) var(--hues-r);
           }
+          .hues-drawer {
+            width: min(360px, 88vw);
+            border-top-right-radius: 24px;
+            border-bottom-right-radius: 24px;
+            border-right: 0.5px solid var(--hues-border);
+          }
+          .hues-drawer__head {
+            padding: 0 18px;
+          }
+          .hues-drawer__link {
+            min-height: 54px;
+            padding: 16px 18px;
+          }
+          .hues-drawer__sublink {
+            min-height: 46px;
+            padding-left: 30px;
+          }
+          .hues-drawer__foot {
+            padding: 18px;
+          }
+          .hues-drawer__signin,
+          .hues-drawer__signout {
+            min-height: 44px;
+            justify-content: center;
+          }
+          .hues-drawer__quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+          }
+          .hues-drawer__quick-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 14px;
+            border: 0.5px solid var(--hues-border);
+            border-radius: var(--hues-r);
+            background: color-mix(in srgb, var(--hues-petal) 35%, transparent);
+            color: var(--hues-muted);
+            font-family: var(--ff-body);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            cursor: pointer;
+          }
+          .hues-drawer__quick-action--bag {
+            color: var(--hues-rose);
+            background: var(--hues-petal);
+          }
         }
         @media (max-width: 400px) {
-          .hues-action-btn { width: 34px; height: 34px; }
-          .hues-nav__right { gap: 2px; }
+          .hues-logo__image { height: 30px; margin-left: 70px; }
+          .hues-action-btn { width: 36px; height: 36px; }
+          .hues-nav__right { gap: 4px; }
         }
       `}</style>
 
       {/* ── Announcement bar ── */}
-      <div className="hues-announce" aria-label="Site announcement">
+      <div className="hues-announce">
         <div className="hues-announce__track">
-          {[
-            "Free shipping on orders over Rs. 5,000",
-            "New arrivals every Friday",
-            "Complimentary gift wrapping",
-            "Private styling appointments available",
-            "Free shipping on orders over Rs. 5,000",
-            "New arrivals every Friday",
-            "Complimentary gift wrapping",
-            "Private styling appointments available",
-          ].map((msg, i) => (
-            <span key={i}>
-              {msg} <span className="hues-announce__sep">✦</span>
+          {[...announcements, ...announcements].map((msg, i) => (
+            <span key={i} className="hues-announce__item">
+              {msg} ✦
             </span>
           ))}
         </div>
@@ -827,6 +1053,11 @@ export default function NavBar() {
         hasRole={hasRole}
         handleLogout={handleLogout}
         navigate={navigate}
+        avatarSrc={avatarSrc}
+        userInitial={userInitial}
+        isActiveRoute={isActiveRoute}
+        isCollectionsActive={isCollectionsActive}
+        currentPath={location.pathname}
       />
 
       {/* ── Nav ── */}
@@ -841,40 +1072,51 @@ export default function NavBar() {
               aria-label="Open menu"
               aria-expanded={mobileOpen}
             >
-              <IconMenu/>
+              <IconMenu />
             </button>
 
-            <Logo />
+            <Logo isDark={theme === "dark"} />
 
             <ul className="hues-links">
               {PUBLIC_LINKS.map(link => (
                 <li key={link.label} className="hues-links__item">
-                  <Link to={link.to} className="hues-link">
-                    {link.label}
-                    {link.dropdown && (
-                      <span className="hues-link__chevron" aria-hidden="true">
-                        <IconChevron/>
-                      </span>
-                    )}
-                  </Link>
+                  {link.dropdown ? (
+                    <button
+                      type="button"
+                      className={`hues-link hues-link--button${isCollectionsActive ? " hues-link--active" : ""}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setDesktopDropdownOpen((current) => (current === link.label ? null : link.label));
+                      }}
+                      aria-expanded={desktopDropdownOpen === link.label}
+                    >
+                      {link.label}
+                    </button>
+                  ) : (
+                    <Link to={link.to} className={`hues-link${isActiveRoute(link.to) ? " hues-link--active" : ""}`}>
+                      {link.label}
+                    </Link>
+                  )}
                   {link.dropdown && (
-                    <div className="hues-dropdown" role="menu">
-                      {link.dropdown.map((d, i) => (
-                        <div key={d.to}>
-                          {i === 1 && <div className="hues-dropdown__divider"/>}
-                          <Link to={d.to} className="hues-dropdown__link" role="menuitem">
-                            {d.label}
-                          </Link>
-                        </div>
+                    <div className={`hues-dropdown hues-dropdown--collection ${desktopDropdownOpen === link.label ? "hues-dropdown--open" : ""}`} role="menu">
+                      {link.dropdown.map((group) => (
+                        <Link
+                          key={group.label}
+                          to={group.route}
+                          className={`hues-dropdown__link hues-dropdown__link--group${isActiveRoute(group.route) ? " hues-dropdown__link--active" : ""}`}
+                          role="menuitem"
+                        >
+                          {group.label}
+                        </Link>
                       ))}
                     </div>
                   )}
                 </li>
               ))}
 
-              {isAuthenticated && hasRole(["Admin","SuperAdmin"]) && (
+              {isAuthenticated && hasRole(["Admin", "SuperAdmin"]) && (
                 <li className="hues-links__item">
-                  <Link to="/admin" className="hues-link hues-link--admin">Dashboard</Link>
+                  <Link to="/admin" className={`hues-link hues-link--admin${isActiveRoute("/admin") ? " hues-link--active" : ""}`}>Dashboard</Link>
                 </li>
               )}
             </ul>
@@ -883,18 +1125,18 @@ export default function NavBar() {
           {/* Right: actions */}
           <div className="hues-nav__right">
 
-            <ActionBtn label="Search">
-              <IconSearch/>
+            <ActionBtn label="Search" className="hues-nav__action--search">
+              <IconSearch />
             </ActionBtn>
 
-            <div style={{ position: "relative" }} ref={wishlistRef}>
+            <div className="hues-nav__action--wishlist" style={{ position: "relative" }} ref={wishlistRef}>
               <ActionBtn
                 onClick={() => setShowWishlist(p => !p)}
                 label="Wishlist"
                 badge={wishlist.length || null}
               >
                 <span className={heartPulse ? "hues-heart-pulse" : ""} style={{ display: "flex" }}>
-                  <IconHeart filled={wishlist.length > 0}/>
+                  <IconHeart filled={wishlist.length > 0} />
                 </span>
               </ActionBtn>
 
@@ -914,31 +1156,40 @@ export default function NavBar() {
               badge={totalItems || null}
               dot={!totalItems}
             >
-              <IconBag/>
+              <IconBag />
             </ActionBtn>
 
+            <div className="hues-nav__desktop-only" style={{ display: "contents" }}>
             {isAuthenticated ? (
               <>
                 <span className="hues-user-pill" style={{ marginLeft: 6 }}>
-                  <span className="hues-user-pill__avatar" aria-hidden="true">
-                    {(user.username || "U")[0].toUpperCase()}
+                  <span className="hues-user-pill__avatar" aria-hidden="true" style={{ overflow: "hidden" }}>
+                    {avatarSrc ? (
+                      <img src={avatarSrc} alt="" aria-hidden="true" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      userInitial
+                    )}
                   </span>
-                  {user.role} · {user.username.split(" ")[0]}
+                  {user.role} · {userFirstName}
                 </span>
+                <ActionBtn onClick={() => navigate("/profile")} label="Profile">
+                  <IconPerson />
+                </ActionBtn>
                 <ActionBtn onClick={() => navigate("/my-orders")} label="My orders">
-                  <span aria-hidden="true" style={{ fontSize: 14, lineHeight: 1 }}>✦</span>
+                  <IconParcel />
                 </ActionBtn>
                 <ActionBtn onClick={handleLogout} label="Sign out">
-                  <IconLogout/>
+                  <IconLogout />
                 </ActionBtn>
               </>
             ) : (
               <Link to="/signin" style={{ display: "flex" }}>
                 <ActionBtn label="Sign in">
-                  <IconPerson/>
+                  <IconPerson />
                 </ActionBtn>
               </Link>
             )}
+            </div>
           </div>
 
         </div>
@@ -946,3 +1197,4 @@ export default function NavBar() {
     </>
   );
 }
+

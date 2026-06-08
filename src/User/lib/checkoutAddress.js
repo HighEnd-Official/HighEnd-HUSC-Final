@@ -15,6 +15,19 @@ function getUserAddressKey(user) {
   return user?.id || user?.email || "guest";
 }
 
+function getProfileAddress(user) {
+  return {
+    name: user?.username || "",
+    phone: user?.phone || "",
+    email: user?.email || "",
+    addressLine1: user?.addressLine1 || "",
+    addressLine2: user?.addressLine2 || "",
+    city: user?.city || "",
+    postalCode: user?.postalCode || "",
+    country: user?.country || "Sri Lanka",
+  };
+}
+
 function readStoredAddresses() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -35,7 +48,11 @@ export function getDefaultCheckoutAddress() {
 export function loadCheckoutAddress(user) {
   const addressBook = readStoredAddresses();
   const savedAddress = addressBook[getUserAddressKey(user)];
-  return { ...defaultAddress, ...(savedAddress || {}) };
+  return {
+    ...defaultAddress,
+    ...(savedAddress || {}),
+    ...getProfileAddress(user),
+  };
 }
 
 export function saveCheckoutAddress(user, address) {

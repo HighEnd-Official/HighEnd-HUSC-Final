@@ -1,0 +1,7 @@
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "hues" at "localhost:3306"
+
+8 migrations found in prisma/migrations
+
+
+No pending migrations to apply.

@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useCart } from "../../../context/CartContext";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../context/AuthContext";
+import { apiFetch } from "../../../api/client";
+import { productToCollectionShape } from "./collectionUtils";
+import HoverRevealImage from "../../../components/HoverRevealImage";
 
 const normalizeSizeCodes = (sizes = []) =>
   Array.from(
@@ -12,7 +17,118 @@ const normalizeSizeCodes = (sizes = []) =>
     )
   );
 
+const normalizeColorValue = (value, fallback = "#E5B6C8") => {
+  const text = String(value || "").trim();
+  return text || fallback;
+};
+
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+const hexToRgb = (hex) => {
+  const cleaned = String(hex || "").replace("#", "").trim();
+  if (!/^[0-9a-fA-F]{6}$/.test(cleaned)) return null;
+  return {
+    r: parseInt(cleaned.slice(0, 2), 16),
+    g: parseInt(cleaned.slice(2, 4), 16),
+    b: parseInt(cleaned.slice(4, 6), 16),
+  };
+};
+
+const rgbToHex = ({ r, g, b }) =>
+  `#${[r, g, b]
+    .map((value) => clamp(Math.round(value), 0, 255).toString(16).padStart(2, "0"))
+    .join("")}`.toUpperCase();
+
+const shiftHex = (hex, amount) => {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  const next = {
+    r: rgb.r + (255 - rgb.r) * amount,
+    g: rgb.g + (255 - rgb.g) * amount,
+    b: rgb.b + (255 - rgb.b) * amount,
+  };
+  if (amount < 0) {
+    const darkAmount = Math.abs(amount);
+    next.r = rgb.r * (1 - darkAmount);
+    next.g = rgb.g * (1 - darkAmount);
+    next.b = rgb.b * (1 - darkAmount);
+  }
+  return rgbToHex(next);
+};
+
+const COLOR_NAME_FALLBACKS = {
+  pink: "#F3B6C8",
+  rose: "#D97A96",
+  blush: "#E9B3C2",
+  mauve: "#C79BC6",
+  cream: "#F6E9DA",
+  ivory: "#FFF8F0",
+  offwhite: "#FAF7F2",
+  off_white: "#FAF7F2",
+  "off-white": "#FAF7F2",
+  yellow: "#D7A53A",
+  mustard: "#B88A28",
+  lemon: "#E0C24B",
+  white: "#FFFFFF",
+  black: "#1A1A1A",
+  beige: "#D6B79B",
+  sand: "#D8C4A9",
+  nude: "#D8B79A",
+  gold: "#C79A2B",
+  amber: "#C9892A",
+  maroon: "#6F1F2F",
+  burgundy: "#7A2334",
+  red: "#B24A4A",
+  wine: "#74263A",
+  blue: "#496A9F",
+  navy: "#2F4D73",
+  teal: "#2E7981",
+  green: "#4F8A6B",
+  olive: "#77754A",
+  brown: "#8B6A4A",
+  purple: "#8A63B8",
+  lavender: "#B49AD8",
+  lilac: "#CDB7E9",
+  peach: "#F2B08F",
+  coral: "#E98B7A",
+  orange: "#D57F45",
+  grey: "#9A9A9A",
+  gray: "#9A9A9A",
+  silver: "#CFCFCF",
+};
+
+const resolveSwatchColor = (color) => {
+  const name = String(color?.name || "").trim().toLowerCase();
+  if (name) {
+    const isLight = /\blight\b|\bpale\b|\bsoft\b|\bpowder\b|\bpastel\b/.test(name);
+    const isDark = /\bdark\b|\bdeep\b|\bnavy\b|\bmidnight\b|\bburgundy\b|\bwine\b/.test(name);
+
+    const normalizedName = name
+      .replace(/\b(light|dark|deep|pale|soft|powder|pastel|midnight)\b/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const direct = COLOR_NAME_FALLBACKS[normalizedName] || COLOR_NAME_FALLBACKS[name];
+    if (direct) {
+      if (isLight && !isDark) return shiftHex(direct, 0.22);
+      if (isDark && !isLight) return shiftHex(direct, -0.20);
+      return direct;
+    }
+
+    const keywordMatch = Object.entries(COLOR_NAME_FALLBACKS).find(([keyword]) => normalizedName.includes(keyword) || name.includes(keyword));
+    if (keywordMatch) {
+      const matched = keywordMatch[1];
+      if (isLight && !isDark) return shiftHex(matched, 0.22);
+      if (isDark && !isLight) return shiftHex(matched, -0.20);
+      return matched;
+    }
+  }
+  return normalizeColorValue(color?.colorHex || color?.hex, "#E5B6C8");
+};
+
 const QuickView = ({ product, onClose }) => {
+  const { isAuthenticated } = useAuth();
+  const [activeProduct, setActiveProduct] = useState(product);
   const initialSizes = product?.hasManagedSizes
     ? normalizeSizeCodes(product.sizes)
     : normalizeSizeCodes(product?.sizes || ["XS", "S", "M", "L", "XL"]);
@@ -23,13 +139,21 @@ const QuickView = ({ product, onClose }) => {
   const [added, setAdded] = useState(false);
   const [qty, setQty] = useState(1);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [reviewTitle, setReviewTitle] = useState("");
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewSaving, setReviewSaving] = useState(false);
+  const [reviewError, setReviewError] = useState("");
+  const [likeSaving, setLikeSaving] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(false);
 
   const { addItem, toggleWishlist, isInWishlist } = useCart();
-  const productId = product?.id || product?.name;
+  const productId = activeProduct?.id || activeProduct?.name;
   const isWishlisted = isInWishlist(productId);
   const navigate = useNavigate();
+  const displayProduct = activeProduct || product;
 
-  // Color variants
+  // Color variants and media state
   const colorVariants = useMemo(() => {
     if (product?.colorVariants) return product.colorVariants;
     if (product?.colors) {
@@ -78,43 +202,150 @@ const QuickView = ({ product, onClose }) => {
   }, [colorVariants, selectedColor]);
 
   useEffect(() => {
+    if (selectedColor?.product) {
+      setActiveProduct(selectedColor.product);
+      return;
+    }
+    setActiveProduct(product);
+  }, [selectedColor, product]);
+
+  useEffect(() => {
     const nextSizes = product?.hasManagedSizes
       ? normalizeSizeCodes(product.sizes)
       : normalizeSizeCodes(product?.sizes || ["XS", "S", "M", "L", "XL"]);
     setSelectedSize(nextSizes[0] || "");
   }, [product]);
 
-  const currentImages = selectedColor?.images || product?.images || [];
-  const currentPrice = selectedColor?.price || product?.price;
-  const stock = Number(product?.stock);
+  useEffect(() => {
+    let cancelled = false;
+    if (!product?.id || product?.variants?.length) return undefined;
+
+    setActiveProduct(product);
+    apiFetch(`/products/${product.id}`)
+      .then((data) => {
+        if (!cancelled && data?.product) {
+          setActiveProduct(productToCollectionShape(data.product));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setActiveProduct(product);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [product]);
+
+  const currentImages = selectedColor?.images || displayProduct?.images || [];
+  const currentPrice = selectedColor?.price || displayProduct?.price;
+  const originalPrice = selectedColor?.originalPrice || displayProduct?.originalPrice || "";
+  const stock = Number(displayProduct?.stock);
   const hasStockLimit = Number.isFinite(stock);
-  const availableSizes = product?.hasManagedSizes
-    ? normalizeSizeCodes(product.sizes)
-    : normalizeSizeCodes(product?.sizes || ["XS", "S", "M", "L", "XL"]);
+  const availableSizes = displayProduct?.hasManagedSizes
+    ? normalizeSizeCodes(displayProduct.sizes)
+    : normalizeSizeCodes(displayProduct?.sizes || ["XS", "S", "M", "L", "XL"]);
   const outOfStock = hasStockLimit && stock <= 0;
   const canAddToCart = !outOfStock && availableSizes.length > 0 && selectedColor?.inStock !== false && Boolean(selectedSize);
+  const reviewList = displayProduct?.reviewList || [];
+  const likesCount = Number(displayProduct?.likesCount) || 0;
+  const likedByMe = Boolean(displayProduct?.likedByMe);
+  const reviewCount = Number(displayProduct?.reviewCount || displayProduct?.reviews) || 0;
+  const imageCount = currentImages.length;
 
   const handleWishlistClick = () => {
-    toggleWishlist(product);
+    toggleWishlist(displayProduct);
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 450);
   };
 
+  const handleLike = async () => {
+    if (!isAuthenticated) {
+      navigate("/signin");
+      return;
+    }
+    if (!displayProduct?.id || likeSaving) return;
+    setLikeSaving(true);
+    try {
+      const data = await apiFetch(`/products/${displayProduct.id}/like`, { method: "POST" });
+      setActiveProduct((current) => ({
+        ...current,
+        likedByMe: data.liked,
+        likesCount: data.likesCount,
+      }));
+    } finally {
+      setLikeSaving(false);
+    }
+  };
+
+  const submitReview = async (e) => {
+    e.preventDefault();
+    setReviewError("");
+    if (!isAuthenticated) {
+      navigate("/signin");
+      return;
+    }
+    if (!reviewComment.trim()) {
+      setReviewError("Please write a review before submitting.");
+      return;
+    }
+    if (!displayProduct?.id) return;
+    setReviewSaving(true);
+    try {
+      const data = await apiFetch(`/products/${displayProduct.id}/reviews`, {
+        method: "POST",
+        body: JSON.stringify({
+          rating: Number(reviewRating) || 5,
+          title: reviewTitle.trim() || null,
+          comment: reviewComment.trim(),
+        }),
+      });
+      setActiveProduct((current) => ({
+        ...current,
+        rating: data.rating,
+        reviewCount: data.reviewsCount,
+        reviews: data.reviewsCount,
+      }));
+      setReviewTitle("");
+      setReviewComment("");
+      setReviewRating(5);
+      const refreshed = await apiFetch(`/products/${displayProduct.id}`);
+      setActiveProduct(productToCollectionShape(refreshed.product));
+    } catch (err) {
+      setReviewError(err?.message || "Failed to submit your review.");
+    } finally {
+      setReviewSaving(false);
+    }
+  };
+
   const switchImage = useCallback((idx) => {
+    if (!imageCount) return;
     if (idx === activeIdx) return;
     setFading(true);
     setTimeout(() => {
-      setActiveIdx(idx);
+      setActiveIdx(idx % imageCount);
       setFading(false);
     }, 180);
-  }, [activeIdx]);
+  }, [activeIdx, imageCount]);
 
-  const prev = useCallback(() => switchImage((activeIdx - 1 + currentImages.length) % currentImages.length), [switchImage, activeIdx, currentImages.length]);
-  const next = useCallback(() => switchImage((activeIdx + 1) % currentImages.length), [switchImage, activeIdx, currentImages.length]);
+  const prev = useCallback(() => {
+    if (!imageCount) return;
+    switchImage((activeIdx - 1 + imageCount) % imageCount);
+  }, [switchImage, activeIdx, imageCount]);
+  const next = useCallback(() => {
+    if (!imageCount) return;
+    switchImage((activeIdx + 1) % imageCount);
+  }, [switchImage, activeIdx, imageCount]);
 
   useEffect(() => {
     setActiveIdx(0);
   }, [selectedColor]);
+
+  useEffect(() => {
+    setSelectedColor(colorVariants[0] || null);
+    setActiveIdx(0);
+    setAdded(false);
+    setQty(1);
+  }, [product?.id, colorVariants]);
 
   useEffect(() => {
     if (hasStockLimit && stock > 0 && qty > stock) {
@@ -137,15 +368,24 @@ const QuickView = ({ product, onClose }) => {
     return () => { document.body.style.overflow = ""; };
   }, []);
 
-  if (!product) return null;
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const media = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobileView(media.matches);
+    update();
+    media.addEventListener?.("change", update);
+    return () => media.removeEventListener?.("change", update);
+  }, []);
 
-  return (
+  if (!displayProduct) return null;
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-[500] flex items-center justify-center p-4 md:p-16"
+      className="fixed inset-0 z-[500] grid place-items-center p-4 md:p-16"
       style={{
-        backgroundColor: "rgba(133,76,111,0.2)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
+        backgroundColor: "rgba(29,18,22,0.36)",
+        backdropFilter: "blur(14px)",
+        WebkitBackdropFilter: "blur(14px)",
         animation: "fadeIn 0.25s ease both",
       }}
       onClick={onClose}
@@ -161,9 +401,9 @@ const QuickView = ({ product, onClose }) => {
           0%, 100% { opacity: 0; transform: scale(0); }
           50% { opacity: 1; transform: scale(1); }
         }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d4c2c9; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--color-outline-variant); border-radius: 10px; }
         .heartbeat-active {
           animation: gentlePulse 0.45s ease-in-out;
         }
@@ -173,14 +413,29 @@ const QuickView = ({ product, onClose }) => {
         .color-swatch:hover {
           transform: scale(1.1);
         }
+        .quickview-panel {
+          box-shadow: 0 28px 80px rgba(18, 10, 13, 0.28);
+          border: 1px solid color-mix(in srgb, var(--color-outline-variant) 75%, transparent);
+        }
+        @media (max-width: 767px) {
+          .quickview-mobile-gallery {
+            min-height: 42vh;
+          }
+          .quickview-mobile-image img {
+            object-fit: contain !important;
+            padding: 10px;
+          }
+          .quickview-mobile-thumbs {
+            height: 76px;
+          }
+        }
       `}</style>
 
       {/* Modal panel */}
       <div
-        className="bg-gradient-to-br from-[#fff8f8] via-white to-[#fff5f7] w-full max-w-[1100px] max-h-[88vh] flex flex-col md:flex-row overflow-hidden relative rounded-2xl shadow-2xl"
+        className="quickview-panel bg-[var(--color-surface)] w-full max-w-[1120px] max-h-[88vh] flex flex-col md:flex-row overflow-hidden relative rounded-[28px]"
         style={{ 
           animation: "slideUp 0.35s cubic-bezier(0.16,1,0.3,1) both",
-          boxShadow: "0 30px 60px -15px rgba(133,76,111,0.25)"
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -193,57 +448,85 @@ const QuickView = ({ product, onClose }) => {
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full transition-all hover:scale-110 flex items-center justify-center bg-white/80 backdrop-blur-sm hover:bg-[#854c6f] hover:text-white group"
+          className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full transition-all hover:scale-110 flex items-center justify-center bg-[var(--color-surface)]/80 backdrop-blur-sm hover:bg-[var(--color-primary)] hover:text-white group"
           style={{ boxShadow: "0 2px 8px rgba(133,76,111,0.15)" }}
         >
           <span
             className="text-[20px] group-hover:text-white transition-colors"
-            style={{ color: "#854c6f" }}
+            style={{ color: "var(--color-primary)" }}
           >
             ✕
           </span>
         </button>
 
-        {/* ── LEFT: Gallery ── */}
-        <div className="w-full md:w-[60%] lg:w-[65%] flex flex-col h-[52vh] md:h-auto bg-gradient-to-br from-[#fff5f7] to-[#fff8f8]">
+        {/* LEFT: Gallery */}
+        <div className="quickview-mobile-gallery w-full md:w-[58%] lg:w-[62%] flex flex-col h-[52vh] md:h-auto bg-gradient-to-br from-[var(--color-surface-container-low)] to-[var(--color-surface)]">
           {/* Main image */}
           <div className="flex-1 relative overflow-hidden group">
-            <img
-              src={currentImages[activeIdx]}
-              alt={product.name}
-              className="w-full h-full object-cover transition-opacity duration-200"
-              style={{ opacity: fading ? 0 : 1 }}
-            />
+            {displayProduct.seasonalBatch ? (
+              <div
+                className="absolute left-4 top-4 z-20 rounded-[18px] border border-white/20 px-3 py-2 text-white shadow-[0_12px_28px_rgba(0,0,0,0.18)] backdrop-blur-md"
+                style={{ background: "linear-gradient(135deg, rgba(111,31,47,0.96), rgba(69,18,29,0.88))" }}
+              >
+                <div className="text-[8px] font-semibold uppercase tracking-[0.24em] opacity-80">
+                  Seasonal
+                </div>
+                <div className="text-[13px] font-semibold leading-none">
+                  {displayProduct.seasonalBadgeText || "Seasonal"}
+                </div>
+                <div className="text-[8px] font-semibold uppercase tracking-[0.18em] opacity-70">
+                  Batch
+                </div>
+              </div>
+            ) : null}
+            {imageCount > 0 ? (
+              <HoverRevealImage
+                src={currentImages[activeIdx]}
+                alt={displayProduct.name}
+                wrapperClassName="quickview-mobile-image absolute inset-0 z-0"
+                imgClassName="w-full h-full"
+                fit={isMobileView ? "contain" : "cover"}
+                zoom={isMobileView ? 1.04 : 1.28}
+                style={{ backgroundColor: "var(--color-surface)" }}
+                imgStyle={{ opacity: fading ? 0 : 1 }}
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-surface-container-low)] text-[var(--color-on-surface-variant)]">
+                No preview available
+              </div>
+            )}
             
             {/* Decorative overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/5 via-transparent to-transparent pointer-events-none" />
             
             {/* Arrow controls */}
-            <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-300">
               <button
                 onClick={prev}
-                className="w-10 h-10 rounded-full transition-all hover:scale-110 flex items-center justify-center bg-white/90 shadow-lg"
-                style={{ color: "#854c6f" }}
+                className="pointer-events-auto w-10 h-10 rounded-full transition-all hover:scale-110 flex items-center justify-center bg-[var(--color-surface)]/90 shadow-lg"
+                style={{ color: "var(--color-primary)" }}
               >
                 <span className="text-2xl">←</span>
               </button>
               <button
                 onClick={next}
-                className="w-10 h-10 rounded-full transition-all hover:scale-110 flex items-center justify-center bg-white/90 shadow-lg"
-                style={{ color: "#854c6f" }}
+                className="pointer-events-auto w-10 h-10 rounded-full transition-all hover:scale-110 flex items-center justify-center bg-[var(--color-surface)]/90 shadow-lg"
+                style={{ color: "var(--color-primary)" }}
               >
                 <span className="text-2xl">→</span>
               </button>
             </div>
             
             {/* Image counter */}
-            <div className="absolute bottom-3 right-4 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1 text-[10px] font-semibold tracking-widest text-white/90 uppercase">
-              {activeIdx + 1} / {currentImages.length}
-            </div>
+            {imageCount > 0 ? (
+              <div className="absolute bottom-3 right-4 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1 text-[10px] font-semibold tracking-widest text-white/90 uppercase">
+                {activeIdx + 1} / {imageCount}
+              </div>
+            ) : null}
           </div>
 
           {/* Thumbnails */}
-          <div className="h-24 md:h-28 bg-white/50 backdrop-blur-sm flex items-center gap-2 px-4 py-2 overflow-x-auto custom-scrollbar border-t border-[#d4c2c9]/20">
+          <div className="quickview-mobile-thumbs h-24 md:h-28 bg-[var(--color-surface)]/50 backdrop-blur-sm flex items-center gap-2 px-4 py-2 overflow-x-auto custom-scrollbar border-t border-[rgba(215,197,198,0.2)]">
             {currentImages.map((img, i) => (
               <button
                 key={i}
@@ -251,93 +534,119 @@ const QuickView = ({ product, onClose }) => {
                 className="flex-shrink-0 h-full transition-all duration-200 rounded-lg overflow-hidden shadow-md hover:shadow-xl"
                 style={{
                   aspectRatio: "3/4",
-                  border: `2px solid ${activeIdx === i ? "#854c6f" : "transparent"}`,
+                  border: `2px solid ${activeIdx === i ? "var(--color-primary)" : "transparent"}`,
                   opacity: activeIdx === i ? 1 : 0.55,
                 }}
               >
-                <img src={img} alt="" className="w-full h-full object-cover" />
+                <img src={img} alt="" className="w-full h-full object-cover transition-transform duration-500 hover:scale-[1.08]" />
               </button>
             ))}
           </div>
         </div>
 
-        {/* ── RIGHT: Product Info ── */}
+        {/* RIGHT: Product Info */}
         <div
-          className="w-full md:w-[40%] lg:w-[35%] flex flex-col justify-between overflow-y-auto custom-scrollbar p-8 md:p-10 bg-white/50 backdrop-blur-sm"
-          style={{ fontFamily: "'Manrope', sans-serif" }}
+          className="w-full md:w-[42%] lg:w-[38%] flex flex-col justify-between overflow-y-auto custom-scrollbar p-8 md:p-10 bg-[var(--color-surface)]/60 backdrop-blur-sm"
+          style={{ fontFamily: "'Manrope', serif" }}
         >
           <div className="space-y-6">
             {/* Title block with sparkle */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="text-lg"></span>
-                <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#854c6f]">
-                  {product.collection || "The Atelier Collection"}
+                <span className="text-lg">✦</span>
+                <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[var(--color-primary)]">
+                  {displayProduct.collection || "The Atelier Collection"}
                 </p>
               </div>
+              {displayProduct.badge ? (
+                <div
+                  className="inline-flex items-center rounded-full px-3 py-1 text-[10px] font-semibold tracking-[0.16em] uppercase"
+                  style={{ backgroundColor: displayProduct.badgeColor || "var(--color-primary)", color: "var(--color-on-primary)", width: "fit-content" }}
+                >
+                  {displayProduct.badge}
+                </div>
+              ) : null}
               <h2
-                className="text-[32px] leading-snug text-[#1f1a1d]"
-                style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400 }}
+                className="text-[32px] leading-snug text-[var(--color-on-surface)]"
+                style={{ fontFamily: "'Manrope', serif", fontWeight: 400 }}
               >
-                {product.name}
+                {displayProduct.name}
               </h2>
-              <p className="text-[28px] font-light text-[#854c6f]" style={{ fontFamily: "'Playfair Display', serif" }}>
+              {displayProduct.subtitle ? (
+                <p className="text-[13px] text-[var(--color-on-surface-variant)]">
+                  {displayProduct.subtitle}
+                </p>
+              ) : null}
+              <p className="text-[28px] font-light text-[var(--color-primary)]" style={{ fontFamily: "'Manrope', serif" }}>
                 {currentPrice}
               </p>
-              <p className="text-[11px] font-semibold tracking-[0.14em] uppercase" style={{ color: outOfStock ? "#b84070" : "#486730" }}>
+              {originalPrice ? (
+                <p className="text-[12px] text-[var(--color-outline)] line-through">
+                  {originalPrice}
+                </p>
+              ) : null}
+              {displayProduct.discountPercent ? (
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
+                  Save {displayProduct.discountPercent}% off
+                </p>
+              ) : null}
+              <p className="text-[12px] text-[var(--color-on-surface-variant)]">
+                {displayProduct.rating ? `${displayProduct.rating}/5` : "No rating"} · {reviewCount} reviews
+              </p>
+              <p className="text-[11px] font-semibold tracking-[0.14em] uppercase" style={{ color: outOfStock ? "var(--color-primary)" : "var(--color-tertiary)" }}>
                 {outOfStock ? "Out of Stock" : hasStockLimit ? `${stock} in stock` : "In Stock"}
               </p>
             </div>
 
-            <div className="h-px w-full bg-gradient-to-r from-transparent via-[#d4c2c9] to-transparent" />
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-[var(--color-outline-variant)] to-transparent" />
 
-            {/* ── COLOR SELECTION with floral emojis ── */}
+            {/* COLOR SELECTION with floral emojis */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[#504349] flex items-center gap-1">
-                  <span></span> Choose Your Color
+                <p className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--color-on-surface-variant)] flex items-center gap-1">
+                  <span>◌</span> Choose Your Color
                 </p>
-                <p className="text-[11px] text-[#854c6f] font-medium">
+                <p className="text-[11px] text-[var(--color-primary)] font-medium">
                   {selectedColor?.name || "White"} {selectedColor?.floralPattern}
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
                 {colorVariants.map((color) => (
-                  <button
-                    key={color.id}
-                    onClick={() => setSelectedColor(color)}
-                    className="relative group transition-all duration-200 color-swatch"
-                    style={{
-                      width: "48px",
-                      height: "48px",
-                      borderRadius: "50%",
-                    }}
-                    disabled={!color.inStock}
-                  >
-                    <div
-                      className="w-full h-full rounded-full transition-all duration-200 shadow-md"
+                  <div key={color.id} className="flex flex-col items-center gap-1">
+                    <button
+                      onClick={() => setSelectedColor(color)}
+                      className="relative group transition-all duration-200 color-swatch"
                       style={{
-                        backgroundColor: color.colorHex,
-                        border: color.id === "white" ? "2px solid #d4c2c9" : "none",
-                        outline: `2px solid ${selectedColor?.id === color.id ? "#854c6f" : "transparent"}`,
-                        outlineOffset: "2px",
-                        boxShadow: selectedColor?.id === color.id 
-                          ? "0 0 0 3px #fff8f8, 0 0 0 5px #854c6f" 
-                          : "0 2px 4px rgba(0,0,0,0.1)",
+                        width: "48px",
+                        height: "48px",
+                        borderRadius: "50%",
                       }}
-                    />
-                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                      {color.floralPattern}
-                    </span>
-                    <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-[10px] font-semibold text-[#504349] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                      disabled={!color.inStock}
+                      aria-label={`Choose ${color.name}`}
+                      title={color.name}
+                    >
+                      <div
+                        className="w-full h-full rounded-full transition-all duration-200 shadow-md"
+                        style={{
+                          backgroundColor: resolveSwatchColor(color),
+                          border: resolveSwatchColor(color).toLowerCase() === "#ffffff" ? "2px solid var(--color-outline-variant)" : "none",
+                          outline: `2px solid ${selectedColor?.id === color.id ? "var(--color-primary)" : "transparent"}`,
+                          outlineOffset: "2px",
+                          boxShadow: selectedColor?.id === color.id
+                            ? "0 0 0 3px var(--color-surface), 0 0 0 5px var(--color-primary)"
+                            : "0 2px 4px rgba(0,0,0,0.1)",
+                        }}
+                      />
+                      {!color.inStock && (
+                        <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center backdrop-blur-sm">
+                          <span className="text-[8px] font-bold text-white">OUT</span>
+                        </div>
+                      )}
+                    </button>
+                    <div className="text-center text-[10px] font-semibold text-[var(--color-on-surface-variant)] whitespace-nowrap pointer-events-none">
                       {color.name}
-                    </span>
-                    {!color.inStock && (
-                      <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center backdrop-blur-sm">
-                        <span className="text-[8px] font-bold text-white">OUT</span>
-                      </div>
-                    )}
-                  </button>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -345,10 +654,10 @@ const QuickView = ({ product, onClose }) => {
             {/* Size selector with cute styling */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[#504349] flex items-center gap-1">
-                  <span>📏</span> Select Size
+                <p className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--color-on-surface-variant)] flex items-center gap-1">
+                  <span>✧</span> Select Size
                 </p>
-                <button type="button" className="text-[10px] underline underline-offset-4 text-[#82737a] hover:text-[#854c6f] transition-colors bg-transparent border-none p-0 cursor-pointer">
+                <button type="button" className="text-[10px] underline underline-offset-4 text-[var(--color-outline)] hover:text-[var(--color-primary)] transition-colors bg-transparent border-none p-0 cursor-pointer">
                   Size Guide
                 </button>
               </div>
@@ -359,9 +668,9 @@ const QuickView = ({ product, onClose }) => {
                     onClick={() => setSelectedSize(s)}
                     className="size-btn px-4 py-2 text-[13px] font-medium rounded-full transition-all duration-200"
                     style={{
-                      backgroundColor: selectedSize === s ? "#854c6f" : "transparent",
-                      color: selectedSize === s ? "white" : "#1f1a1d",
-                      border: `1px solid ${selectedSize === s ? "#854c6f" : "#d4c2c9"}`,
+                      backgroundColor: selectedSize === s ? "var(--color-primary)" : "transparent",
+                      color: selectedSize === s ? "white" : "var(--color-on-surface)",
+                      border: `1px solid ${selectedSize === s ? "var(--color-primary)" : "var(--color-outline-variant)"}`,
                       boxShadow: selectedSize === s ? "0 2px 8px rgba(133,76,111,0.3)" : "none",
                     }}
                   >
@@ -370,37 +679,37 @@ const QuickView = ({ product, onClose }) => {
                 ))}
               </div>
               {!availableSizes.length ? (
-                <p className="text-[11px] text-[#b84070]">No sizes are currently available.</p>
+                <p className="text-[11px] text-[var(--color-primary)]">No sizes are currently available.</p>
               ) : !selectedSize ? (
-                <p className="text-[11px] text-[#82737a]">Choose a size before adding this item.</p>
+                <p className="text-[11px] text-[var(--color-outline)]">Choose a size before adding this item.</p>
               ) : null}
               {selectedSize ? (
-                <p className="text-[11px] text-[#486730]">Selected size: {selectedSize}</p>
+                <p className="text-[11px] text-[var(--color-tertiary)]">Selected size: {selectedSize}</p>
               ) : null}
             </div>
 
             {/* Quantity Selector with cute + - */}
             <div className="space-y-3">
-              <p className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[#504349] flex items-center gap-1">
-                <span>🛍️</span> Quantity
+              <p className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--color-on-surface-variant)] flex items-center gap-1">
+                <span>◌</span> Quantity
               </p>
-              <div className="flex items-center w-36 border-2 border-[#d4c2c9] rounded-full overflow-hidden bg-white transition-all duration-200 hover:border-[#854c6f]">
+              <div className="flex items-center w-36 border-2 border-[var(--color-outline-variant)] rounded-full overflow-hidden bg-[var(--color-surface)] transition-all duration-200 hover:border-[var(--color-primary)]">
                 <button
                   type="button"
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
                   disabled={qty <= 1}
-                  className="w-10 h-10 flex items-center justify-center text-[18px] text-[#854c6f] hover:bg-[#fcf1f4] disabled:opacity-40 transition-colors"
+                  className="w-10 h-10 flex items-center justify-center text-[18px] text-[var(--color-primary)] hover:bg-[var(--color-surface-container-low)] disabled:opacity-40 transition-colors"
                 >
                   −
                 </button>
-                <span className="flex-1 text-center text-[16px] font-semibold text-[#1f1a1d] select-none">
+                <span className="flex-1 text-center text-[16px] font-semibold text-[var(--color-on-surface)] select-none">
                   {qty}
                 </span>
                 <button
                   type="button"
                   onClick={() => setQty((q) => hasStockLimit ? Math.min(stock, q + 1) : q + 1)}
                   disabled={outOfStock || (hasStockLimit && qty >= stock)}
-                  className="w-10 h-10 flex items-center justify-center text-[18px] text-[#854c6f] hover:bg-[#fcf1f4] disabled:opacity-40 transition-colors"
+                  className="w-10 h-10 flex items-center justify-center text-[18px] text-[var(--color-primary)] hover:bg-[var(--color-surface-container-low)] disabled:opacity-40 transition-colors"
                 >
                   +
                 </button>
@@ -409,25 +718,105 @@ const QuickView = ({ product, onClose }) => {
 
             {/* Description with cute icons */}
             <div className="space-y-2">
-              <p className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[#504349] flex items-center gap-1">
-                <span>💖</span> Product Essence
+              <p className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--color-on-surface-variant)] flex items-center gap-1">
+                <span>✦</span> Product Essence
               </p>
-              <p className="text-[14px] text-[#504349] leading-relaxed italic">
-                {product.description}
+              <p className="text-[14px] text-[var(--color-on-surface-variant)] leading-relaxed">
+                {displayProduct.description}
               </p>
             </div>
 
             {/* Details list with floral bullets */}
-            {product.details && (
+            {displayProduct.details && (
               <ul className="space-y-1.5">
-                {product.details.map((d, i) => (
-                  <li key={i} className="flex items-start gap-2 text-[13px] text-[#504349]">
-                    <span className="text-[#854c6f]">🌸</span>
+                {displayProduct.details.map((d, i) => (
+                  <li key={i} className="flex items-start gap-2 text-[13px] text-[var(--color-on-surface-variant)]">
+                    <span className="text-[var(--color-primary)]">•</span>
                     {d}
                   </li>
                 ))}
               </ul>
             )}
+
+            <div className="space-y-4 pt-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--color-on-surface-variant)]">
+                  Customer Reviews
+                </p>
+                <button
+                  type="button"
+                  onClick={handleLike}
+                  className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] transition-all"
+                  style={{
+                    borderColor: likedByMe ? "var(--color-primary)" : "var(--color-outline-variant)",
+                    background: likedByMe ? "rgba(111,31,47,0.1)" : "var(--color-surface)",
+                    color: "var(--color-primary)",
+                  }}
+                  disabled={likeSaving}
+                >
+                  <span aria-hidden="true">{likedByMe ? "♥" : "♡"}</span>
+                  {likeSaving ? "Saving..." : `${likesCount} Likes`}
+                </button>
+              </div>
+
+              {reviewList.length ? (
+                <div className="space-y-3">
+                  {reviewList.slice(0, 3).map((review) => (
+                    <div key={review.id} className="rounded-2xl border border-[var(--color-outline-variant)] bg-[var(--color-surface)]/70 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <div className="text-[13px] font-semibold text-[var(--color-on-surface)]">{review.user?.username || "Customer"}</div>
+                          <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--color-outline)]">
+                            {new Date(review.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <div className="text-[11px] font-semibold text-[var(--color-primary)]">{review.rating}/5</div>
+                      </div>
+                      {review.title ? <div className="mt-2 text-[13px] font-semibold text-[var(--color-on-surface)]">{review.title}</div> : null}
+                      <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-on-surface-variant)]">{review.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[12px] text-[var(--color-outline)]">No reviews yet. Be the first to share one.</p>
+              )}
+
+              <form onSubmit={submitReview} className="rounded-2xl border border-[var(--color-outline-variant)] bg-[var(--color-surface)]/75 p-4 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--color-on-surface-variant)]">Write a review</p>
+                  <select
+                    className="rounded-full border border-[var(--color-outline-variant)] bg-[var(--color-surface)] px-3 py-2 text-[12px] outline-none"
+                    value={reviewRating}
+                    onChange={(e) => setReviewRating(Number(e.target.value))}
+                  >
+                    {[5, 4, 3, 2, 1].map((rating) => (
+                      <option key={rating} value={rating}>{rating} Star{rating === 1 ? "" : "s"}</option>
+                    ))}
+                  </select>
+                </div>
+                <input
+                  value={reviewTitle}
+                  onChange={(e) => setReviewTitle(e.target.value)}
+                  placeholder="Review title (optional)"
+                  className="w-full rounded-2xl border border-[var(--color-outline-variant)] bg-[var(--color-surface)] px-4 py-3 text-[13px] outline-none"
+                />
+                <textarea
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  placeholder={isAuthenticated ? "Tell us what you think..." : "Sign in to leave a review"}
+                  className="min-h-28 w-full rounded-2xl border border-[var(--color-outline-variant)] bg-[var(--color-surface)] px-4 py-3 text-[13px] outline-none resize-none"
+                  disabled={!isAuthenticated}
+                />
+                {reviewError ? <div className="text-[12px] text-[var(--color-primary)]">{reviewError}</div> : null}
+                <button
+                  type="submit"
+                  className="w-full rounded-full bg-[var(--color-primary)] px-4 py-3 text-[11px] font-bold uppercase tracking-[0.18em] text-white transition-colors hover:bg-[var(--color-primary-container)] disabled:opacity-60"
+                  disabled={reviewSaving || !isAuthenticated}
+                >
+                  {reviewSaving ? "Posting..." : isAuthenticated ? "Submit Review" : "Sign in to review"}
+                </button>
+              </form>
+            </div>
           </div>
 
           {/* CTA block - Enhanced with Pay Now button */}
@@ -438,10 +827,10 @@ const QuickView = ({ product, onClose }) => {
                 onClick={() => {
                   if (!canAddToCart) return;
                   const prod = {
-                    ...product,
-                    id: `${product.id || product.name}-${selectedColor?.id}`,
-                    productId: product.id,
-                    name: `${product.name} (${selectedColor?.name})`,
+                    ...displayProduct,
+                    id: `${displayProduct.id || displayProduct.name}-${selectedColor?.id}`,
+                    productId: displayProduct.id,
+                    name: `${displayProduct.name} (${selectedColor?.name})`,
                     color: selectedColor?.name,
                     colorHex: selectedColor?.colorHex,
                     price: currentPrice,
@@ -458,13 +847,13 @@ const QuickView = ({ product, onClose }) => {
                 }}
                 className="flex-1 py-4 rounded-full text-[12px] font-semibold tracking-[0.12em] uppercase transition-all duration-300 text-white shadow-lg hover:shadow-xl"
                 style={{ 
-                  backgroundColor: "#1f1a1d",
+                  backgroundColor: "var(--color-on-surface)",
                   transform: added ? "scale(0.98)" : "scale(1)"
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#854c6f")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#1f1a1d")}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-primary)")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--color-on-surface)")}
               >
-                {!selectedSize ? "Select a Size" : outOfStock ? "Out of Stock" : added ? "✨ Added to Bag ✨" : "🛒 Add to Bag"}
+                {!selectedSize ? "Select a Size" : outOfStock ? "Out of Stock" : added ? "Added to Bag" : "Add to Bag"}
               </button>
               
               <button
@@ -473,13 +862,11 @@ const QuickView = ({ product, onClose }) => {
                   isAnimating ? "heartbeat-active" : ""
                 }`}
                 style={{ 
-                  borderColor: isWishlisted ? "#854c6f" : "#d4c2c9",
-                  backgroundColor: isWishlisted ? "rgba(133,76,111,0.1)" : "white"
+                  borderColor: isWishlisted ? "var(--color-primary)" : "var(--color-outline-variant)",
+                  backgroundColor: isWishlisted ? "rgba(111,31,47,0.1)" : "var(--color-surface)"
                 }}
               >
-                <span className="text-xl">
-                  {isWishlisted ? "❤️" : "🤍"}
-                </span>
+                <span className="text-xl">{isWishlisted ? "♥" : "♡"}</span>
               </button>
             </div>
 
@@ -489,10 +876,10 @@ const QuickView = ({ product, onClose }) => {
               onClick={() => {
                 if (selectedColor && selectedSize && canAddToCart) {
                   const prod = {
-                    ...product,
-                    id: `${product.id || product.name}-${selectedColor?.id}`,
-                    productId: product.id,
-                    name: `${product.name} (${selectedColor?.name})`,
+                    ...displayProduct,
+                    id: `${displayProduct.id || displayProduct.name}-${selectedColor?.id}`,
+                    productId: displayProduct.id,
+                    name: `${displayProduct.name} (${selectedColor?.name})`,
                     color: selectedColor?.name,
                     colorHex: selectedColor?.colorHex,
                     price: currentPrice,
@@ -509,7 +896,7 @@ const QuickView = ({ product, onClose }) => {
               }}
               className="w-full py-3 rounded-full text-[13px] font-bold tracking-wide uppercase transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
               style={{ 
-                background: canAddToCart ? "linear-gradient(135deg, #854c6f 0%, #b5799b 100%)" : "#9e8a93",
+                background: canAddToCart ? "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%)" : "var(--color-outline)",
                 color: "white",
                 cursor: canAddToCart ? "pointer" : "not-allowed",
                 opacity: canAddToCart ? 1 : 0.72
@@ -524,26 +911,28 @@ const QuickView = ({ product, onClose }) => {
 
             {/* Trust badges with feminine styling */}
             <div className="flex items-center justify-center gap-4 pt-3">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/60 rounded-full">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-surface)]/60 rounded-full">
                 <span className="text-base">🌿</span>
-                <span className="text-[9px] font-semibold tracking-[0.05em] text-[#504349]">Sustainably Made</span>
+                <span className="text-[9px] font-semibold tracking-[0.05em] text-[var(--color-on-surface-variant)]">Sustainably Made</span>
               </div>
-              <div className="w-px h-4 bg-[#d4c2c9]" />
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/60 rounded-full">
+              <div className="w-px h-4 bg-[var(--color-outline-variant)]" />
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-surface)]/60 rounded-full">
                 <span className="text-base">🚚</span>
-                <span className="text-[9px] font-semibold tracking-[0.05em] text-[#504349]">Free Shipping</span>
+                <span className="text-[9px] font-semibold tracking-[0.05em] text-[var(--color-on-surface-variant)]">Free Shipping</span>
               </div>
             </div>
 
             {/* Additional cute note */}
-            <p className="text-center text-[9px] text-[#82737a] pt-2">
+            <p className="text-center text-[9px] text-[var(--color-outline)] pt-2">
               💕 Ethically crafted with love and care 💕
             </p>
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
 export default QuickView;
+

@@ -1,0 +1,3 @@
+ALTER TABLE `Product`
+  ADD COLUMN `seasonalBatch` BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN `seasonalEndsOn` VARCHAR(191) NULL;

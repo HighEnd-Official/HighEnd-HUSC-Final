@@ -1,356 +1,296 @@
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import dressMain from "../../../assets/images/dresses/floral-flare/main.png";
-import shirtMain from "../../../assets/images/shirts/bow-print/main.png";
+import NavBar from "../../../components/NavBar";
+import Footer from "../../../components/Footer";
+import HoverRevealImage from "../../../components/HoverRevealImage";
+import QuickView from "./QuickView";
+import { matchesCollection, paginateProducts, sortCollectionProducts, useCollectionProducts } from "./collectionUtils";
+import { CATEGORY_GROUPS } from "../../../lib/productCategories";
 
-/* ─── Keyframes + fonts injected once ───────────────────────────────────── */
-const STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap');
-
-  @keyframes acFadeUp {
-    from { opacity: 0; transform: translateY(24px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes acShimmer {
-    0%   { background-position: -200% center; }
-    100% { background-position:  200% center; }
-  }
-  @keyframes acPulse {
-    0%, 100% { transform: scale(1);   opacity: 0.6; }
-    50%       { transform: scale(1.1); opacity: 1;   }
-  }
-  @keyframes acFloat {
-    0%, 100% { transform: translateY(0);    }
-    50%       { transform: translateY(-8px); }
-  }
-
-  .ac-fade-1 { animation: acFadeUp 0.7s 0.05s ease both; }
-  .ac-fade-2 { animation: acFadeUp 0.7s 0.15s ease both; }
-  .ac-fade-3 { animation: acFadeUp 0.7s 0.25s ease both; }
-  .ac-fade-4 { animation: acFadeUp 0.7s 0.35s ease both; }
-  .ac-fade-5 { animation: acFadeUp 0.7s 0.45s ease both; }
-
-  .ac-shimmer-text {
-    background: linear-gradient(90deg, #8a3a60 0%, #c07898 40%, #8a3a60 60%, #5a1a40 100%);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: acShimmer 4s linear infinite;
-  }
-
-  .ac-card-shine {
-    position: relative; overflow: hidden;
-  }
-  .ac-card-shine::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%);
-    transform: translateX(-100%);
-    transition: transform 0.7s ease;
-    pointer-events: none;
-  }
-  .ac-card-shine:hover::after { transform: translateX(100%); }
-
-  .ac-coming-ring {
-    animation: acPulse 2.8s ease-in-out infinite;
-  }
-  .ac-coming-icon {
-    animation: acFloat 3.5s ease-in-out infinite;
-  }
-`;
-
-/* ─── Arrow icon ─────────────────────────────────────────────────────────── */
-const ArrowRight = ({ className = "" }) => (
-  <svg
-    width="14" height="14" viewBox="0 0 24 24"
-    fill="none" stroke="currentColor" strokeWidth="1.5"
-    strokeLinecap="round" strokeLinejoin="round"
-    className={className}
-    aria-hidden="true"
-  >
-    <line x1="5" y1="12" x2="19" y2="12"/>
-    <polyline points="12 5 19 12 12 19"/>
-  </svg>
-);
-
-/* ─── Product Card ───────────────────────────────────────────────────────── */
-function CollectionCard({ tag, src, alt, subtitle, title, desc, cta, onClick, delay = "" }) {
-  const [hovered, setHovered] = useState(false);
-
+function ProductCard({ product, onQuickView }) {
   return (
     <article
-      className={`ac-card-shine group flex flex-col overflow-hidden rounded-[28px] bg-[#fff8f9] border border-[#ecd4de]/50 shadow-sm transition-all duration-500 hover:shadow-2xl hover:shadow-[#8a3a60]/10 hover:-translate-y-1.5 cursor-pointer ${delay}`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={onClick}
+      className="group overflow-hidden rounded-[28px] border border-[var(--color-outline-variant)] bg-[var(--color-surface)] shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+      onClick={() => onQuickView(product)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === "Enter" && onQuickView(product)}
     >
-      {/* Image */}
-      <div className="relative h-[440px] overflow-hidden bg-gradient-to-br from-[#fce8f0] to-[#f5d8e8]">
-        <img
-          src={src}
-          alt={alt}
-          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.07]"
+      <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-[var(--color-surface-container-low)] to-[var(--color-surface-container)]">
+        <HoverRevealImage
+          src={product.image}
+          alt={product.name}
+          wrapperClassName="h-full w-full"
+          imgClassName="h-full w-full object-cover"
+          zoom={1.18}
         />
-
-        {/* gradient overlay */}
-        <div
-          className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent transition-opacity duration-500"
-          style={{ opacity: hovered ? 1 : 0 }}
-        />
-
-        {/* Tag pill */}
-        <span
-          className="absolute top-4 left-4 rounded-full bg-[#fff8f9]/88 backdrop-blur-md px-4 py-1.5 text-[9px] font-semibold uppercase tracking-[0.22em] text-[#8a3a60] shadow-sm border border-[#e8d0da]/40"
-          style={{ fontFamily: "'Jost', sans-serif" }}
-        >
-          {tag}
-        </span>
-
-        {/* Quick shop pill — slides up on hover */}
-        <button
-          className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full bg-white/95 backdrop-blur-sm px-6 py-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8a3a60] shadow-lg transition-all duration-400 border border-[#e8d0da]/50 whitespace-nowrap"
-          style={{
-            fontFamily: "'Jost', sans-serif",
-            opacity: hovered ? 1 : 0,
-            transform: hovered ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(10px)",
-            transition: "opacity 0.35s, transform 0.35s",
-          }}
-          onClick={(e) => { e.stopPropagation(); onClick(); }}
-        >
-          Quick Shop ↗
-        </button>
-      </div>
-
-      {/* Body */}
-      <div className="flex flex-col flex-1 p-7 gap-2">
-        <p
-          className="text-[9.5px] font-semibold tracking-[0.22em] uppercase text-[#b090a0]"
-          style={{ fontFamily: "'Jost', sans-serif" }}
-        >
-          {subtitle}
-        </p>
-        <h3
-          className="text-[21px] leading-snug text-[#1a0e14]"
-          style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 400 }}
-        >
-          {title}
-        </h3>
-        <p
-          className="text-[13px] text-[#7a5068] leading-relaxed flex-1"
-          style={{ fontFamily: "'Jost', sans-serif", fontWeight: 300 }}
-        >
-          {desc}
-        </p>
-
-        {/* CTA link */}
-        <button
-          onClick={(e) => { e.stopPropagation(); onClick(); }}
-          className="mt-4 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8a3a60] hover:text-[#5a1a40] transition-colors self-start"
-          style={{ fontFamily: "'Jost', sans-serif" }}
-        >
-          {cta}
-          <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1" />
-        </button>
-      </div>
-    </article>
-  );
-}
-
-/* ─── Coming Soon Card ───────────────────────────────────────────────────── */
-function ComingSoonCard({ delay = "" }) {
-  return (
-    <article
-      className={`flex flex-col overflow-hidden rounded-[28px] border border-dashed border-[#d4b0c4]/60 bg-gradient-to-br from-[#fff8f9] via-[#fce8f2] to-[#f9dced] shadow-sm ${delay}`}
-    >
-      <div className="flex flex-1 min-h-[440px] items-center justify-center px-10">
-        <div className="flex flex-col items-center text-center gap-5">
-
-          {/* Animated ring + icon */}
-          <div className="relative">
-            <div className="ac-coming-ring absolute inset-0 rounded-full border-2 border-[#e0a8c0]/50 scale-110" />
-            <div
-              className="ac-coming-icon w-24 h-24 rounded-full bg-gradient-to-br from-[#fce8f0] to-[#f5d0e4] flex items-center justify-center border border-[#e0b8cc]/50 shadow-inner"
-            >
-              <span
-                className="text-[32px]"
-                style={{ fontFamily: "'Cormorant Garamond', serif" }}
-                aria-hidden="true"
-              >
-                ✿
-              </span>
+        {product.seasonalBatch ? (
+          <div
+            className="absolute bottom-4 right-4 z-10 rounded-[18px] border border-white/20 px-3 py-2 text-white shadow-[0_12px_28px_rgba(0,0,0,0.18)] backdrop-blur-md"
+            style={{
+              background: "linear-gradient(135deg, rgba(111,31,47,0.96), rgba(69,18,29,0.88))"
+            }}
+          >
+            <div className="text-[8px] font-semibold uppercase tracking-[0.24em] opacity-80">
+              Seasonal
+            </div>
+            <div className="text-[13px] font-semibold leading-none">
+              {product.seasonalBadgeText || "Seasonal"}
+            </div>
+            <div className="text-[8px] font-semibold uppercase tracking-[0.18em] opacity-70">
+              Batch
             </div>
           </div>
+        ) : null}
+        <span
+          className="absolute top-4 left-4 rounded-full px-4 py-1.5 text-[9px] font-semibold uppercase tracking-[0.22em] text-white shadow-sm"
+          style={{ background: product.badgeColor || "var(--color-primary)" }}
+        >
+          {product.badge}
+        </span>
+      </div>
 
-          <span
-            className="text-[9.5px] font-semibold tracking-[0.28em] uppercase text-[#c090a8]"
-            style={{ fontFamily: "'Jost', sans-serif" }}
-          >
-            Blouse
-          </span>
+      <div className="p-6">
+        <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-[var(--color-outline)]">
+          {product.collection}
+        </p>
+        <h3 className="mt-2 text-[22px] leading-tight text-[var(--color-on-surface)]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 400 }}>
+          {product.name}
+        </h3>
+        {product.subtitle ? (
+          <p className="mt-2 text-[13px] leading-relaxed text-[var(--color-on-surface-variant)]">{product.subtitle}</p>
+        ) : null}
 
-          <h3
-            className="text-[28px] leading-tight text-[#1a0e14]"
-            style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontStyle: "italic" }}
-          >
-            Coming Soon
-          </h3>
-
-          <p
-            className="text-[13px] text-[#7a5068] leading-relaxed max-w-[240px]"
-            style={{ fontFamily: "'Jost', sans-serif", fontWeight: 300 }}
-          >
-            A seasonal blouse edit is in development — soft finishes, sculpted lines, and everyday luxe.
-          </p>
-
-          {/* Notify pill */}
-          <button
-            disabled
-            className="mt-2 inline-flex items-center gap-2 rounded-full border border-[#d4b0c4]/60 bg-white/60 px-7 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#c0a0b0] cursor-not-allowed select-none"
-            style={{ fontFamily: "'Jost', sans-serif" }}
-          >
-            Notify Me
-          </button>
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-[15px] font-semibold text-[var(--color-on-surface)]">{product.price}</div>
+            {product.originalPrice ? (
+              <div className="text-[11px] text-[var(--color-outline)] line-through">{product.originalPrice}</div>
+            ) : null}
+            {product.discountPercent ? (
+              <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-primary)]">
+                Save {product.discountPercent}% off
+              </div>
+            ) : null}
+            {product.variantCount > 1 ? (
+              <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-outline)]">
+                {product.variantCount} variants
+              </div>
+            ) : null}
+          </div>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
+            {product.stars}/5 · {product.reviews} reviews
+          </div>
         </div>
+
+        <button
+          type="button"
+          className="mt-5 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)] transition-colors hover:text-[var(--color-primary-container)]"
+          onClick={(e) => {
+            e.stopPropagation();
+            onQuickView(product);
+          }}
+        >
+          Quick View
+          <span aria-hidden="true">→</span>
+        </button>
       </div>
     </article>
   );
 }
 
-/* ─── Main Component ─────────────────────────────────────────────────────── */
-const AllCollections = () => {
-  const navigate = useNavigate();
-
+function Hero({ productCount, categoryCount }) {
   return (
-    <section
-      className="max-w-[1440px] mx-auto px-6 md:px-16 py-20"
-      style={{ fontFamily: "'Jost', sans-serif" }}
-    >
-      <style>{STYLES}</style>
-
-      {/* ── Header ── */}
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-10 mb-16">
-
-        <div className="max-w-2xl">
-          {/* Eyebrow */}
-          <div className="flex items-center gap-3 mb-5 ac-fade-1">
-            <span className="w-8 h-px bg-[#9b3a6a]" aria-hidden="true" />
-            <p
-              className="text-[9.5px] font-semibold tracking-[0.32em] uppercase text-[#9b3a6a]"
-              style={{ fontFamily: "'Jost', sans-serif" }}
-            >
-              All Collections
-            </p>
-          </div>
-
-          {/* Title */}
-          <h2
-            className="text-[clamp(36px,5.5vw,60px)] leading-[1.05] text-[#1a0e14] mb-6 ac-fade-2"
-            style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300 }}
-          >
-            Explore every edit from{" "}
-            <em className="ac-shimmer-text not-italic" style={{ fontStyle: "italic" }}>
-              the wardrobe
-            </em>{" "}
-            collection.
-          </h2>
-
-          {/* Body copy */}
-          <p
-            className="text-[15px] text-[#7a5068] leading-relaxed max-w-xl ac-fade-3"
-            style={{ fontWeight: 300 }}
-          >
-            Curated stories shaped by ease, texture, and timeless detailing. Discover dresses for
-            luminous days, shirts with modern polish, and the upcoming blouse collection.
-          </p>
-        </div>
-
-        {/* CTA */}
-        <div className="ac-fade-4 flex-shrink-0">
-          <button
-            onClick={() => navigate("/collections/dress")}
-            className="group inline-flex items-center gap-3 rounded-full bg-[#8a3a60] px-9 py-4 text-[10px] font-semibold uppercase tracking-[0.22em] text-white shadow-lg shadow-[#8a3a60]/25 transition-all duration-300 hover:bg-[#1a0e14] hover:shadow-xl hover:scale-105"
-            style={{ fontFamily: "'Jost', sans-serif" }}
-          >
-            Shop Dresses
-            <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1" />
-          </button>
-        </div>
-      </div>
-
-      {/* ── Stats row ── */}
-      <div className="grid grid-cols-3 gap-4 mb-14 ac-fade-4">
-        {[
-          { val: "2",  label: "Active Collections" },
-          { val: "24+", label: "Signature Pieces" },
-          { val: "1",  label: "Arriving Soon" },
-        ].map(({ val, label }) => (
-          <div
-            key={label}
-            className="flex flex-col items-center justify-center py-6 rounded-2xl border border-[#ecd4de]/50 bg-[#fff8f9] gap-1"
-          >
-            <span
-              className="text-[28px] font-light text-[#8a3a60] leading-none"
-              style={{ fontFamily: "'Cormorant Garamond', serif" }}
-            >
-              {val}
-            </span>
-            <span
-              className="text-[10px] font-medium tracking-[0.14em] uppercase text-[#b090a0]"
-              style={{ fontFamily: "'Jost', sans-serif" }}
-            >
-              {label}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* ── Cards grid ── */}
-      <div className="grid gap-7 md:grid-cols-3 ac-fade-5">
-        <CollectionCard
-          tag="Dress"
-          src={dressMain}
-          alt="Floral Flare Mini Dress"
-          subtitle="Floral Flare Mini"
-          title="Statement silhouettes in motion."
-          desc="A modern dress edit with embroidered details and soft movement for day-to-evening dressing."
-          cta="View Dress Collection"
-          onClick={() => navigate("/collections/dress")}
-        />
-
-        <CollectionCard
-          tag="Shirt"
-          src={shirtMain}
-          alt="Bow Print Long Sleeve Crop Shirt"
-          subtitle="Bow Print Crop"
-          title="Crisp tailoring, feminine mood."
-          desc="A lightweight crop shirt designed for layering, with modern bow print detail and easy polish."
-          cta="View Shirt Collection"
-          onClick={() => navigate("/collections/shirt")}
-          delay="[animation-delay:0.1s]"
-        />
-
-        <ComingSoonCard delay="[animation-delay:0.2s]" />
-      </div>
-
-      {/* ── Bottom editorial note ── */}
-      <div className="mt-16 flex flex-col sm:flex-row items-center justify-between gap-6 pt-8 border-t border-[#ecd4de]/40">
-        <p
-          className="text-[12px] text-[#b090a0] tracking-wide italic max-w-md text-center sm:text-left"
-          style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300 }}
-        >
-          "Each collection is designed to feel as beautiful as it looks — worn, lived in, and loved."
+    <section className="relative overflow-hidden rounded-[36px] border border-[var(--color-outline-variant)] bg-gradient-to-br from-[var(--color-surface)] via-[var(--color-surface-container-low)] to-[var(--color-surface-container)] px-6 py-14 md:px-12 md:py-20">
+      <div className="mx-auto max-w-3xl text-center">
+        <p className="text-[10px] font-semibold tracking-[0.32em] uppercase text-[var(--color-primary)]">
+          All Collections
         </p>
-        <button
-          onClick={() => navigate("/collections/dress")}
-          className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#8a3a60] border-b border-[#8a3a60]/40 pb-0.5 hover:border-[#8a3a60] transition-colors"
-          style={{ fontFamily: "'Jost', sans-serif" }}
-        >
-          View All →
-        </button>
+        <h1 className="mt-4 text-[clamp(42px,6vw,72px)] leading-[1.02] text-[var(--color-on-surface)]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300 }}>
+          Discover the pieces live from the database.
+        </h1>
+        <p className="mx-auto mt-5 max-w-2xl text-[15px] leading-relaxed text-[var(--color-on-surface-variant)]">
+          Browse every active product, preview details instantly, and jump into each collection
+          without hardcoded placeholders.
+        </p>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <span className="rounded-full border border-[var(--color-outline-variant)] bg-[var(--color-surface)]/80 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-primary)]">
+            {productCount} products
+          </span>
+          <span className="rounded-full border border-[var(--color-outline-variant)] bg-[var(--color-surface)]/80 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-primary)]">
+            {categoryCount} collection groups
+          </span>
+        </div>
       </div>
     </section>
   );
-};
+}
 
-export default AllCollections;
+export default function AllCollections() {
+  const navigate = useNavigate();
+  const { products, loading, error } = useCollectionProducts();
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 12;
+
+  const visibleProducts = useMemo(
+    () => sortCollectionProducts(products.filter((product) => matchesCollection(product, "all"))),
+    [products]
+  );
+  const totalPages = Math.max(1, Math.ceil(visibleProducts.length / pageSize));
+  const paginatedProducts = useMemo(
+    () => paginateProducts(visibleProducts, currentPage, pageSize),
+    [visibleProducts, currentPage]
+  );
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const categoryGroups = useMemo(() => {
+    return CATEGORY_GROUPS
+      .map((group) => ({
+        ...group,
+        products: products.filter((product) => matchesCollection(product, group.label)),
+      }))
+      .filter((group) => group.products.length > 0);
+  }, [products]);
+
+  return (
+    <div className="min-h-screen bg-[var(--color-surface)] pt-[72px]">
+      <NavBar />
+      <main className="mx-auto max-w-[1440px] px-6 py-12 md:px-10 lg:px-16">
+        <Hero productCount={visibleProducts.length} categoryCount={categoryGroups.length} />
+
+        <div className="mt-10 flex flex-wrap gap-3">
+          {[
+            ...CATEGORY_GROUPS.map((group) => ({ label: group.label, to: group.route })),
+          ].map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              onClick={() => navigate(item.to)}
+              className="rounded-full border border-[var(--color-outline-variant)] bg-[var(--color-surface)] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)] transition-colors hover:bg-[var(--color-surface-container-low)]"
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        {error ? (
+          <div className="mt-8 rounded-2xl border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-low)] px-5 py-4 text-[var(--color-primary)]">
+            {error}
+          </div>
+        ) : null}
+
+        <section className="mt-12">
+          <div className="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-[var(--color-primary)]">Curated</p>
+              <h2 className="mt-2 text-3xl text-[var(--color-on-surface)]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 400 }}>
+                Live product lineup
+              </h2>
+            </div>
+            <button
+              type="button"
+              className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-primary)] underline-offset-4 hover:underline"
+              onClick={() => navigate("/admin/products")}
+            >
+              Manage in Admin
+            </button>
+          </div>
+
+          {loading ? (
+            <div className="rounded-3xl border border-dashed border-[var(--color-outline-variant)] bg-[var(--color-surface)] px-6 py-12 text-center text-[var(--color-on-surface-variant)]">
+              Loading products from the database…
+            </div>
+          ) : visibleProducts.length ? (
+            <>
+              <div className="grid gap-7 md:grid-cols-2 xl:grid-cols-3">
+                {paginatedProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} onQuickView={setSelectedProduct} />
+                ))}
+              </div>
+
+              <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-[var(--color-outline-variant)] bg-[var(--color-surface)] px-5 py-4">
+                <div className="text-[12px] text-[var(--color-on-surface-variant)]">
+                  Showing {(currentPage - 1) * pageSize + 1}-{Math.min(currentPage * pageSize, visibleProducts.length)} of {visibleProducts.length}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                    disabled={currentPage === 1}
+                    className="rounded-full border border-[var(--color-outline-variant)] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)] transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Prev
+                  </button>
+                  <span className="rounded-full border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-low)] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-on-surface-variant)]">
+                    {currentPage} / {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                    disabled={currentPage === totalPages}
+                    className="rounded-full border border-[var(--color-outline-variant)] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)] transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="rounded-3xl border border-dashed border-[var(--color-outline-variant)] bg-[var(--color-surface)] px-6 py-12 text-center text-[var(--color-on-surface-variant)]">
+              No products are available yet.
+            </div>
+          )}
+        </section>
+
+        <section className="mt-16">
+          <div className="mb-6">
+            <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-[var(--color-primary)]">Collections</p>
+            <h2 className="mt-2 text-3xl text-[var(--color-on-surface)]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 400 }}>
+              Browse by collection group
+            </h2>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            {CATEGORY_GROUPS.map((item) => {
+              const group = categoryGroups.find((groupItem) => groupItem.label === item.label);
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => navigate(item.route)}
+                  className="rounded-[28px] border border-[var(--color-outline-variant)] bg-gradient-to-br from-[var(--color-surface)] to-[var(--color-surface-container-low)] p-6 text-left shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl"
+                >
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--color-primary)]">
+                    {item.label}
+                  </div>
+                  <div className="mt-3 text-2xl text-[var(--color-on-surface)]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 400 }}>
+                    {group ? `${group.products.length} active product${group.products.length === 1 ? "" : "s"}` : "Coming soon"}
+                  </div>
+                  <div className="mt-2 text-[13px] leading-relaxed text-[var(--color-on-surface-variant)]">
+                    Explore live items pulled straight from the backend.
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      </main>
+
+      <Footer />
+
+      {selectedProduct ? (
+        <QuickView
+          key={selectedProduct.id}
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+        />
+      ) : null}
+    </div>
+  );
+}

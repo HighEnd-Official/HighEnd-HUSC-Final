@@ -14,7 +14,7 @@ function Petal({ x, y, delay, size, char }) {
         left: `${x}%`,
         top: `${y}%`,
         fontSize: size,
-        color: "#d4a0be",
+        color: "var(--color-primary-container)",
         opacity: 0.18,
         pointerEvents: "none",
         userSelect: "none",
@@ -54,7 +54,7 @@ function FloatInput({ id, name, label, type = "text", value, onChange, placehold
           fontWeight: 600,
           letterSpacing: lifted ? "0.3em" : "0.04em",
           textTransform: lifted ? "uppercase" : "none",
-          color: focused ? "#c07fa5" : "#9c8490",
+          color: focused ? "var(--color-primary-container)" : "var(--color-outline)",
           transition: "all 0.32s cubic-bezier(0.4,0,0.2,1)",
           pointerEvents: "none",
           display: "flex",
@@ -64,7 +64,7 @@ function FloatInput({ id, name, label, type = "text", value, onChange, placehold
       >
         {label}
         {required && (
-          <span style={{ color: "#c07fa5", fontSize: 10, lineHeight: 1 }}>✦</span>
+          <span style={{ color: "var(--color-primary-container)", fontSize: 10, lineHeight: 1 }}>✦</span>
         )}
       </label>
 
@@ -83,12 +83,12 @@ function FloatInput({ id, name, label, type = "text", value, onChange, placehold
           width: "100%",
           background: "transparent",
           border: "none",
-          borderBottom: `1px solid ${focused ? "#c07fa5" : "#e2cdd7"}`,
+          borderBottom: `1px solid ${focused ? "var(--color-primary-container)" : "var(--color-outline-variant)"}`,
           padding: "10px 0 9px",
           fontSize: 15,
-          color: "#1f1a1d",
+          color: "var(--color-on-surface)",
           outline: "none",
-          fontFamily: "'Jost', sans-serif",
+          fontFamily: "'Cormorant Garamond', serif",
           transition: "border-color 0.3s ease",
         }}
       />
@@ -101,7 +101,7 @@ function FloatInput({ id, name, label, type = "text", value, onChange, placehold
           left: 0,
           height: "1.5px",
           width: focused ? "100%" : "0%",
-          background: "linear-gradient(90deg, #c07fa5, #e8b8d4)",
+          background: "linear-gradient(90deg, var(--color-primary-container), var(--color-primary-container))",
           borderRadius: 2,
           transition: "width 0.4s cubic-bezier(0.4,0,0.2,1)",
         }}
@@ -121,7 +121,7 @@ function StepDots({ current, total }) {
             width: i === current ? 24 : 6,
             height: 6,
             borderRadius: 3,
-            background: i <= current ? "#c07fa5" : "#e2cdd7",
+            background: i <= current ? "var(--color-primary-container)" : "var(--color-outline-variant)",
             transition: "all 0.4s ease",
           }}
         />
@@ -158,6 +158,7 @@ const Registration = () => {
     e.preventDefault();
     setError("");
     if (!form.name.trim()) { setError("Please enter your full name."); return; }
+    if (!form.phone.trim()) { setError("Please enter your phone number."); return; }
     setStep(1);
   };
 
@@ -172,7 +173,7 @@ const Registration = () => {
  
     setLoading(true); 
     setTimeout(async () => { 
-      const result = await register(form.name, form.email, form.password); 
+      const result = await register(form.name, form.email, form.password, form.phone); 
       setLoading(false); 
       if (!result.success) { setError(result.error); return; } 
       setSuccess(true); 
@@ -183,10 +184,9 @@ const Registration = () => {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap');
-
+        
         *, *::before, *::after { box-sizing: border-box; }
-        ::selection { background: #e8acd0; color: #4a193a; }
+        ::selection { background: var(--color-primary-container); color: var(--color-on-primary-container); }
 
         @keyframes petalDrift {
           0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
@@ -218,8 +218,8 @@ const Registration = () => {
         }
 
         .reg-root {
-          font-family: 'Jost', sans-serif;
-          background: #fdf7fa;
+          font-family: 'Cormorant Garamond', serif;
+          background: var(--color-surface);
           min-height: 100vh;
           display: flex;
           flex-direction: column;
@@ -232,7 +232,7 @@ const Registration = () => {
           position: sticky;
           top: 0;
           height: 100vh;
-          background: linear-gradient(160deg, #1e0b17 0%, #3a1228 45%, #5e2347 100%);
+          background: linear-gradient(160deg, var(--color-surface-container-highest) 0%, var(--color-primary-container) 45%, var(--color-primary) 100%);
           display: flex;
           flex-direction: column;
           justify-content: flex-end;
@@ -281,25 +281,25 @@ const Registration = () => {
           font-family: 'Cormorant Garamond', serif;
           font-size: clamp(36px, 4vw, 58px);
           font-weight: 300;
-          font-style: italic;
-          color: #ffffff;
+          font-style: normal;
+          color: var(--color-on-primary);
           line-height: 1.1;
           margin-bottom: 20px;
         }
         .reg-left__title em {
-          color: #e0a3c8;
+          color: var(--color-primary-container);
           font-style: normal;
         }
         .reg-left__divider {
           width: 36px;
           height: 0.5px;
-          background: linear-gradient(90deg, #e0a3c8, transparent);
+          background: linear-gradient(90deg, var(--color-primary-container), transparent);
           margin-bottom: 20px;
         }
         .reg-left__desc {
           font-size: 13px;
           font-weight: 300;
-          color: rgba(255,255,255,0.55);
+          color: var(--color-surface);
           line-height: 1.7;
           max-width: 280px;
           margin-bottom: 32px;
@@ -315,14 +315,14 @@ const Registration = () => {
           gap: 10px;
           font-size: 11.5px;
           font-weight: 400;
-          color: rgba(255,255,255,0.65);
+          color: var(--color-surface);
           letter-spacing: 0.04em;
         }
         .reg-left__perk-dot {
           width: 5px;
           height: 5px;
           border-radius: 50%;
-          background: #e0a3c8;
+          background: var(--color-primary-container);
           flex-shrink: 0;
         }
 
@@ -333,7 +333,7 @@ const Registration = () => {
           align-items: center;
           justify-content: center;
           padding: 48px 40px 64px;
-          background: #fdf7fa;
+          background: var(--color-surface);
           position: relative;
           overflow: hidden;
         }
@@ -352,12 +352,12 @@ const Registration = () => {
 
         /* Error */
         .reg-error {
-          border-left: 2px solid #d97ca0;
-          background: #fef0f5;
+          border-left: 2px solid var(--color-primary-container);
+          background: var(--color-surface-container-low);
           padding: 11px 14px;
           margin-bottom: 20px;
           font-size: 12px;
-          color: #a0395f;
+          color: var(--color-primary);
           border-radius: 0 6px 6px 0;
           animation: fadeIn 0.3s ease;
         }
@@ -373,7 +373,7 @@ const Registration = () => {
         .reg-checkbox-custom {
           width: 18px;
           height: 18px;
-          border: 1px solid #d4b8c8;
+          border: 1px solid var(--color-outline-variant);
           border-radius: 4px;
           flex-shrink: 0;
           margin-top: 1px;
@@ -384,8 +384,8 @@ const Registration = () => {
           cursor: pointer;
         }
         .reg-checkbox-custom--checked {
-          background: #c07fa5;
-          border-color: #c07fa5;
+          background: var(--color-primary-container);
+          border-color: var(--color-primary-container);
         }
 
         /* Submit button */
@@ -394,10 +394,10 @@ const Registration = () => {
           padding: 15px;
           border: none;
           border-radius: 50px;
-          background: linear-gradient(135deg, #3a1228 0%, #854c6f 55%, #c07fa5 100%);
+          background: linear-gradient(135deg, var(--color-primary-container) 0%, var(--color-primary) 55%, var(--color-primary-container) 100%);
           background-size: 200% auto;
-          color: #fff;
-          font-family: 'Jost', sans-serif;
+          color: var(--color-on-primary);
+          font-family: 'Cormorant Garamond', serif;
           font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.28em;
@@ -425,18 +425,18 @@ const Registration = () => {
           gap: 6px;
           background: none;
           border: none;
-          font-family: 'Jost', sans-serif;
+          font-family: 'Cormorant Garamond', serif;
           font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.2em;
           text-transform: uppercase;
-          color: #9c8490;
+          color: var(--color-outline);
           cursor: pointer;
           padding: 0;
           margin-bottom: 28px;
           transition: color 0.25s;
         }
-        .reg-back-btn:hover { color: #c07fa5; }
+        .reg-back-btn:hover { color: var(--color-primary-container); }
 
         /* Success */
         .reg-success {
@@ -447,7 +447,7 @@ const Registration = () => {
         .reg-success__ring {
           width: 84px; height: 84px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #f8dff0, #f0c8e0);
+          background: linear-gradient(135deg, var(--color-primary-container), var(--color-primary-container));
           display: flex;
           align-items: center;
           justify-content: center;
@@ -507,7 +507,7 @@ const Registration = () => {
             <div className="reg-left__content">
               <p className="reg-left__season">Autumn / Winter · 2025</p>
               <h2 className="reg-left__title">
-                The <em>Essence</em><br />of Form
+                The <span>Essence</span><br />of Form
               </h2>
               <div className="reg-left__divider" />
               <p className="reg-left__desc">
@@ -544,7 +544,7 @@ const Registration = () => {
                 /* ── Success ── */
                 <div className="reg-success">
                   <div className="reg-success__ring">
-                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c07fa5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-container)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M4.5 12.75l6 6 9-13.5" />
                     </svg>
                   </div>
@@ -553,14 +553,14 @@ const Registration = () => {
                       fontFamily: "'Cormorant Garamond', serif",
                       fontSize: 36,
                       fontWeight: 300,
-                      fontStyle: "italic",
-                      color: "#854c6f",
+                      fontStyle: "normal",
+                      color: "var(--color-primary)",
                       marginBottom: 10,
                     }}
                   >
                     Welcome to the Circle.
                   </h2>
-                  <p style={{ fontSize: 13, color: "#9c8490", fontWeight: 300 }}>
+                  <p style={{ fontSize: 13, color: "var(--color-outline)", fontWeight: 300 }}>
                     Your account is ready. Taking you home…
                   </p>
                   <div style={{ marginTop: 24, fontSize: 20, animation: "petalDrift 3s ease-in-out infinite" }}>
@@ -573,8 +573,8 @@ const Registration = () => {
                   {/* ── Header ── */}
                   <div style={{ marginBottom: 32 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                      <span style={{ width: 20, height: 0.5, background: "#c07fa5", display: "block" }} />
-                      <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.3em", textTransform: "uppercase", color: "#c07fa5" }}>
+                      <span style={{ width: 20, height: 0.5, background: "var(--color-primary-container)", display: "block" }} />
+                      <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.3em", textTransform: "uppercase", color: "var(--color-primary-container)" }}>
                         Create Account
                       </span>
                     </div>
@@ -583,15 +583,15 @@ const Registration = () => {
                         fontFamily: "'Cormorant Garamond', serif",
                         fontSize: "clamp(36px, 5vw, 50px)",
                         fontWeight: 300,
-                        color: "#1f1a1d",
+                        color: "var(--color-on-surface)",
                         lineHeight: 1.1,
                         marginBottom: 10,
                       }}
                     >
                       Join the<br />
-                      <em style={{ fontStyle: "italic", color: "#c07fa5" }}>Inner Circle.</em>
+                      <span style={{ fontStyle: "normal", color: "var(--color-primary-container)" }}>Inner Circle.</span>
                     </h1>
-                    <p style={{ fontSize: 13, fontWeight: 300, color: "#9c8490", lineHeight: 1.65 }}>
+                    <p style={{ fontSize: 13, fontWeight: 300, color: "var(--color-outline)", lineHeight: 1.65 }}>
                       Experience a world of curated luxury and exclusive previews.
                     </p>
                   </div>
@@ -605,7 +605,7 @@ const Registration = () => {
                   {/* ── Step 0: Personal info ── */}
                   {step === 0 && (
                     <form onSubmit={handleNext} style={{ animation: "slideIn 0.35s ease both" }}>
-                      <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", color: "#c07fa5", marginBottom: 24 }}>
+                      <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--color-primary-container)", marginBottom: 24 }}>
                         Step 1 — Your Details
                       </p>
 
@@ -627,6 +627,7 @@ const Registration = () => {
                         value={form.phone}
                         onChange={handleChange}
                         placeholder="(+94) 77-777-7777"
+                        required
                         autoComplete="tel"
                       />
 
@@ -642,7 +643,7 @@ const Registration = () => {
                             </svg>
                           )}
                         </div>
-                        <span style={{ fontSize: 12, fontWeight: 300, color: "#7a6470", lineHeight: 1.6, cursor: "pointer" }}>
+                        <span style={{ fontSize: 12, fontWeight: 300, color: "var(--color-outline)", lineHeight: 1.6, cursor: "pointer" }}>
                           Join the 'Inner Circle' newsletter for seasonal lookbooks and private event invitations.
                         </span>
                       </div>
@@ -672,7 +673,7 @@ const Registration = () => {
                         Back
                       </button>
 
-                      <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", color: "#c07fa5", marginBottom: 24 }}>
+                      <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--color-primary-container)", marginBottom: 24 }}>
                         Step 2 — Account Access
                       </p>
 
@@ -708,8 +709,8 @@ const Registration = () => {
                                 height: 2,
                                 borderRadius: 2,
                                 background: form.password.length >= threshold
-                                  ? i === 0 ? "#d97ca0" : i === 1 ? "#c07fa5" : "#854c6f"
-                                  : "#e2cdd7",
+                                  ? i === 0 ? "var(--color-primary-container)" : i === 1 ? "var(--color-primary-container)" : "var(--color-primary)"
+                                  : "var(--color-outline-variant)",
                                 transition: "background 0.3s ease",
                               }}
                             />
@@ -722,7 +723,7 @@ const Registration = () => {
                           {loading ? (
                             <>
                               <svg className="spin-anim" width="14" height="14" viewBox="0 0 24 24" fill="none">
-                                <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3" />
+                                <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.18)" strokeWidth="3" />
                                 <path d="M12 2a10 10 0 0 1 10 10" stroke="white" strokeWidth="3" strokeLinecap="round" />
                               </svg>
                               Creating Account…
@@ -739,13 +740,13 @@ const Registration = () => {
                       </div>
 
                       {/* Legal */}
-                      <p style={{ marginTop: 16, fontSize: 10, color: "#b0969e", lineHeight: 1.7, textAlign: "center" }}>
+                      <p style={{ marginTop: 16, fontSize: 10, color: "var(--color-outline)", lineHeight: 1.7, textAlign: "center" }}>
                         By creating an account you agree to our{" "}
-                        <button type="button" style={{ background: "none", border: "none", color: "#c07fa5", fontSize: 10, cursor: "pointer", textDecoration: "underline", fontFamily: "'Jost', sans-serif" }}
+                        <button type="button" style={{ background: "none", border: "none", color: "var(--color-primary-container)", fontSize: 10, cursor: "pointer", textDecoration: "underline", fontFamily: "'Cormorant Garamond', serif" }}
                           onClick={() => alert("Terms of Service coming soon.")}>
                           Terms
                         </button>{" "}and{" "}
-                        <button type="button" style={{ background: "none", border: "none", color: "#c07fa5", fontSize: 10, cursor: "pointer", textDecoration: "underline", fontFamily: "'Jost', sans-serif" }}
+                        <button type="button" style={{ background: "none", border: "none", color: "var(--color-primary-container)", fontSize: 10, cursor: "pointer", textDecoration: "underline", fontFamily: "'Cormorant Garamond', serif" }}
                           onClick={() => alert("Privacy Policy coming soon.")}>
                           Privacy Policy
                         </button>.
@@ -758,11 +759,11 @@ const Registration = () => {
                     style={{
                       marginTop: 40,
                       paddingTop: 24,
-                      borderTop: "0.5px solid #e8d5df",
+                      borderTop: "0.5px solid var(--color-outline-variant)",
                       textAlign: "center",
                     }}
                   >
-                    <p style={{ fontSize: 12, color: "#9c8490", fontWeight: 300, marginBottom: 10 }}>
+                    <p style={{ fontSize: 12, color: "var(--color-outline)", fontWeight: 300, marginBottom: 10 }}>
                       Already part of our world?
                     </p>
                     <Link
@@ -772,14 +773,14 @@ const Registration = () => {
                         fontWeight: 600,
                         letterSpacing: "0.22em",
                         textTransform: "uppercase",
-                        color: "#1f1a1d",
+                        color: "var(--color-on-surface)",
                         textDecoration: "none",
-                        borderBottom: "1px solid #1f1a1d",
+                        borderBottom: "1px solid var(--color-on-surface)",
                         paddingBottom: 2,
                         transition: "color 0.3s, border-color 0.3s",
                       }}
-                      onMouseEnter={e => { e.target.style.color = "#c07fa5"; e.target.style.borderColor = "#c07fa5"; }}
-                      onMouseLeave={e => { e.target.style.color = "#1f1a1d"; e.target.style.borderColor = "#1f1a1d"; }}
+                      onMouseEnter={e => { e.target.style.color = "var(--color-primary-container)"; e.target.style.borderColor = "var(--color-primary-container)"; }}
+                      onMouseLeave={e => { e.target.style.color = "var(--color-on-surface)"; e.target.style.borderColor = "var(--color-on-surface)"; }}
                     >
                       Sign In ✦
                     </Link>
@@ -799,3 +800,5 @@ const Registration = () => {
 };
 
 export default Registration;
+
+

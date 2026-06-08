@@ -1,0 +1,211 @@
+sku,brand,category,subcategory,product_name,color,cost_price_lkr,selling_price_lkr,stock_qty,sold_qty
+MA22BOWGRN,Mango,Shirts,,Bow Print Long Sleeve Crop Shirt ,Pastel green bow,1050.0,2550.0,2,0
+MA22BOWPNK,Mango,Shirts,,Bow Print Long Sleeve Crop Shirt ,Pastel pink bow,1050.0,2550.0,1,1
+MA22FRGGRN,Mango,Shirts,,Frog Print Long Sleeve Crop Shirt ,Pastel green frog,1050.0,2550.0,0,2
+VI31PEPFLUWHT,Vivek International,Tops,Sleeveless Tops,Flutter Sleeve Sweetheart Neck Peplum Top,White,805.0,2299.0,2,1
+VI31PEPFLUYEL,Vivek International,Tops,Sleeveless Tops,Flutter Sleeve Sweetheart Neck Peplum Top,Pastel Yellow,805.0,2305.0,2,1
+VI31PEPFLUPNK,Vivek International,Tops,Sleeveless Tops,Flutter Sleeve Sweetheart Neck Peplum Top,Pastel Pink ,805.0,2305.0,2,1
+HC31EYELRED,No,Tops,Sleeveless Tops,Eyelet Lace V-Neck Peplum Top,Red,805.0,2305.0,1,1
+HC31EYELPNK,No,Tops,Sleeveless Tops,Eyelet Lace V-Neck Peplum Top,Pink,805.0,2305.0,1,0
+HC31ROUVBLU,No,Tops,Sleeveless Tops,Round W V-Neck Embroidered Blouse,Light Blue,,,0,1
+HC31LACVWHT,No,Tops,Sleeveless Tops,V-Neck Lace Border Blouse (Embroidered),White,612.5,2099.0,1,11
+MQ31TIEVBRN,me Queen,Tops,Sleeveless Tops,Tie-Back V-Neck Blouse (Embroidered) ,White BG / Brown,1400.0,2899.0,0,2
+MQ31TIEVBLU,me Queen,Tops,Sleeveless Tops,Tie-Back V-Neck Blouse (Embroidered) ,White BG / Blue,1400.0,2899.0,0,1
+MQ31TIEVRED,me Queen,Tops,Sleeveless Tops,Tie-Back V-Neck Blouse (Embroidered) ,White BG / Red ,1400.0,2899.0,0,1
+MQ31TIEVBLK,me Queen,Tops,Sleeveless Tops,Tie-Back V-Neck Blouse (Embroidered) ,White BG / Black,1400.0,2899.0,1,0
+MQ31TIEVPNK,me Queen,Tops,Sleeveless Tops,Tie-Back V-Neck Blouse (Embroidered) ,White BG / Pink,1400.0,2899.0,1,0
+MQ31TIEVGBB,me Queen,Tops,Sleeveless Tops,Tie-Back V-Neck Blouse (Embroidered) ,White BG / Light Green/Brown/Black,1400.0,2899.0,1,0
+ZR32TUBYEL,Zara,Tops,Crop Tops,Tube Crop Top with Strips (Embroidered),Pastel Yellow,700.0,2199.0,0,1
+ZR32TUBGRN ,Zara,Tops,Crop Tops,Tube Crop Top with Strips (Embroidered),Pastel Army Green,700.0,2199.0,1,1
+ZR32TUBGRY,Zara,Tops,Crop Tops,Tube Crop Top with Strips (Embroidered),Gray,700.0,2199.0,1,1
+ZR32TUBWHT,Zara,Tops,Crop Tops,Tube Crop Top with Strips (Embroidered),White,700.0,2199.0,2,0
+HC32STVWHT,No brand,Tops,Crop Tops,Striped V-Neck Embroidered Crop Top,White,875.0,2099.0,1,0
+HC32STVBLK,No brand,Tops,Crop Tops,Striped V-Neck Embroidered Crop Top,Black,875.0,2099.0,1,0
+HC32STVDENBLU,No brand,Tops,Crop Tops,Striped V-Neck Embroidered Crop Top,Denim Blue,875.0,2099.0,0,1
+HC32STVMNTGRN,No brand,Tops,Crop Tops,Striped V-Neck Embroidered Crop Top,Mint Green,875.0,2099.0,1,0
+HC32STVLGTGRY,No brand,Tops,Crop Tops,Striped V-Neck Embroidered Crop Top,Light Gray,875.0,2099.0,0,1
+HC32STVMETSLV,No brand,Tops,Crop Tops,Striped V-Neck Embroidered Crop Top,Metallic Silver ,875.0,2099.0,1,0
+HC32STVLGTTPE,No brand,Tops,Crop Tops,Striped V-Neck Embroidered Crop Top,Light Taupe,875.0,2099.0,0,1
+HC32STVSEWYEL,No brand,Tops,Crop Tops,Striped V-Neck Embroidered Crop Top,Seaweed Yellow,875.0,2099.0,0,1
+HC33THSRGRY,No brand,Other,,Thick Strapped Round Neck Embroidered Tank Top,Gray,875.0,2399.0,1,0
+HC33THSRBEA,No brand,Other,,Thick Strapped Round Neck Embroidered Tank Top,Beaver,875.0,2399.0,0,1
+HC31PEPFLOBLU,Multi brand,Indian Ethnic Wear,Short Kurtis,Printed Tie Up Shoulder Peplum Top - Floral design with shiny dots (strips),Dark Blue full,875.0,2375.0,2,0
+,Multi brand,Indian Ethnic Wear,Short Kurtis,Printed Tie Up Shoulder Peplum Top - Floral design with shiny dots (strips),Dark Pink full,875.0,2375.0,1,0
+,Multi brand,Indian Ethnic Wear,Short Kurtis,Printed Tie Up Shoulder Peplum Top - Leaf design with shiny dots (strips),Orange,875.0,2375.0,2,0
+,Multi brand,Indian Ethnic Wear,Short Kurtis,Printed Tie Up Shoulder Peplum Top - Floral design with shiny dots (strips),Green,875.0,2375.0,2,0
+,Multi brand,Indian Ethnic Wear,Short Kurtis,Printed Tie Up Shoulder Peplum Top - Floral design with shiny dots (strips),Dark Blue with white,875.0,2375.0,1,0
+HC31PEPMANORG,Multi brand,Indian Ethnic Wear,Short Kurtis,Printed Tie Up Shoulder Peplum Top - Mandela design with shiny dots (strips),Orange,875.0,2375.0,0,2
+HC31PEPMANPNK,Multi brand,Indian Ethnic Wear,Short Kurtis,Printed Tie Up Shoulder Peplum Top - Mandela design with shiny dots (strips),Pink,875.0,2375.0,0,1
+HC31PEPMANRED,Multi brand,Indian Ethnic Wear,Short Kurtis,Printed Tie Up Shoulder Peplum Top - Mandela design with shiny dots (strips),Red,875.0,2375.0,0,1
+HC41SAIVBEI,Multi brand,Indian Ethnic Wear,Short Kurtis,"""Saiyaara"" V-Neck Short Kurti",Beige,1050.0,2599.0,0,1
+HC41SAIVBLU,Multi brand,Indian Ethnic Wear,Short Kurtis,"""Saiyaara"" V-Neck Short Kurti",Blue,1050.0,2599.0,0,1
+HC41SAIVREDPEA,No brand,Indian Ethnic Wear,Short Kurtis,"""Saiyaara"" V-Neck Short Kurti",White BG / Red Peacock,875.0,2599.0,1,1
+HC41SAIVBRNPEA,No brand,Indian Ethnic Wear,Short Kurtis,"""Saiyaara"" V-Neck Short Kurti",White BG / Brown Peacock,875.0,2599.0,2,0
+HC41SAIVGRNLIN,No brand,Indian Ethnic Wear,Short Kurtis,"""Saiyaara"" V-Neck Short Kurti",White BG / Green Lines,875.0,2599.0,2,0
+HC41SAIVGRNTUS,No brand,Indian Ethnic Wear,Short Kurtis,"""Saiyaara"" V-Neck Short Kurti",White BG / Green Tussels,875.0,2599.0,1,1
+HC41SAIVBRNTUS,No brand,Indian Ethnic Wear,Short Kurtis,"""Saiyaara"" V-Neck Short Kurti",White BG / Brown Tussels,875.0,2599.0,1,0
+HC41SAIVBRNTUS2,No brand,Indian Ethnic Wear,Short Kurtis,"""Saiyaara"" V-Neck Short Kurti",White BG / Brown Tussels Spread,875.0,2599.0,1,0
+HC41SAIRRED,Multi brand,Indian Ethnic Wear,Short Kurtis,"""Saiyaara"" Round Neck Short Kurti",Red,1050.0,2199.0,1,0
+HC41SAIRBEI,Multi brand,Indian Ethnic Wear,Short Kurtis,"""Saiyaara"" Round Neck Short Kurti",Beige,1050.0,2199.0,1,0
+HC42SAIRRGC,Multi brand,Other,,"""Saiyaara"" Round Neck Mid Kurti - Mandela Design",Red/Green/Cream,612.5,2299.0,3,0
+HC42SAIRRBC,Multi brand,Other,,"""Saiyaara"" Round Neck Mid Kurti - Mandela Design",Red/Black/Cream,612.5,2299.0,4,0
+HC42SAIRPNK,Multi brand,Other,,"""Saiyaara"" Round Neck Mid Kurti - Leaf Design",Dark Pink,612.5,2299.0,4,0
+HC42SAIRYEL,Multi brand,Other,,"""Saiyaara"" Round Neck Mid Kurti - Leaf Design",Dark Yellow,612.5,2299.0,4,0
+HC42SAIRBLU,Multi brand,Other,,"""Saiyaara"" Round Neck Mid Kurti - Leaf Design",Dark Blue,612.5,2299.0,3,0
+HC43LONDROBLK,No brand,Indian Ethnic Wear,Long Kurtis,Thin Strapped Printed Long Kurti,"Off white bg, Black line",875.0,2375.0,3,0
+HC43LONDROPNK,No brand,Indian Ethnic Wear,Long Kurtis,Thin Strapped Printed Long Kurti,"Off white bg, Pink line",875.0,2375.0,3,0
+HC43LONDROGRN,No brand,Indian Ethnic Wear,Long Kurtis,Thin Strapped Printed Long Kurti,"Off white bg, Green line",875.0,2375.0,3,0
+HC43LONCIRPNK,No brand,Indian Ethnic Wear,Long Kurtis,Thin Strapped Printed Long Kurti,Dark pink,875.0,2375.0,2,0
+HC43LONDBLU,No brand,Indian Ethnic Wear,Long Kurtis,Full Sleeve Dotted Long Kurti,Dark blue,1837.5,2999.0,1,1
+HC43LONDGRN,No brand,Indian Ethnic Wear,Long Kurtis,Full Sleeve Dotted Long Kurti,Light green,1837.5,2999.0,2,0
+HC43LONDBLK,No brand,Indian Ethnic Wear,Long Kurtis,Full Sleeve Dotted Long Kurti,Black,1837.5,2999.0,1,0
+HC43LONDWHT,No brand,Indian Ethnic Wear,Long Kurtis,Full Sleeve Dotted Long Kurti,White,1837.5,2999.0,1,0
+HC43LONGRN,No brand,Indian Ethnic Wear,Long Kurtis,Full Sleeve Long Kurti,Green,1400.0,2899.0,1,0
+HC43LONBLU,No brand,Indian Ethnic Wear,Long Kurtis,Full Sleeve Long Kurti,Blue,1400.0,2899.0,0,1
+HC43LONYEL,No brand,Indian Ethnic Wear,Long Kurtis,Full Sleeve Long Kurti,Yellow,1400.0,2899.0,0,1
+HC51PHEPPE,No brand,Other,,Pastel Hearts Crochet Top,"Dark purple/light purple,peach ",875.0,2299.0,2,0
+HC51PHEBPB,No brand,Other,,Pastel Hearts Crochet Top,"Baby blue/dark brown,light brown ",875.0,2299.0,2,0
+HC51PHEBPG,No brand,Other,,Small heart,"Baby blue/light purple,light green",875.0,2299.0,2,0
+HC51LINEBRN,No brand,Other,,Brown lines,Brown,875.0,2299.0,2,0
+HC51SPIBRN,No brand,Other,,Spiral & Mandela Crochet Top,Light brown / White,1050.0,2499.0,0,1
+HC51PLAGRN,No brand,Other,,Machine cut plain (strips),Green,1050.0,2499.0,2,0
+HC51PLAWHT,No brand,Other,,Machine cut plain (strips),Off White,1050.0,2499.0,1,0
+,No brand,Other,,-,Black and white,2100.0,3600.0,0,2
+NF11FLOPNK,Nayomi Fashion,Dresses,Midi Dresses,Floral Flare Mini Dress - Pink Flowers (Embroidered),"White bg, pink,brown and green flowers",1925.0,3499.0,0,2
+NF11LEABLU,Nayomi Fashion,Dresses,Midi Dresses,Leaf Mini dress - Blue Leaves (Embroidered),"White bg, blue and light blue patterns",1925.0,3499.0,1,1
+HC44PRINSETGRN,No brand,Other,,Tie-Up Sleeveless Kurti Sets,Dark army green,2187.5,3899.0,4,0
+HC44PRINSETBLU,No brand,Other,,Tie-Up Sleeveless Kurti Sets,Dark blue,2187.5,3899.0,4,0
+HC13FRIWHT,No brand,Dresses,Midi Dresses,Maxi Sundress W Frill,White,1575.0,3499.0,0,3
+HC13FRIBLK,No brand,Dresses,Midi Dresses,Maxi Sundress W Frill,Black ,1575.0,3499.0,0,2
+MA61TROKITPNK,Zara,Other,,Tropical Print Sleeveless Button-Up Crop Shirt & Matching Wide-Leg Pants,Pink,2100.0,3600.0,0,1
+HC61TROKITBLU,No brand,Other,,Tropical Print Sleeveless Button-Up Crop Shirt & Matching Wide-Leg Pants,Blue,1400.0,3099.0,1,0
+ZR61TROKITPNK,Mango,Other,,Tropical Print Sleeveless Button-Up Crop Shirt & Matching Wide-Leg Pants,Pink,1400.0,2900.0,1,0
+,No brand,Other,,Magenta pink with peacock,Magenta pink,7350.0,8850.0,1,0
+,No brand,Other,,Green with peacock,Green,7350.0,8850.0,1,0
+,No brand,Other,,White with 2 peacock,white,11200.0,12700.0,1,0
+,No brand,Other,,Simple pink floral design,Pink,6475.0,7975.0,1,0
+,No brand,Other,,Floral with shine ,Light Pink,6475.0,7975.0,1,0
+,No brand,Other,,Bridal velvet material,Maroon,15750.0,17250.0,1,0
+,KC,Pants,,Plain off white,Off White ,875.0,2375.0,1,2
+,KC,Pants,,Plain white,White ,875.0,2375.0,3,3
+,KC,Pants,,Floral printed,White,875.0,2375.0,1,0
+,KC,Pants,,Floral printed off white,Off White,875.0,2375.0,0,2
+,KC,Pants,,Floral printed ,Black,875.0,2375.0,3,0
+,,Other,,,,1750.0,3250.0,2,3
+,,Other,,,,2100.0,3600.0,0,2
+,,Other,,,,,,0,0
+,,Other,,,,350.0,1850.0,20,1
+,,Other,,Mumbai bangles,,700.0,2200.0,5,0
+,,Other,,Surat bangles,,4200.0,5700.0,0,0
+,,Other,,,,2975.0,4475.0,6,0
+,,Other,,,,1400.0,2900.0,1,0
+,,Other,,,,1925.0,3425.0,5,0
+,,Other,,,,2100.0,3600.0,5,0
+,,Other,,,,3990.0,5490.0,6,0
+,,Other,,,,525.0,2025.0,7,0
+,,Other,,,,168315.0,320602.0,170,67
+,,Other,,,,,,0,0
+,Mandy,Dresses,Midi Dresses,Aura Short Dress,White,1900.0,3399.0,1,0
+,Mandy,Dresses,Midi Dresses,Aura Short Dress,Red,1900.0,3399.0,1,0
+,Mandy,Dresses,Midi Dresses,Aura Short Dress,Blue,1900.0,3399.0,1,0
+,Mandy,Dresses,Midi Dresses,Aura Short Dress,Black,1900.0,3399.0,1,0
+,Mandy,Dresses,Midi Dresses,Monroe Short Dress,Brown,2150.0,3699.0,2,0
+,Mandy,Dresses,Midi Dresses,Monroe Short Dress,Blue,2150.0,3699.0,4,0
+,,Dresses,Midi Dresses,Cotton Shirt Sleeve Dress,White,2000.0,3499.0,1,0
+,,Dresses,Midi Dresses,Cotton Shirt Sleeve Dress,Cream,2000.0,3499.0,2,0
+,,Dresses,Midi Dresses,Cotton Shirt Sleeve Dress,Light Orange,2000.0,3499.0,1,0
+,,Dresses,Midi Dresses,Cotton Shirt Sleeve Dress,Dark Orange,2000.0,3499.0,1,0
+,Baron,Dresses,Midi Dresses,Denim Short Sleeveless Dress,Dark Blue,2500.0,3999.0,1,0
+,Baron,Dresses,Midi Dresses,Denim Short Sleeveless Dress,Light Blue,2500.0,3999.0,2,0
+,Levi's,Other,,Sleeveless Bustier Denim Jumpsuit,Light Wash Blue,3000.0,4999.0,1,0
+,Baron,Skirts,Midi Skirts,High Waist Slit Denim Midi Skirt (Clean Edge),Light Blue,2500.0,3999.0,2,0
+,Baron,Skirts,Midi Skirts,High Waist Slit Denim Midi Skirt (Fray Edge),Light Blue,2500.0,3999.0,2,1
+,Baron,Skirts,Midi Skirts,Front Open Side Pocket Bow Denim Skirt ,Light Blue,2500.0,3799.0,1,1
+,Baron,Skirts,Midi Skirts,Front Open Maxi Denim Skirt ,Warm Vintage Blue,2500.0,3799.0,1,0
+,,Skirts,Midi Skirts,Flared Long Skirt,Black,1500.0,2999.0,2,0
+,,Skirts,Midi Skirts,Flared Long Skirt,Cream,1500.0,2999.0,1,0
+,,Shirts,,Long Sleeve Polka Dotted Button Down,White,1000.0,2999.0,2,0
+,,Shirts,,Long Sleeve Polka Dotted Button Down,Black,1000.0,2999.0,2,0
+,,Other,,Long Sleeve Lacy Jacket ,White,1000.0,2999.0,2,0
+,,Other,,Long Sleeve Lacy Jacket ,Black,1000.0,2999.0,2,0
+,,Tops,Sleeveless Tops,Long Sleeve V-Neck Bronze Flat Studs Design,Black,1000.0,2999.0,1,0
+,Mandy,Tops,Sleeveless Tops,Linen Long Sleeve Half Button Shirt,Light Cream,1500.0,3099.0,1,2
+,Polo Ralph Lauren,Other,,Classic Short Sleeve Slim Fit Shirt,White,1500.0,2999.0,2,0
+,Polo Ralph Lauren,Other,,Classic Short Sleeve Slim Fit Shirt,Yellow,1500.0,2999.0,1,0
+,Polo Ralph Lauren,Other,,Classic Short Sleeve Slim Fit Shirt,Cream,1500.0,2999.0,3,0
+,Polo Ralph Lauren,Other,,Classic Short Sleeve Slim Fit Shirt,Pink,1500.0,2999.0,1,0
+,,Other,,,,,,0,0
+,,Other,,,,,,0,0
+,,Other,,Crochet Overcoat ,2999,,,0,0
+,,Other,,Maxi Sundress W Frill - White,3000,,,0,0
+,,Other,,Printed Tie Up Shoulder Peplum Top - Mandela design with shiny dots (strips) Red,2300,,,0,0
+,,Other,,Full Sleeve Dotted Long Kurti (Dark Blue) + Sandals + Dull Gold thin bangle set,6100,,,0,0
+,,Other,,1 Saree + Sandals + Crochet Overcoat + Maxi Sundress W Frill - White + Fancy bag,14999,,,0,0
+,,Other,,Floral Flare Mini Dress - Pink Flowers (Embroidered),3400,,,0,0
+,,Other,,V-Neck Lace Border Blouse (Embroidered) + Siyaara type peacock pattern + Floral Flare Mini Dress - Pink Flowers (Embroidered),7700,,,0,0
+,,Other,,Printed Tie Up Shoulder Peplum Top - Mandela design with shiny dots (strips) - Pink + Fancy bag,5300,,,0,0
+,,Other,,,,,,0,0
+,,Other,,,,,,0,0
+,,Other,,,,,,0,0
+,,Other,,,,,,0,0
+,,Other,,Mini Dress,,,,0,0
+,,Other,,Midi Dress,,,,0,0
+,,Other,,Maxi Dress,,,,0,0
+,,Other,,Shirt,,,,0,0
+,,Other,,Crop Shirt,,,,0,0
+,,Other,,Blouse / Top,,,,0,0
+,,Other,,Crop Blouse / Top,,,,0,0
+,,Other,,Tank Top,,,,0,0
+,,Other,,Short Kurti,,,,0,0
+,,Other,,Mid Kurti,,,,0,0
+,,Other,,Long Kurti,,,,0,0
+,,Other,,Kurti Set,,,,0,0
+,,Other,,Crochet Top,,,,0,0
+,,Other,,Crochet Overcoat,,,,0,0
+,,Other,,Blouse & Pant (Kit),,,,0,0
+,,Other,,,,,,0,0
+,,Other,,,,,,0,0
+,,Other,,,2000,,,0,0
+,,Other,,Tie-Back V-Neck Blouse (Embroidered) - Blue,,,,0,0
+,,Other,,Trouser + Trouser + Thick Strapped Round Neck Embroidered Tank Top (Beaver),7000,,,0,0
+,,Other,,V-Neck Lace Border + Off White Printed Trouser + Tie Back V-Neck (Embroidered) (Brown),7200,,,0,0
+,,Other,,V-Neck Lace Border + Off White Printed Trouser,4400,,,0,0
+,,Other,,,,,,0,0
+,,Other,,Maxi Sundress W Frill - White,3500,,,0,0
+,,Other,,Eyelet Lace V-Neck Peplum Top - Red,2300,,,0,0
+,,Other,,Frog Print Long Sleeve Crop Shirt (Pastel Green Frog),2600,,,0,0
+,,Other,,,,,,0,0
+SALE,2026-04-01 00:00:00,Other,,Tube Crop Top with Strips (Embroidered) - Pastel Yellow,2200,,,0,0
+,2026-04-01 00:00:00,Other,,Tropical Print Sleeveless Button-Up Crop Shirt & Matching Wide-Leg Pants (Pink) + Floral printed off white,5310,,,0,0
+,2026-04-01 00:00:00,Other,,"""Saiyaara"" V-Neck Short Kurti (White BG / Green Tussels)",2600,,,0,0
+,2026-04-02 00:00:00,Other,,Sandals,3250,,,0,0
+,2026-04-03 00:00:00,Other,,Full Sleeve Long Kurti (Blue),2700,,,0,0
+,2026-04-03 00:00:00,Other,,Striped V-Neck Embroidered Crop Top (Light Taupe),1890,,,0,0
+,2026-04-03 00:00:00,Other,,Striped V-Neck Embroidered Crop Top (Seaweed Yellow),1890,,,0,0
+,2026-04-03 00:00:00,Other,,Striped V-Neck Embroidered Crop Top (Light Gray),1890,,,0,0
+,2026-04-03 00:00:00,Other,,Maxi Sundress W Frill - Black,3500,,,0,0
+,2026-04-03 00:00:00,Other,,Earrings,585,,,0,0
+,2026-04-04 00:00:00,Other,,V-Neck Lace Border Blouse (Embroidered) + Plain white Trouser,4140,,,0,0
+,2026-04-04 00:00:00,Other,,V-Neck Lace Border Blouse (Embroidered) + Bangles,5350,,,0,0
+,2026-04-05 00:00:00,Other,,Full Sleeve Long Kurti (Yellow),2610,,,0,0
+,2026-04-05 00:00:00,Other,,"""Saiyaara"" V-Neck Short Kurti - Blue",2600,,,0,0
+,2026-04-06 00:00:00,Other,,Tube Crop Top with Strips (Embroidered) - Gray,2200,,,0,0
+,2026-04-06 00:00:00,Other,,Striped V-Neck Embroidered Crop Top (Denim Blue),2200,,,0,0
+,2026-04-07 00:00:00,Other,,Frog Print Long Sleeve Crop Shirt (Pastel Green Frog),2600,,,0,0
+,2026-04-07 00:00:00,Other,,Tube Crop Top with Strips (Embroidered) - Pastel Army Green,2200,,,0,0
+,2026-04-07 00:00:00,Other,,Printed Tie Up Shoulder Peplum Top - Mandela design with shiny dots (strips) - Orange,2400,,,0,0
+,2026-04-08 00:00:00,Other,,Flutter Sleeve Sweetheart Neck Peplum Top - Pink,2070,,,0,0
+,2026-04-08 00:00:00,Other,,Tie-Back V-Neck Blouse (Embroidered) - Brown,2900,,,0,0
+,2026-04-09 00:00:00,Other,,Spiral & Mandela Crochet Top (Light brown / White),2250,,,0,0
+,2026-04-09 00:00:00,Other,,V-Neck Lace Border Blouse (Embroidered),1890,,,0,0
+,2026-04-09 00:00:00,Other,,Plain off white Trouser ,2160,,,0,0
+,2026-04-10 00:00:00,Other,,Round W V-Neck Embroidered Blouse (Light Blue),1890,,,0,0
+,2026-04-11 00:00:00,Other,,,2600,,,0,0
+,2026-04-11 00:00:00,Other,,Tie-Back V-Neck Blouse (Embroidered) - Red ,2610,,,0,0
+,2026-04-11 00:00:00,Other,,Printed Tie Up Shoulder Peplum Top - Mandela design with shiny dots (strips) - Orange,2040,0.15,,0,0
+,2026-04-11 00:00:00,Other,,Front Open Side Pocket Bow Denim Skirt ,3230,0.15,,0,0
+,2026-04-11 00:00:00,Other,,V-Neck Lace Border Blouse (Embroidered),2500,,,0,0
+,,Other,,,,,,0,0
+,,Other,,Linen Long Sleeve Half Button Shirt - Light Cream,3100,,,0,0
+,,Other,,Linen Long Sleeve Half Button Shirt - Light Cream,3100,,,0,0
+,,Other,,"""Saiyaara"" Round Neck Mid Kurti - Leaf Design - Dark Yellow",2300,,,0,0

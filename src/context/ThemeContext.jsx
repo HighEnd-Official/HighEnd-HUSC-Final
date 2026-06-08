@@ -43,6 +43,7 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     const root = document.documentElement;
     root.setAttribute("data-theme", theme);
+    root.style.colorScheme = theme;
     if (theme === "dark") {
       root.classList.add("dark");
     } else {
@@ -59,7 +60,7 @@ export function ThemeProvider({ children }) {
         {children}
         <button
           onClick={toggleTheme}
-          className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full backdrop-blur-md bg-white/30 dark:bg-black/30 shadow-lg flex items-center justify-center transition-all hover:scale-110 border border-[#d4c2c9]/30 dark:border-zinc-800 text-[#1f1a1d] dark:text-white"
+          className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full backdrop-blur-md bg-white/35 dark:bg-black/30 shadow-lg flex items-center justify-center transition-all hover:scale-110 border border-[#d7c5c6]/35 dark:border-[#433638] text-[#6f1f2f] dark:text-[#e8a9b4]"
           aria-label="Toggle theme"
         >
           {theme === "light" ? <IconMoon /> : <IconSun />}

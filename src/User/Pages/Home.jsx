@@ -2,11 +2,19 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NavBar from "../../components/NavBar";
 import Footer from "../../components/Footer";
+import HoverRevealImage from "../../components/HoverRevealImage";
 import QuickView from "./Collection/QuickView";
 import { useCart } from "../../context/CartContext";
 import { apiFetch, getApiBaseUrl } from "../../api/client";
+import { normalizeProductCategory, normalizeProductSubcategory } from "../../lib/productCategories";
+import { getSeasonalBadgeText, isProductVisible } from "../../lib/productAvailability";
+import { getDiscountPercent } from "../../lib/productPricing";
+import { groupProductsForDisplay } from "../../lib/productGrouping";
 
-const localProductImages = require.context("../../assets/images", true, /\.(png|jpe?g|webp)$/i);
+const localProductImages = import.meta.glob("../../assets/images/**/*.{png,jpg,jpeg,webp}", {
+  eager: true,
+  import: "default",
+});
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=600&h=800&fit=crop";
 const normalizeSizeCodes = (sizes = []) =>
   Array.from(
@@ -19,118 +27,7 @@ const normalizeSizeCodes = (sizes = []) =>
   );
 
 const STATIC_PRODUCTS = [
-  {
-    id: 1,
-    name: "Tailored Crepe Blazer",
-    price: "$1,250",
-    priceValue: 1250,
-    badge: "New Arrival",
-    badgeColor: "#e05585",
-    category: "Tops",
-    image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&h=800&fit=crop",
-    images: ["https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&h=800&fit=crop"],
-    stars: 5,
-    reviews: 42,
-    description: "A beautifully structured blazer in premium crepe, designed to create a sharp, sophisticated silhouette."
-  },
-  {
-    id: 2,
-    name: "Silk Organza Dress",
-    price: "$3,400",
-    priceValue: 3400,
-    badge: "Best Seller",
-    badgeColor: "#9b3a7a",
-    category: "Dresses",
-    image: "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=600&h=800&fit=crop",
-    images: ["https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=600&h=800&fit=crop"],
-    stars: 5,
-    reviews: 87,
-    description: "An ethereal dress in semi-sheer silk organza, featuring delicate drapery and a romantic silhouette."
-  },
-  {
-    id: 3,
-    name: "Cashmere Ribbed Knit",
-    price: "$890",
-    priceValue: 890,
-    badge: "Limited",
-    badgeColor: "#c07840",
-    category: "Tops",
-    image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=600&h=800&fit=crop",
-    images: ["https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=600&h=800&fit=crop"],
-    stars: 4,
-    reviews: 31,
-    description: "Unrivaled softness. This ribbed knit sweater is spun from fine Mongolian cashmere for exceptional warmth."
-  },
-  {
-    id: 4,
-    name: "The Sculpture Bag",
-    price: "$2,100",
-    priceValue: 2100,
-    badge: "Just In",
-    badgeColor: "#c05070",
-    category: "Bags",
-    image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&h=800&fit=crop",
-    images: ["https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&h=800&fit=crop"],
-    stars: 5,
-    reviews: 19,
-    description: "A structured leather handbag featuring clean architectural lines and brushed gold hardware accents."
-  },
-  {
-    id: 5,
-    name: "Floral Embroidered Dress",
-    price: "$2,890",
-    priceValue: 2890,
-    badge: "Trending",
-    badgeColor: "#b03068",
-    category: "Dresses",
-    image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&h=800&fit=crop",
-    images: ["https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&h=800&fit=crop"],
-    stars: 5,
-    reviews: 63,
-    description: "Intricate floral embroidery adorns this flowing midi dress, crafted from lightweight silk georgette."
-  },
-  {
-    id: 6,
-    name: "Pearl Embellished Top",
-    price: "$1,450",
-    priceValue: 1450,
-    badge: "Handmade",
-    badgeColor: "#4070b8",
-    category: "Tops",
-    image: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=600&h=800&fit=crop",
-    images: ["https://images.unsplash.com/photo-1509631179647-0177331693ae?w=600&h=800&fit=crop"],
-    stars: 5,
-    reviews: 28,
-    description: "Hand-applied faux pearl details along the collar and cuffs bring subtle luminescence to this silk blouse."
-  },
-  {
-    id: 7,
-    name: "Wide Leg Trousers",
-    price: "$1,200",
-    priceValue: 1200,
-    badge: "Classic",
-    badgeColor: "#7060c0",
-    category: "Trousers",
-    image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=600&h=800&fit=crop",
-    images: ["https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=600&h=800&fit=crop"],
-    stars: 4,
-    reviews: 45,
-    description: "Crafted in fluid wool crepe, these trousers fall beautifully into a wide-leg silhouette."
-  },
-  {
-    id: 8,
-    name: "Embroidered Clutch",
-    price: "$780",
-    priceValue: 780,
-    badge: "New",
-    badgeColor: "#d04080",
-    category: "Accessories",
-    image: "https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=600&h=800&fit=crop",
-    images: ["https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=600&h=800&fit=crop"],
-    stars: 5,
-    reviews: 22,
-    description: "A stunning evening clutch featuring hand-guided metallic embroidery on velvet."
-  }
+  
 ];
 
 function centsToLkr(cents) {
@@ -147,12 +44,8 @@ function formatLkr(cents) {
 function resolveImageUrl(url) {
   if (!url) return FALLBACK_IMAGE;
   if (String(url).startsWith("/src/assets/images/")) {
-    const assetKey = `.${String(url).replace("/src/assets/images", "")}`;
-    try {
-      return localProductImages(assetKey);
-    } catch {
-      return FALLBACK_IMAGE;
-    }
+    const assetKey = `../../assets/images${String(url).replace("/src/assets/images", "")}`;
+    return localProductImages[assetKey] || FALLBACK_IMAGE;
   }
   if (String(url).startsWith("/uploads/")) {
     return `${getApiBaseUrl()}${url}`;
@@ -164,14 +57,24 @@ function productToHomeShape(product) {
   const images = (product.images || []).map((image) => resolveImageUrl(image.url)).filter(Boolean);
   const mainImage = resolveImageUrl(product.coverImageUrl || product.images?.[0]?.url);
   const sizes = normalizeSizeCodes(product.sizes);
+  const priceValue = centsToLkr(product.priceCents);
+  const originalPriceValue = product.originalCents ? centsToLkr(product.originalCents) : 0;
   return {
     id: product.id,
     name: product.name,
     price: formatLkr(product.priceCents),
-    priceValue: centsToLkr(product.priceCents),
+    priceValue,
+    originalPrice: originalPriceValue > priceValue ? formatLkr(originalPriceValue * 100) : "",
+    originalPriceValue,
+    actualPriceValue: originalPriceValue,
+    discountAmountValue: originalPriceValue > priceValue ? originalPriceValue - priceValue : 0,
+    discountPercent: getDiscountPercent(originalPriceValue, priceValue),
     badge: product.badge || "New Arrival",
     badgeColor: product.badgeColorHex || "#e05585",
-    category: product.category || "Collection",
+    category: normalizeProductCategory(product.category) || "Collection",
+    subcategory: normalizeProductSubcategory(product.subcategory, product.category) || "",
+    subtitle: product.subtitle || "",
+    createdAt: product.createdAt ? new Date(product.createdAt).getTime() : 0,
     image: mainImage,
     images: images.length ? images : [mainImage],
     stars: Math.max(0, Math.min(5, Math.round(Number(product.rating) || 5))),
@@ -179,6 +82,7 @@ function productToHomeShape(product) {
     description: product.description || product.subtitle || "",
     collection: product.collection || "The Atelier Collection",
     stock: Number(product.stock) || 0,
+    isActive: Boolean(product.isActive),
     details: (product.details || []).map((detail) => detail.text),
     sizes,
     sizeSummary: sizes.length > 3 ? `${sizes.slice(0, 2).join(", ")} +${sizes.length - 2}` : sizes.join(", "),
@@ -188,6 +92,9 @@ function productToHomeShape(product) {
       name: color.name,
       hex: color.hex,
     })),
+    seasonalBadgeText: getSeasonalBadgeText(product),
+    seasonalBatch: Boolean(product.seasonalBatch),
+    seasonalEndsOn: product.seasonalEndsOn || "",
   };
 }
 
@@ -206,7 +113,9 @@ export default function Home() {
     apiFetch("/products")
       .then((data) => {
         if (cancelled) return;
-        const nextProducts = (data.products || []).map(productToHomeShape);
+        const nextProducts = groupProductsForDisplay(
+          (data.products || []).map(productToHomeShape).filter((product) => isProductVisible(product))
+        );
         if (nextProducts.length) {
           setProducts(nextProducts);
           setProductsError("");
@@ -234,20 +143,33 @@ export default function Home() {
     if (!categories.includes(activeCategory)) setActiveCategory("All");
   }, [activeCategory, categories]);
 
-  const filteredProducts = activeCategory === "All"
-    ? products
-    : products.filter(p => p.category === activeCategory);
+  const filteredProducts = useMemo(() => {
+    const inStockProducts = products.filter((product) => Number(product.stock) > 0);
+    const categoryProducts = activeCategory === "All"
+      ? inStockProducts
+      : inStockProducts.filter((product) => product.category === activeCategory);
+
+    return [...categoryProducts].sort((left, right) => {
+      const leftNewArrival = left.badge === "New Arrival" ? 1 : 0;
+      const rightNewArrival = right.badge === "New Arrival" ? 1 : 0;
+      if (leftNewArrival !== rightNewArrival) return rightNewArrival - leftNewArrival;
+
+      if (left.createdAt !== right.createdAt) return right.createdAt - left.createdAt;
+
+      return Number(right.stock) - Number(left.stock);
+    }).slice(0, 12);
+  }, [activeCategory, products]);
 
   return (
     <div className="hues-root pt-[72px]">
       <NavBar />
       
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;1,300&family=Inter:wght@300;400;500;600&display=swap');
-        @import url('https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css');
+                @import url('https://db.onlinewebfonts.com/c/6117699ecee5085080fe85709d590fc3?family=Gillie+Quest');
+                @import url('https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css');
 
         .hues-root {
-          font-family: 'Inter', sans-serif;
+          font-family: 'Playfair Display', serif;
           background: var(--color-surface);
           color: var(--color-on-surface);
           min-height: 100vh;
@@ -265,7 +187,10 @@ export default function Home() {
         .hero-img {
           width: 100%; height: 100%; object-fit: cover;
           filter: brightness(0.75);
+          transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+          will-change: transform;
         }
+        .hero:hover .hero-img { transform: scale(1.06); }
         .hero-overlay {
           position: absolute; inset: 0;
           background: linear-gradient(to top, rgba(20,8,12,0.6) 0%, rgba(20,8,12,0.1) 60%, transparent 100%);
@@ -279,7 +204,7 @@ export default function Home() {
           padding: 6px 20px; border-radius: 20px; margin-bottom: 20px;
         }
         .hero-title {
-          font-family: 'Playfair Display', serif; font-size: clamp(42px, 8vw, 80px);
+          font-family: 'Gillie Quest', serif; font-size: clamp(42px, 8vw, 80px);
           font-weight: 300; line-height: 1.1; color: white; margin-bottom: 16px;
         }
         .hero-subtitle { font-size: 15px; font-weight: 300; color: rgba(255,255,255,0.85); margin-bottom: 32px; max-width: 400px; line-height: 1.6; }
@@ -314,7 +239,7 @@ export default function Home() {
           color: var(--color-primary); display: block; margin-bottom: 12px;
         }
         .section-title { font-family: 'Playfair Display', serif; font-size: clamp(28px, 5vw, 46px); font-weight: 300; color: var(--color-on-surface); }
-        .section-title em { font-style: italic; color: var(--color-primary); }
+        .section-title em { font-style: normal; color: var(--color-primary); }
         .section-desc { font-size: 14px; color: var(--color-on-surface-variant); margin-top: 10px; max-width: 360px; margin-left: auto; margin-right: auto; line-height: 1.7; }
 
         /* FILTER PILLS */
@@ -370,10 +295,57 @@ export default function Home() {
         }
         .product-card:hover .heart-btn { opacity: 1; }
         .heart-btn i { font-size: 14px; }
-        .product-info { padding: 14px 4px 0; text-align: center; }
-        .product-name { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-on-surface); margin-bottom: 5px; }
-        .product-price { font-size: 14px; font-weight: 400; color: var(--color-primary); }
-        .stars { color: #f5c518; font-size: 10px; margin-top: 4px; }
+        .product-info {
+          padding: 16px 2px 0;
+          display: grid;
+          gap: 10px;
+          text-align: left;
+        }
+        .product-info-main { display: grid; gap: 7px; }
+        .product-name {
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          line-height: 1.45;
+          min-height: 2.9em;
+          color: var(--color-on-surface);
+        }
+        .product-meta-row { display: flex; flex-wrap: wrap; gap: 6px; }
+        .product-meta-pill {
+          display: inline-flex;
+          align-items: center;
+          min-height: 22px;
+          padding: 0 10px;
+          border-radius: 999px;
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--color-on-surface-variant);
+          border: 1px solid var(--color-outline-variant);
+          background: var(--color-surface-container);
+        }
+        .product-meta-pill--accent {
+          color: var(--color-primary);
+          border-color: var(--color-primary);
+          background: var(--color-surface-container-high);
+        }
+        .product-price-row {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          gap: 12px;
+        }
+        .product-price { font-size: 16px; font-weight: 500; color: var(--color-primary); }
+        .product-details-line {
+          font-size: 10px;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: var(--color-on-surface-variant);
+          line-height: 1.5;
+        }
+        .stars { color: #f5c518; font-size: 10px; white-space: nowrap; }
         .stars span { color: var(--color-outline); font-size: 9px; margin-left: 3px; }
 
         /* BENTO */
@@ -389,8 +361,16 @@ export default function Home() {
           box-shadow: 0 12px 40px rgba(133,76,111,0.12);
           transform: translateY(-2px);
         }
-        .bento-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
-        .bento-img-sq { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; }
+        .bento-img,
+        .bento-img-sq {
+          width: 100%; object-fit: cover; display: block;
+          transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+          will-change: transform;
+        }
+        .bento-img { aspect-ratio: 16/9; }
+        .bento-img-sq { aspect-ratio: 1/1; }
+        .bento-card:hover .bento-img,
+        .bento-card:hover .bento-img-sq { transform: scale(1.05); }
         .bento-body { padding: 28px; }
         .bento-emoji { font-size: 28px; margin-bottom: 10px; display: block; }
         .bento-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 300; color: var(--color-on-surface); margin-bottom: 8px; }
@@ -425,7 +405,12 @@ export default function Home() {
         .editorial-text { flex: 1; }
         .editorial-images { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .editorial-img-wrap { border-radius: 16px; overflow: hidden; }
-        .editorial-img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
+        .editorial-img {
+          width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block;
+          transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+          will-change: transform;
+        }
+        .editorial-img-wrap:hover .editorial-img { transform: scale(1.05); }
         .editorial-img-wrap:first-child { margin-top: 40px; }
         @media (max-width: 768px) {
           .editorial-img-wrap:first-child { margin-top: 0; }
@@ -447,7 +432,7 @@ export default function Home() {
         }
         .nl-input {
           flex: 1; padding: 14px 20px; border-radius: 30px; border: none;
-          font-size: 13px; outline: none; font-family: 'Inter', sans-serif;
+          font-size: 13px; outline: none; font-family: 'Playfair Display', serif;
           background: var(--color-surface);
           color: var(--color-on-surface);
         }
@@ -462,14 +447,18 @@ export default function Home() {
 
       {/* HERO */}
       <section className="hero">
-        <img className="hero-img"
+        <HoverRevealImage
+          wrapperClassName="absolute inset-0"
+          imgClassName="hero-img"
           src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1920&h=1080&fit=crop"
-          alt="Hero fashion editorial" />
+          alt="Hero fashion editorial"
+          zoom={1.12}
+        />
         <div className="hero-overlay">
           <span className="hero-badge">Summer Collection 2026</span>
-          <h1 className="hero-title">The Poetry of<br /><em>Elegance</em></h1>
+          <h1 className="hero-title">The Poetry of<br /><span>Elegance</span></h1>
           <p className="hero-subtitle">Timeless pieces crafted with love and attention to every delicate detail.</p>
-          <button className="btn-primary" onClick={() => navigate("/collections")}>
+          <button className="btn-primary" onClick={() => navigate("/collections/dress")}>
             Explore Collection <i className="ti ti-arrow-right" aria-hidden="true"></i>
           </button>
         </div>
@@ -478,7 +467,7 @@ export default function Home() {
       {/* PRODUCTS */}
       <div className="section-header">
         <span className="section-tag">Curated for you</span>
-        <h2 className="section-title">The <em>New</em> Collection</h2>
+        <h2 className="section-title">The <span>New</span> Collection</h2>
         <p className="section-desc">Hand-picked pieces that celebrate your unique beauty and refined taste.</p>
       </div>
 
@@ -507,7 +496,31 @@ export default function Home() {
           return (
             <div key={p.id} className="product-card" onClick={() => setSelectedProduct(p)}>
               <div className="product-img-wrap">
-                <img className="product-img" src={p.image} alt={p.name} loading="lazy" />
+                <HoverRevealImage
+                  src={p.image}
+                  alt={p.name}
+                  wrapperClassName="image-zoom image-zoom--soft h-full w-full"
+                  imgClassName="product-img"
+                  zoom={1.2}
+                />
+                {p.seasonalBatch ? (
+                  <div
+                    className="absolute bottom-3 right-3 z-10 rounded-[18px] border border-white/20 px-3 py-2 text-white shadow-[0_12px_28px_rgba(0,0,0,0.18)] backdrop-blur-md"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(111,31,47,0.96), rgba(69,18,29,0.88))"
+                    }}
+                  >
+                    <div className="text-[8px] font-semibold uppercase tracking-[0.24em] opacity-80">
+                      Seasonal
+                    </div>
+                    <div className="text-[13px] font-semibold leading-none">
+                      {p.seasonalBadgeText || "Seasonal"}
+                    </div>
+                    <div className="text-[8px] font-semibold uppercase tracking-[0.18em] opacity-70">
+                      Batch
+                    </div>
+                  </div>
+                ) : null}
                 <span className="product-badge" style={{ background: outOfStock ? "#4a4045" : p.badgeColor }}>
                   {outOfStock ? "Out of Stock" : p.badge}
                 </span>
@@ -538,33 +551,55 @@ export default function Home() {
                   ></i>
                 </button>
               </div>
-              <div className="product-info">
-                <div className="product-name">{p.name}</div>
-                <div className="product-price">{p.price}</div>
-                <div className="stars">
-                  {"★".repeat(p.stars) + "☆".repeat(5 - p.stars)}
-                  <span>({p.reviews})</span>
-                </div>
-                <div style={{ marginTop: 8, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--color-on-surface-variant)" }}>
-                  {p.sizes?.length ? `Sizes: ${p.sizeSummary || p.sizes.join(", ")}` : "One size / custom fit"}
-                </div>
-              </div>
+               <div className="product-info">
+                 <div className="product-info-main">
+                   <div className="product-name">{p.name}</div>
+                   <div className="product-meta-row">
+                     {p.discountPercent ? (
+                       <span className="product-meta-pill product-meta-pill--accent">
+                         Save {p.discountPercent}% off
+                       </span>
+                     ) : null}
+                     {/* {p.variantCount > 1 ? (
+                       <span className="product-meta-pill">
+                         {p.variantCount} variants
+                       </span>
+                     ) : null} */}
+                   </div>
+                 </div>
+                 <div className="product-price-row">
+                   <div className="product-price">{p.price}</div>
+                    <div className="stars">
+                      {"★".repeat(p.stars) + "☆".repeat(5 - p.stars)}
+                      <span>({p.reviews})</span>
+                    </div>
+                 </div>
+                 <div className="product-details-line">
+                   {p.sizes?.length ? `Sizes: ${p.sizeSummary || p.sizes.join(", ")}` : "One size / custom fit"}
+                 </div>
+               </div>
             </div>
-          );
-        })}
-      </div>
+           );
+         })}
+       </div>
 
       {/* BENTO */}
       <div className="section-header" style={{ paddingTop: "16px" }}>
         <span className="section-tag">The art of refinement</span>
-        <h2 className="section-title">Our <em>World</em></h2>
+        <h2 className="section-title">Our <span>World</span></h2>
       </div>
 
       <div className="bento">
-        <div className="bento-card">
-          <img className="bento-img" src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=450&fit=crop" alt="New arrivals" />
-          <div className="bento-body">
-            <span className="bento-emoji">🌸</span>
+          <div className="bento-card">
+            <HoverRevealImage
+              wrapperClassName="image-zoom image-zoom--soft"
+              imgClassName="bento-img"
+              src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=450&fit=crop"
+              alt="New arrivals"
+              zoom={1.09}
+            />
+            <div className="bento-body">
+            <span className="bento-emoji"></span>
             <div className="bento-title">New Arrivals</div>
             <p className="bento-desc">Refined silhouettes that speak to the modern minimalist. Discover the latest curation of seasonal essentials crafted with intention.</p>
             <button className="bento-link" onClick={() => navigate("/collections")}>
@@ -574,9 +609,15 @@ export default function Home() {
         </div>
         <div className="bento-right">
           <div className="bento-card">
-            <img className="bento-img-sq" src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=600&h=600&fit=crop" alt="Accessories" />
+            <HoverRevealImage
+              wrapperClassName="image-zoom image-zoom--soft"
+              imgClassName="bento-img-sq"
+              src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=600&h=600&fit=crop"
+              alt="Accessories"
+              zoom={1.09}
+            />
             <div className="bento-body" style={{ padding: "16px 18px" }}>
-              <span style={{ fontSize: "20px" }}>💎</span>
+              <span style={{ fontSize: "20px" }}></span>
               <div className="bento-title" style={{ fontSize: "20px", marginTop: "6px" }}>Essential Accents</div>
               <p className="bento-desc" style={{ fontSize: "12px" }}>The fine line between subtle and statement.</p>
             </div>
@@ -595,7 +636,7 @@ export default function Home() {
         <div className="editorial">
           <div className="editorial-text">
             <span className="section-tag" style={{ textAlign: "left" }}>The Journal</span>
-            <h2 className="section-title" style={{ textAlign: "left", lineHeight: "1.2" }}>Crafting Beauty<br />in Every <em>Stitch</em></h2>
+            <h2 className="section-title" style={{ textAlign: "left", lineHeight: "1.2" }}>Crafting Beauty<br />in Every <span>Stitch</span></h2>
             <p className="section-desc" style={{ textAlign: "left", margin: "14px 0 24px", maxWidth: "360px" }}>An exploration of the artisan techniques behind our signature collections and the philosophy of slow luxury.</p>
             <button className="bento-link" style={{ fontSize: "11px" }} onClick={() => navigate("/about")}>
               Read the Story <i className="ti ti-arrow-right" aria-hidden="true"></i>
@@ -603,10 +644,22 @@ export default function Home() {
           </div>
           <div className="editorial-images">
             <div className="editorial-img-wrap" style={{ marginTop: "40px" }}>
-              <img className="editorial-img" src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=500&h=650&fit=crop" alt="Editorial 1" />
+              <HoverRevealImage
+                wrapperClassName="image-zoom image-zoom--subtle"
+                imgClassName="editorial-img"
+                src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=500&h=650&fit=crop"
+                alt="Editorial 1"
+                zoom={1.08}
+              />
             </div>
             <div className="editorial-img-wrap">
-              <img className="editorial-img" src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=500&h=650&fit=crop" alt="Editorial 2" />
+              <HoverRevealImage
+                wrapperClassName="image-zoom image-zoom--subtle"
+                imgClassName="editorial-img"
+                src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=500&h=650&fit=crop"
+                alt="Editorial 2"
+                zoom={1.08}
+              />
             </div>
           </div>
         </div>
@@ -636,3 +689,4 @@ export default function Home() {
     </div>
   );
 }
+

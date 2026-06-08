@@ -9,6 +9,26 @@ const router = express.Router();
 router.use(requireAuth);
 router.use(requireRole(["Admin", "SuperAdmin"]));
 
+const expenseSchema = z.object({
+  date: z.string().min(1).max(10),
+  category: z.string().min(1).max(120),
+  note: z.string().max(500).optional().nullable(),
+  amount: z.number().positive(),
+});
+
+function expenseToResponse(expense) {
+  return {
+    id: expense.id,
+    date: expense.date,
+    category: expense.category,
+    note: expense.note || "",
+    amount: Number(expense.amountCents) / 100,
+    createdAt: expense.createdAt,
+    updatedAt: expense.updatedAt,
+    createdBy: expense.createdBy || null,
+  };
+}
+
 router.get(
   "/orders",
   asyncHandler(async (_req, res) => {
@@ -17,6 +37,35 @@ router.get(
       include: { items: true, payments: true, user: { select: { id: true, email: true, username: true, role: true } } },
     });
     res.json({ orders });
+  })
+);
+
+router.get(
+  "/expenses",
+  asyncHandler(async (_req, res) => {
+    const expenses = await prisma.expense.findMany({
+      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+      include: { createdBy: { select: { id: true, username: true, email: true, role: true } } },
+    });
+    res.json({ expenses: expenses.map(expenseToResponse) });
+  })
+);
+
+router.post(
+  "/expenses",
+  asyncHandler(async (req, res) => {
+    const input = expenseSchema.parse(req.body);
+    const expense = await prisma.expense.create({
+      data: {
+        date: input.date.slice(0, 10),
+        category: input.category.trim(),
+        note: input.note?.trim() || null,
+        amountCents: Math.round(input.amount * 100),
+        createdById: req.auth.sub,
+      },
+      include: { createdBy: { select: { id: true, username: true, email: true, role: true } } },
+    });
+    res.status(201).json({ expense: expenseToResponse(expense) });
   })
 );
 
@@ -62,7 +111,29 @@ router.get(
   })
 );
 
+router.get(
+  "/contact-messages",
+  asyncHandler(async (_req, res) => {
+    const contactMessages = await prisma.contactMessage.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { user: { select: { id: true, username: true, email: true, role: true } } },
+    });
+    res.json({ contactMessages });
+  })
+);
+
+router.patch(
+  "/contact-messages/:id/read",
+  asyncHandler(async (req, res) => {
+    const contactMessage = await prisma.contactMessage.update({
+      where: { id: req.params.id },
+      data: { isRead: true, readAt: new Date() },
+      include: { user: { select: { id: true, username: true, email: true, role: true } } },
+    });
+    res.json({ contactMessage });
+  })
+);
+
 router.use((_req, _res, next) => next(createHttpError(404, "Not found")));
 
 export default router;
-

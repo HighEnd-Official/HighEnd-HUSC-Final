@@ -1,212 +1,319 @@
 import "dotenv/config";
+import fs from "node:fs/promises";
 import { PrismaClient } from "@prisma/client";
+import {
+  getCategoryBySubcategory,
+  normalizeProductCategory,
+  normalizeProductSubcategory,
+} from "../../src/lib/productCategories.js";
 
 const prisma = new PrismaClient();
 
+function parseLine(line) {
+  const values = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index];
+    const next = line[index + 1];
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        current += '"';
+        index += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === "," && !inQuotes) {
+      values.push(current.trim());
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  values.push(current.trim());
+  return values;
+}
+
+function parseCsv(text) {
+  const lines = String(text || "")
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .filter((line) => line.trim().length > 0);
+
+  if (!lines.length) return [];
+
+  const headers = parseLine(lines[0]).map((header) => header.trim());
+  return lines.slice(1).map((line) =>
+    parseLine(line).reduce((row, value, index) => {
+      row[headers[index]] = value ?? "";
+      return row;
+    }, {}),
+  );
+}
+
+function cleanText(value) {
+  return String(value || "").trim().replace(/\s+/g, " ");
+}
+
+function isBlank(value) {
+  return !cleanText(value);
+}
+
+function isGenericBrand(value) {
+  const normalized = cleanText(value).toLowerCase();
+  return (
+    !normalized ||
+    normalized === "no" ||
+    normalized === "no brand" ||
+    normalized === "unknown" ||
+    normalized === "n/a" ||
+    normalized === "na" ||
+    normalized === "none" ||
+    /^\d{4}-\d{2}-\d{2}/.test(normalized)
+  );
+}
+
+function titleCase(value) {
+  const text = cleanText(value);
+  if (!text) return "";
+  if (text.length <= 4 && text === text.toUpperCase()) return text;
+  return text.replace(/\b\w/g, (match) => match.toUpperCase());
+}
+
+function toNumber(value) {
+  const numeric = Number(String(value || "").replace(/,/g, "").trim());
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
 function lkrToCents(value) {
-  const n = typeof value === "number" ? value : Number(String(value).replace(/Rs\.?\s*/i, "").replace(/,/g, ""));
-  return Number.isFinite(n) ? Math.round(n * 100) : 0;
+  const numeric = typeof value === "number" ? value : toNumber(value);
+  return Number.isFinite(numeric) ? Math.round(numeric * 100) : 0;
+}
+
+function normalizeBrand(value) {
+  if (isGenericBrand(value)) return "Imported Inventory";
+  return titleCase(value);
+}
+
+function inferCategory(row, name) {
+  const explicitCategory = cleanText(row.category).toLowerCase();
+  const explicitSubcategory = cleanText(row.subcategory).toLowerCase();
+  const searchable = `${name} ${row.color || ""} ${explicitCategory} ${explicitSubcategory}`.toLowerCase();
+
+  if (explicitCategory && explicitCategory !== "other") {
+    if (explicitCategory.includes("dress")) return "Dresses";
+    if (explicitCategory.includes("top") || explicitCategory.includes("blouse")) return "Tops";
+    if (explicitCategory.includes("shirt")) return "Shirts";
+    if (explicitCategory.includes("skirt")) return "Skirts";
+    if (explicitCategory.includes("pant") || explicitCategory.includes("trouser")) return "Pants";
+    if (explicitCategory.includes("ethnic") || explicitCategory.includes("kurti") || explicitCategory.includes("lehenga")) return "Indian Ethnic Wear";
+    if (explicitCategory.includes("footwear") || explicitCategory.includes("shoe") || explicitCategory.includes("flat") || explicitCategory.includes("jutti")) return "Footwear";
+    if (explicitCategory.includes("accessor") || explicitCategory.includes("jewel") || explicitCategory.includes("bangle") || explicitCategory.includes("earring") || explicitCategory.includes("necklace")) return "Accessories";
+  }
+
+  if (searchable.includes("kurti") || searchable.includes("lehenga")) return "Indian Ethnic Wear";
+  if (searchable.includes("dress")) return "Dresses";
+  if (searchable.includes("skirt")) return "Skirts";
+  if (searchable.includes("shirt")) return "Shirts";
+  if (searchable.includes("pant") || searchable.includes("trouser") || searchable.includes("wide-leg")) return "Pants";
+  if (searchable.includes("flat") || searchable.includes("jutti") || searchable.includes("shoe") || searchable.includes("heel") || searchable.includes("footwear")) return "Footwear";
+  if (searchable.includes("bangle") || searchable.includes("earring") || searchable.includes("necklace") || searchable.includes("accessory")) return "Accessories";
+  if (searchable.includes("top") || searchable.includes("blouse") || searchable.includes("crop") || searchable.includes("tank")) return "Tops";
+
+  const categoryFromSubcategory = getCategoryBySubcategory(cleanText(row.subcategory));
+  if (categoryFromSubcategory) return categoryFromSubcategory;
+
+  return "Accessories";
+}
+
+function inferSubcategory(row, category, name) {
+  const explicit = normalizeProductSubcategory(row.subcategory);
+  if (explicit) return explicit;
+
+  const lower = `${name} ${row.color || ""}`.toLowerCase();
+
+  if (category === "Dresses") {
+    if (lower.includes("maxi")) return "Maxi Dresses";
+    if (lower.includes("mini")) return "Mini Dresses";
+    return "Midi Dresses";
+  }
+
+  if (category === "Tops") {
+    if (lower.includes("crop")) return "Crop Tops";
+    if (lower.includes("tank")) return "Tank Tops";
+    if (lower.includes("crochet")) return "Crochet Tops";
+    if (lower.includes("sleeveless") || lower.includes("tube") || lower.includes("peplum") || lower.includes("blouse")) return "Sleeveless Tops";
+    if (lower.includes("long sleeve") || lower.includes("full sleeve")) return "Long Sleeved Tops";
+    if (lower.includes("short sleeve")) return "Short Sleeved Tops";
+    return "Sleeveless Tops";
+  }
+
+  if (category === "Skirts") {
+    if (lower.includes("mini")) return "Mini Skirts";
+    if (lower.includes("maxi")) return "Maxi Skirts";
+    return "Midi Skirts";
+  }
+
+  if (category === "Indian Ethnic Wear") {
+    if (lower.includes("kurti set") || lower.includes("set")) return "Kurti Sets";
+    if (lower.includes("kurti pant") || lower.includes("pant")) return "Kurti Pants";
+    if (lower.includes("long")) return "Long Kurtis";
+    if (lower.includes("mid")) return "Mid Kurtis";
+    return "Short Kurtis";
+  }
+
+  if (category === "Footwear") {
+    if (lower.includes("jutti")) return "Indian Jutti";
+    return "Flats";
+  }
+
+  if (category === "Accessories") {
+    if (lower.includes("earring")) return "Earrings";
+    if (lower.includes("necklace")) return "Necklaces";
+    return "Bangles";
+  }
+
+  return "";
+}
+
+function pickImage(category) {
+  if (category === "Tops" || category === "Shirts") {
+    return "/src/assets/images/shirts/bow-print/main.png";
+  }
+
+  return "/src/assets/images/dresses/floral-flare/main.png";
+}
+
+function buildSizes(category) {
+  if (category === "Footwear" || category === "Accessories") {
+    return ["One Size"];
+  }
+
+  return ["XS", "S", "M", "L", "XL"];
+}
+
+async function resetCatalog() {
+  await prisma.$transaction([
+    prisma.payment.deleteMany(),
+    prisma.orderItem.deleteMany(),
+    prisma.order.deleteMany(),
+    prisma.productLike.deleteMany(),
+    prisma.productReview.deleteMany(),
+    prisma.productColor.deleteMany(),
+    prisma.productSize.deleteMany(),
+    prisma.productDetail.deleteMany(),
+    prisma.productImage.deleteMany(),
+    prisma.product.deleteMany(),
+  ]);
+}
+
+async function seedProducts(rows) {
+  for (const [index, row] of rows.entries()) {
+    const name = cleanText(row.product_name);
+    if (isBlank(name)) continue;
+
+    const category = normalizeProductCategory(inferCategory(row, name)) || "Accessories";
+    const subcategory = normalizeProductSubcategory(inferSubcategory(row, category, name));
+    const brand = normalizeBrand(row.brand);
+    const color = cleanText(row.color) || "Standard";
+    const sku = cleanText(row.sku) || null;
+    const costValue = toNumber(row.cost_price_lkr);
+    const priceValue = toNumber(row.selling_price_lkr);
+    const stock = Math.max(0, Math.round(toNumber(row.stock_qty) ?? 0));
+    const soldQty = Math.max(0, Math.round(toNumber(row.sold_qty) ?? 0));
+    const coverImageUrl = pickImage(category);
+    const badge = stock <= 2 ? "Low Stock" : soldQty > 5 ? "Popular" : "Imported";
+
+    const product = await prisma.product.create({
+      data: {
+        name,
+        sku,
+        category,
+        subcategory: subcategory || null,
+        subtitle: `${brand} · ${color}`,
+        collection: brand === "Imported Inventory" ? category : brand,
+        description: `Imported inventory item for ${brand}. ${category}${subcategory ? ` · ${subcategory}` : ""}. ${color}.`,
+        badge,
+        badgeColorHex: "#6f1f2f",
+        priceCents: lkrToCents(priceValue ?? costValue ?? 0),
+        costCents: lkrToCents(costValue ?? priceValue ?? 0),
+        stock,
+        coverImageUrl,
+        originalCents: null,
+        currency: "LKR",
+        rating: null,
+        reviewsCount: 0,
+        isActive: true,
+        images: {
+          create: [{ url: coverImageUrl, sortOrder: 0 }],
+        },
+        details: {
+          create: [
+            { text: `Brand: ${brand}`, sortOrder: 0 },
+            { text: `Color: ${color}`, sortOrder: 1 },
+            { text: `SKU: ${sku || "Not supplied"}`, sortOrder: 2 },
+            { text: `Imported from CSV row ${index + 1}`, sortOrder: 3 },
+          ],
+        },
+        sizes: {
+          create: buildSizes(category).map((code, sizeIndex) => ({ code, sortOrder: sizeIndex })),
+        },
+        colors: {
+          create: [{ name: color, hex: null, sortOrder: 0 }],
+        },
+      },
+    });
+
+    await prisma.product.update({
+      where: { id: product.id },
+      data: { coverImageUrl },
+    });
+  }
+}
+
+async function seedUsers() {
+  const bcrypt = await import("bcryptjs");
+  const users = [
+    { username: "Admin User", email: "admin@hues.com", password: "admin123", role: "Admin" },
+    { username: "Super Admin", email: "super@hues.com", password: "super123", role: "SuperAdmin" },
+    { username: "HUES Member", email: "user@hues.com", password: "user123", role: "User" },
+  ];
+
+  for (const user of users) {
+    const passwordHash = bcrypt.default.hashSync(user.password, 10);
+    await prisma.user.upsert({
+      where: { email: user.email },
+      update: { username: user.username, role: user.role, passwordHash },
+      create: { username: user.username, email: user.email, role: user.role, passwordHash },
+    });
+  }
 }
 
 async function main() {
-  // Minimal seed matching the current frontend demo catalog.
-  const products = [
-    {
-      name: "Floral Flare Mini Dress",
-      sku: "DR-FLORAL-FLARE",
-      category: "Dresses",
-      subtitle: "Pink Flowers · Embroidered",
-      collection: "The Atelier Collection",
-      priceCents: lkrToCents("Rs. 8,450.00"),
-      costCents: lkrToCents("Rs. 5,200.00"),
-      stock: 24,
-      originalCents: lkrToCents("Rs. 10,200.00"),
-      badge: "Embroidered",
-      badgeColorHex: "#854c6f",
-      description:
-        "Crafted from premium hand-woven cotton, this ethereal piece features intricate artisanal floral embroidery. The relaxed silhouette and flare hem evoke effortless movement and summer elegance.",
-      sizes: ["XS", "S", "M", "L", "XL"],
-      colors: [
-        { name: "Blush Rose", hex: "#e8a4b8" },
-        { name: "Teal Mist", hex: "#6aada9" },
-        { name: "Ivory Cream", hex: "#f5ede0" },
-        { name: "Dusk Mauve", hex: "#9e7492" }
-      ],
-      details: [
-        "Hand-embroidered pink floral motifs",
-        "V-neck with tassel trim",
-        "Flutter sleeves with teal cuff accent",
-        "Relaxed A-line silhouette",
-        "100% premium hand-woven cotton"
-      ],
-      images: [
-        // Store frontend relative paths for now (or replace with CDN URLs later)
-        "/src/assets/images/dresses/floral-flare/main.png",
-        "/src/assets/images/dresses/floral-flare/2.png",
-        "/src/assets/images/dresses/floral-flare/3.png",
-        "/src/assets/images/dresses/floral-flare/4.png",
-        "/src/assets/images/dresses/floral-flare/5.png"
-      ],
-      rating: "4.90",
-      reviewsCount: 38
-    },
-    {
-      name: "Maxi Sundress with Frill",
-      sku: "DR-MAXI-SUNDRESS",
-      category: "Dresses",
-      subtitle: "White · Tiered Frills",
-      collection: "The Atelier Collection",
-      priceCents: lkrToCents("Rs. 6,400.00"),
-      costCents: lkrToCents("Rs. 3,800.00"),
-      stock: 18,
-      badge: "New Arrival",
-      badgeColorHex: "#486730",
-      description:
-        "Crisp white cotton with delicate ric-rac trim at each tier. Adjustable spaghetti straps, smocked back, and a sweeping floor-length skirt that moves beautifully.",
-      sizes: ["XS", "S", "M", "L", "XL"],
-      colors: [
-        { name: "Pure White", hex: "#f8f4ef" },
-        { name: "Sky Blue", hex: "#9ec8e0" },
-        { name: "Petal Blush", hex: "#f2c4c4" },
-        { name: "Sage Whisper", hex: "#a8c5a0" }
-      ],
-      details: [
-        "Ric-rac trim at each tiered frill",
-        "Adjustable spaghetti straps",
-        "Smocked back for a fitted bodice",
-        "Floor-length tiered skirt",
-        "Lightweight 100% cotton poplin"
-      ],
-      images: [
-        "/src/assets/images/dresses/maxi-sundress/Main.png",
-        "/src/assets/images/dresses/maxi-sundress/2.PNG",
-        "/src/assets/images/dresses/maxi-sundress/3.png",
-        "/src/assets/images/dresses/maxi-sundress/4.png",
-        "/src/assets/images/dresses/maxi-sundress/5.png"
-      ],
-      rating: "4.70",
-      reviewsCount: 21
-    },
-    {
-      name: "Bow Print Long Sleeve Crop Shirt",
-      sku: "SH-BOW-PRINT-CROP",
-      category: "Shirts",
-      subtitle: "Ivory Blossom · Lightweight Cotton",
-      collection: "The Atelier Collection",
-      priceCents: lkrToCents("Rs. 4,250.00"),
-      costCents: lkrToCents("Rs. 2,500.00"),
-      stock: 30,
-      originalCents: lkrToCents("Rs. 5,100.00"),
-      badge: "New Arrival",
-      badgeColorHex: "#854c6f",
-      description:
-        "A sculpted crop shirt with a delicate bow print and extended cuffs. Crafted from breathable cotton, it blends playful romance with modern tailoring.",
-      sizes: ["XS", "S", "M", "L", "XL"],
-      colors: [
-        { name: "Ivory Blossom", hex: "#f5ede0" },
-        { name: "Rosé Petal", hex: "#e8a4b8" },
-        { name: "Lavender Haze", hex: "#c4b3d8" },
-        { name: "Sage Green", hex: "#a8c5a0" }
-      ],
-      details: [
-        "Lightweight cotton with soft drape",
-        "Subtle bow print detail",
-        "Button-front closure",
-        "Structured collar with elongation",
-        "Versatile crop silhouette"
-      ],
-      images: [
-        "/src/assets/images/shirts/bow-print/main.png",
-        "/src/assets/images/shirts/bow-print/1.png",
-        "/src/assets/images/shirts/bow-print/2.png",
-        "/src/assets/images/shirts/bow-print/3.png",
-        "/src/assets/images/shirts/bow-print/4.png"
-      ],
-      rating: "4.80",
-      reviewsCount: 26
-    }
-  ];
+  const csvPath = new URL("./shop_inventory_import.csv", import.meta.url);
+  const csvText = await fs.readFile(csvPath, "utf8");
+  const rows = parseCsv(csvText).filter((row) => !isBlank(row.product_name));
 
-  for (const p of products) {
-    const product = await prisma.product.upsert({
-      where: { name: p.name },
-      update: {
-        sku: p.sku ?? null,
-        category: p.category ?? null,
-        subtitle: p.subtitle,
-        collection: p.collection,
-        description: p.description,
-        badge: p.badge,
-        badgeColorHex: p.badgeColorHex,
-        priceCents: p.priceCents,
-        costCents: p.costCents ?? 0,
-        stock: p.stock ?? 0,
-        coverImageUrl: p.images?.[0] ?? null,
-        originalCents: p.originalCents ?? null,
-        rating: p.rating,
-        reviewsCount: p.reviewsCount
-      },
-      create: {
-        name: p.name,
-        sku: p.sku ?? null,
-        category: p.category ?? null,
-        subtitle: p.subtitle,
-        collection: p.collection,
-        description: p.description,
-        badge: p.badge,
-        badgeColorHex: p.badgeColorHex,
-        priceCents: p.priceCents,
-        costCents: p.costCents ?? 0,
-        stock: p.stock ?? 0,
-        coverImageUrl: p.images?.[0] ?? null,
-        originalCents: p.originalCents ?? null,
-        rating: p.rating,
-        reviewsCount: p.reviewsCount
-      }
-    });
+  await resetCatalog();
+  await seedProducts(rows);
+  await seedUsers();
 
-    await prisma.productImage.deleteMany({ where: { productId: product.id } });
-    await prisma.productDetail.deleteMany({ where: { productId: product.id } });
-    await prisma.productSize.deleteMany({ where: { productId: product.id } });
-    await prisma.productColor.deleteMany({ where: { productId: product.id } });
-
-    await prisma.productImage.createMany({
-      data: p.images.map((url, idx) => ({ productId: product.id, url, sortOrder: idx }))
-    });
-    await prisma.productDetail.createMany({
-      data: p.details.map((text, idx) => ({ productId: product.id, text, sortOrder: idx }))
-    });
-    await prisma.productSize.createMany({
-      data: p.sizes.map((code, idx) => ({ productId: product.id, code, sortOrder: idx }))
-    });
-    await prisma.productColor.createMany({
-      data: p.colors.map((c, idx) => ({ productId: product.id, name: c.name, hex: c.hex ?? null, sortOrder: idx }))
-    });
-  }
-
-  // Seed demo users matching the frontend mock (passwords are the same as the demo).
-  // NOTE: In production, create users via /auth/register instead.
-  const demoUsers = [
-    { username: "Admin User", email: "admin@hues.com", password: "admin123", role: "Admin" },
-    { username: "Super Admin", email: "super@hues.com", password: "super123", role: "SuperAdmin" },
-    { username: "HUES Member", email: "user@hues.com", password: "user123", role: "User" }
-  ];
-
-  const bcrypt = await import("bcryptjs");
-  for (const u of demoUsers) {
-    const passwordHash = bcrypt.default.hashSync(u.password, 10);
-    await prisma.user.upsert({
-      where: { email: u.email },
-      update: { username: u.username, role: u.role, passwordHash },
-      create: { username: u.username, email: u.email, role: u.role, passwordHash }
-    });
-  }
+  console.log(`Seeded ${rows.length} imported products.`);
 }
 
 main()
-  .then(async () => prisma.$disconnect())
-  .catch(async (e) => {
-    console.error(e);
+  .then(async () => {
+    await prisma.$disconnect();
+  })
+  .catch(async (error) => {
+    console.error(error);
     await prisma.$disconnect();
     process.exit(1);
   });

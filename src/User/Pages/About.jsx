@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useTheme } from "../../context/ThemeContext";
 
 // ── Replace with your actual imports ─────────────────────────────────────
 import NavBar from "../../components/NavBar";
@@ -43,13 +44,12 @@ function useCounter(target, duration = 2000, start = false) {
 
 // ── Global styles ─────────────────────────────────────────────────────────
 const STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Jost:wght@200;300;400;500;600;700&display=swap');
-
+  
   *, *::before, *::after { box-sizing: border-box; }
 
   ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: #fff8fa; }
-  ::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #854c6f, #c4a0b8); border-radius: 10px; }
+  ::-webkit-scrollbar-track { background: var(--color-surface); }
+  ::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, var(--color-primary), var(--color-primary-container)); border-radius: 10px; }
 
   @keyframes aboutFadeUp {
     from { opacity:0; transform:translateY(28px); }
@@ -111,9 +111,9 @@ const STYLES = `
   }
 
   .about-root {
-    background: #fffbfc;
-    color: #1f1a1d;
-    font-family: 'Jost', sans-serif;
+    background: var(--color-surface);
+    color: var(--color-on-surface);
+    font-family: 'Cormorant Garamond', serif;
     min-height: 100vh;
     overflow-x: hidden;
   }
@@ -123,7 +123,7 @@ const STYLES = `
     position: absolute;
     pointer-events: none;
     font-size: 13px;
-    color: #854c6f;
+    color: var(--color-primary);
     opacity: 0.14;
     animation: aboutPetalDrift 10s ease-in-out infinite;
   }
@@ -141,15 +141,15 @@ const STYLES = `
   .about-eyebrow {
     display: inline-flex; align-items: center; gap: 10px;
     font-size: 9.5px; font-weight: 600; letter-spacing: 0.3em;
-    text-transform: uppercase; color: #854c6f;
+    text-transform: uppercase; color: var(--color-primary);
   }
-  .about-eyebrow-line { width: 22px; height: 0.5px; background: #854c6f; }
+  .about-eyebrow-line { width: 22px; height: 0.5px; background: var(--color-primary); }
 
   /* ── Hero ── */
   .about-hero {
     position: relative; overflow: hidden;
     padding: 160px 48px 120px;
-    background: linear-gradient(160deg, #fff8fa 0%, #fce8f0 35%, #f0e4f2 65%, #fffbfc 100%);
+    background: linear-gradient(160deg, var(--color-surface) 0%, var(--color-surface-container-low) 35%, var(--color-surface-container-low) 65%, var(--color-surface) 100%);
     border-bottom: 0.5px solid rgba(212,180,192,0.3);
     text-align: center;
   }
@@ -159,22 +159,22 @@ const STYLES = `
     display: inline-flex; align-items: center; gap: 8px;
     padding: 8px 20px; border-radius: 40px;
     border: 0.5px solid rgba(133,76,111,0.25);
-    background: rgba(255,255,255,0.7); backdrop-filter: blur(10px);
+    background: var(--color-surface); backdrop-filter: blur(10px);
     font-size: 9.5px; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase;
-    color: #854c6f; margin-bottom: 28px;
+    color: var(--color-primary); margin-bottom: 28px;
     animation: aboutFadeUp 0.6s ease both;
   }
   .about-hero__title {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: clamp(44px, 8vw, 88px);
-    font-weight: 300; line-height: 1.07; color: #1f1a1d;
+    font-weight: 300; line-height: 1.07; color: var(--color-on-surface);
     margin-bottom: 12px;
     animation: aboutFadeUp 0.7s 0.1s ease both; opacity: 0;
     animation-fill-mode: forwards;
   }
   .about-hero__title em {
-    font-style: italic; color: #854c6f;
-    background: linear-gradient(90deg, #854c6f 0%, #c07fa5 40%, #9e5580 60%, #854c6f 100%);
+    font-style: normal; color: var(--color-primary);
+    background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-container) 40%, var(--color-primary) 60%, var(--color-primary) 100%);
     background-size: 200% auto;
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -182,12 +182,12 @@ const STYLES = `
   }
   .about-hero__divider {
     width: 0; height: 0.5px;
-    background: linear-gradient(90deg, transparent, #854c6f, transparent);
+    background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
     margin: 20px auto;
     animation: aboutLineGrow 1s 0.5s ease forwards;
   }
   .about-hero__subtitle {
-    font-size: 17px; font-weight: 300; line-height: 1.78; color: #504349;
+    font-size: 17px; font-weight: 300; line-height: 1.78; color: var(--color-on-surface-variant);
     max-width: 580px; margin: 0 auto 36px;
     animation: aboutFadeUp 0.7s 0.2s ease both; opacity: 0;
     animation-fill-mode: forwards;
@@ -199,26 +199,26 @@ const STYLES = `
   }
   .about-hero__btn-primary {
     padding: 14px 40px; border-radius: 40px;
-    background: #1f1a1d; color: #fff8f8;
+    background: var(--color-on-surface); color: var(--color-surface);
     font-size: 10.5px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
-    border: none; cursor: pointer; transition: all 0.3s; font-family: 'Jost', sans-serif;
+    border: none; cursor: pointer; transition: all 0.3s; font-family: 'Cormorant Garamond', serif;
     box-shadow: 0 8px 28px rgba(31,26,29,0.18);
   }
-  .about-hero__btn-primary:hover { background: #854c6f; transform: translateY(-2px); box-shadow: 0 14px 36px rgba(133,76,111,0.3); }
+  .about-hero__btn-primary:hover { background: var(--color-primary); transform: translateY(-2px); box-shadow: 0 14px 36px rgba(133,76,111,0.3); }
 
   .about-hero__btn-outline {
     padding: 14px 40px; border-radius: 40px;
-    border: 1px solid rgba(31,26,29,0.25); background: transparent; color: #1f1a1d;
+    border: 1px solid rgba(31,26,29,0.25); background: transparent; color: var(--color-on-surface);
     font-size: 10.5px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
-    cursor: pointer; transition: all 0.3s; font-family: 'Jost', sans-serif;
+    cursor: pointer; transition: all 0.3s; font-family: 'Cormorant Garamond', serif;
   }
-  .about-hero__btn-outline:hover { border-color: #854c6f; color: #854c6f; background: #fce8f0; transform: translateY(-2px); }
+  .about-hero__btn-outline:hover { border-color: var(--color-primary); color: var(--color-primary); background: var(--color-surface-container-low); transform: translateY(-2px); }
 
   /* ── Marquee strip ── */
   .about-marquee {
     overflow: hidden; height: 42px;
     display: flex; align-items: center;
-    background: #1f1a1d;
+    background: var(--color-on-surface);
   }
   .about-marquee__track {
     display: flex; gap: 0; white-space: nowrap;
@@ -227,11 +227,11 @@ const STYLES = `
   .about-marquee__item {
     display: flex; align-items: center; gap: 0;
     font-size: 9.5px; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase;
-    color: rgba(255,251,252,0.7); padding: 0 32px;
+    color: inherit; padding: 0 32px;
   }
   .about-marquee__dot {
     width: 3px; height: 3px; border-radius: 50%;
-    background: #854c6f; margin-left: 32px; flex-shrink: 0;
+    background: currentColor; margin-left: 32px; flex-shrink: 0;
   }
 
   /* ── Editorial split ── */
@@ -259,64 +259,64 @@ const STYLES = `
     position: absolute; bottom: 20px; left: 20px;
     display: inline-flex; align-items: center; gap: 8px;
     padding: 8px 16px; border-radius: 40px;
-    background: rgba(255,255,255,0.92); backdrop-filter: blur(8px);
-    font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #1f1a1d;
+    background: var(--color-surface); backdrop-filter: blur(8px);
+    font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-on-surface);
   }
   .about-editorial__img-count {
     position: absolute; top: 20px; right: 20px;
     width: 56px; height: 56px; border-radius: 50%;
-    background: rgba(255,255,255,0.88); backdrop-filter: blur(8px);
+    background: var(--color-surface); backdrop-filter: blur(8px);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    font-size: 18px; font-weight: 300; color: #854c6f;
+    font-size: 18px; font-weight: 300; color: var(--color-primary);
     font-family: 'Cormorant Garamond', serif;
     box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   }
-  .about-editorial__img-count span { font-size: 7px; font-family: 'Jost', sans-serif; font-weight: 600; letter-spacing: 0.1em; color: #82737a; }
+  .about-editorial__img-count span { font-size: 7px; font-family: 'Cormorant Garamond', serif; font-weight: 600; letter-spacing: 0.1em; color: var(--color-outline); }
 
   .about-editorial__content { display: flex; flex-direction: column; gap: 0; }
   .about-editorial__title {
     font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: clamp(32px, 4.5vw, 54px); font-weight: 400; color: #1f1a1d;
+    font-size: clamp(32px, 4.5vw, 54px); font-weight: 400; color: var(--color-on-surface);
     line-height: 1.12; margin-bottom: 20px;
   }
-  .about-editorial__title em { font-style: italic; color: #854c6f; }
+  .about-editorial__title em { font-style: normal; color: var(--color-primary); }
   .about-editorial__body {
-    font-size: 15px; font-weight: 300; line-height: 1.82; color: #504349;
+    font-size: 15px; font-weight: 300; line-height: 1.82; color: var(--color-on-surface-variant);
     margin-bottom: 28px;
   }
   .about-editorial__artisans {
     display: flex; align-items: center; gap: 14px;
     padding: 18px 22px; border-radius: 14px;
-    background: linear-gradient(135deg, #fce8f0, #f7ebee);
+    background: linear-gradient(135deg, var(--color-surface-container-low), var(--color-surface-container-low));
     border: 0.5px solid rgba(212,180,192,0.4);
     margin-bottom: 28px;
   }
   .about-editorial__artisan-avatars { display: flex; }
   .about-editorial__artisan-avatar {
     width: 34px; height: 34px; border-radius: 50%;
-    background: linear-gradient(135deg, #e8a4b8, #c4b3d8);
-    border: 2px solid #fffbfc;
+    background: linear-gradient(135deg, var(--color-primary-container), var(--color-primary-container));
+    border: 2px solid var(--color-surface);
     display: flex; align-items: center; justify-content: center;
     font-size: 14px; margin-left: -8px;
   }
   .about-editorial__artisan-avatar:first-child { margin-left: 0; }
-  .about-editorial__artisan-text { font-size: 13px; color: #504349; font-weight: 400; }
-  .about-editorial__artisan-text strong { color: #1f1a1d; font-weight: 600; }
+  .about-editorial__artisan-text { font-size: 13px; color: var(--color-on-surface-variant); font-weight: 400; }
+  .about-editorial__artisan-text strong { color: var(--color-on-surface); font-weight: 600; }
 
   .about-editorial__cta {
     display: inline-flex; align-items: center; gap: 10px;
     padding: 14px 36px; border-radius: 40px;
-    border: 1px solid rgba(31,26,29,0.2); background: transparent; color: #1f1a1d;
+    border: 1px solid rgba(31,26,29,0.2); background: transparent; color: var(--color-on-surface);
     font-size: 10.5px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
-    cursor: pointer; transition: all 0.3s; font-family: 'Jost', sans-serif; align-self: flex-start;
+    cursor: pointer; transition: all 0.3s; font-family: 'Cormorant Garamond', serif; align-self: flex-start;
   }
-  .about-editorial__cta:hover { background: #1f1a1d; color: #fff; border-color: #1f1a1d; }
+  .about-editorial__cta:hover { background: var(--color-on-surface); color: var(--color-on-primary); border-color: var(--color-on-surface); }
   .about-editorial__cta svg { transition: transform 0.3s; }
   .about-editorial__cta:hover svg { transform: translateX(4px); }
 
   /* ── Stats ── */
   .about-stats {
-    background: linear-gradient(135deg, #1f1a1d 0%, #2d2428 50%, #1f1a1d 100%);
+    background: linear-gradient(135deg, var(--color-on-surface) 0%, var(--color-on-surface) 50%, var(--color-on-surface) 100%);
     padding: 72px 48px; position: relative; overflow: hidden;
   }
   .about-stats__inner {
@@ -329,7 +329,7 @@ const STYLES = `
   .about-stats__item {
     display: flex; flex-direction: column; align-items: center;
     padding: 36px 24px; text-align: center;
-    border-right: 0.5px solid rgba(255,255,255,0.07);
+    border-right: 0.5px solid rgba(255,255,255,0.12);
     cursor: default; transition: background 0.3s;
     position: relative; overflow: hidden;
   }
@@ -338,13 +338,13 @@ const STYLES = `
   .about-stats__icon { font-size: 26px; margin-bottom: 14px; opacity: 0.85; }
   .about-stats__num {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 52px; font-weight: 300; color: #fff8f8;
+    font-size: 52px; font-weight: 300; color: var(--color-surface);
     line-height: 1; margin-bottom: 6px;
   }
-  .about-stats__accent { color: #c07fa5; }
+  .about-stats__accent { color: var(--color-primary-container); }
   .about-stats__label {
     font-size: 9.5px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
-    color: rgba(255,255,255,0.45);
+    color: var(--color-surface);
   }
 
   /* ── Values ── */
@@ -355,7 +355,7 @@ const STYLES = `
   .about-values__header { text-align: center; margin-bottom: 64px; }
   .about-values__title {
     font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(34px,5vw,54px); font-weight: 400; color: #1f1a1d;
+    font-size: clamp(34px,5vw,54px); font-weight: 400; color: var(--color-on-surface);
     margin-top: 12px; margin-bottom: 0;
   }
   .about-values__grid {
@@ -366,7 +366,7 @@ const STYLES = `
   .about-value-card {
     padding: 44px 36px; border-radius: 18px; position: relative; overflow: hidden;
     border: 0.5px solid rgba(212,180,192,0.35);
-    background: #fffbfc;
+    background: var(--color-surface);
     box-shadow: 0 4px 24px rgba(133,76,111,0.06);
     transition: all 0.45s cubic-bezier(0.25,0.46,0.45,0.94);
     cursor: default;
@@ -399,24 +399,24 @@ const STYLES = `
   .about-value-card:hover .about-value-card__icon { transform: scale(1.1) rotate(-4deg); }
   .about-value-card__title {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 26px; font-weight: 500; color: #1f1a1d;
+    font-size: 26px; font-weight: 500; color: var(--color-on-surface);
     margin-bottom: 12px; line-height: 1.2;
   }
   .about-value-card__body {
-    font-size: 14px; font-weight: 300; line-height: 1.8; color: #504349;
+    font-size: 14px; font-weight: 300; line-height: 1.8; color: var(--color-on-surface-variant);
     margin-bottom: 20px;
   }
   .about-value-card__link {
     font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
-    color: #854c6f; opacity: 0; transition: opacity 0.3s;
+    color: var(--color-primary); opacity: 0; transition: opacity 0.3s;
     display: inline-flex; align-items: center; gap: 6px;
-    background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; padding: 0;
+    background: none; border: none; cursor: pointer; font-family: 'Cormorant Garamond', serif; padding: 0;
   }
   .about-value-card:hover .about-value-card__link { opacity: 1; }
 
   /* ── Texture / process section ── */
   .about-texture {
-    background: linear-gradient(135deg, #fce8f0 0%, #f7ebee 40%, #ede0ea 100%);
+    background: linear-gradient(135deg, var(--color-surface-container-low) 0%, var(--color-surface-container-low) 40%, var(--color-surface-container-high) 100%);
     padding: 96px 80px;
     border-top: 0.5px solid rgba(212,180,192,0.3);
     border-bottom: 0.5px solid rgba(212,180,192,0.3);
@@ -432,25 +432,25 @@ const STYLES = `
 
   .about-texture__title {
     font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(42px,6vw,74px); font-weight: 300; color: #1f1a1d;
+    font-size: clamp(42px,6vw,74px); font-weight: 300; color: var(--color-on-surface);
     line-height: 1.07; margin-bottom: 20px;
   }
-  .about-texture__title em { font-style: italic; color: #854c6f; }
+  .about-texture__title em { font-style: normal; color: var(--color-primary); }
   .about-texture__body {
-    font-size: 15px; font-weight: 300; line-height: 1.82; color: #504349;
+    font-size: 15px; font-weight: 300; line-height: 1.82; color: var(--color-on-surface-variant);
     margin-bottom: 28px; max-width: 440px;
   }
   .about-texture__blockquote {
-    border-left: 2px solid #854c6f; padding-left: 22px;
+    border-left: 2px solid var(--color-primary); padding-left: 22px;
     margin: 0 0 28px;
   }
   .about-texture__quote {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 22px; font-style: italic; font-weight: 300; color: #1f1a1d;
+    font-size: 22px; font-style: normal; font-weight: 300; color: var(--color-on-surface);
     line-height: 1.5; margin-bottom: 8px;
   }
   .about-texture__quote-attr {
-    font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #82737a;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-outline);
   }
   .about-texture__img-wrap {
     position: relative; border-radius: 16px; overflow: hidden;
@@ -465,8 +465,8 @@ const STYLES = `
   .about-texture__img-badge {
     position: absolute; top: 20px; left: 20px;
     padding: 8px 18px; border-radius: 40px;
-    background: rgba(255,255,255,0.9); backdrop-filter: blur(8px);
-    font-size: 9.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #854c6f;
+    background: var(--color-surface); backdrop-filter: blur(8px);
+    font-size: 9.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-primary);
   }
 
   /* ── Process steps ── */
@@ -477,7 +477,7 @@ const STYLES = `
   .about-process__steps { display: flex; flex-direction: column; gap: 0; position: relative; }
   .about-process__steps::before {
     content: ''; position: absolute; left: 26px; top: 0; bottom: 0;
-    width: 1px; background: linear-gradient(to bottom, #854c6f, rgba(133,76,111,0.1));
+    width: 1px; background: linear-gradient(to bottom, var(--color-primary), rgba(133,76,111,0.1));
   }
   .about-process__step {
     display: flex; gap: 32px; align-items: flex-start;
@@ -487,61 +487,151 @@ const STYLES = `
   .about-process__step:last-child { border-bottom: none; }
   .about-process__step-num {
     width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
-    background: linear-gradient(135deg, #fce8f0, #f7ebee);
+    background: linear-gradient(135deg, var(--color-surface-container-low), var(--color-surface-container-low));
     border: 1px solid rgba(133,76,111,0.25);
     display: flex; align-items: center; justify-content: center;
-    font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; color: #854c6f;
+    font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; color: var(--color-primary);
     transition: all 0.3s; z-index: 1; position: relative;
   }
   .about-process__step:hover .about-process__step-num {
-    background: #854c6f; color: #fff;
+    background: var(--color-primary); color: var(--color-on-primary);
     box-shadow: 0 0 0 8px rgba(133,76,111,0.1);
   }
   .about-process__step-content { flex: 1; padding-top: 10px; }
   .about-process__step-title {
-    font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 500; color: #1f1a1d;
+    font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 500; color: var(--color-on-surface);
     margin-bottom: 8px;
   }
   .about-process__step-body {
-    font-size: 14px; font-weight: 300; line-height: 1.75; color: #504349;
+    font-size: 14px; font-weight: 300; line-height: 1.75; color: var(--color-on-surface-variant);
   }
 
   /* ── Manifesto ── */
   .about-manifesto {
     position: relative; overflow: hidden;
     padding: 120px 48px; text-align: center;
-    background: linear-gradient(160deg, #1f1a1d 0%, #2d2428 40%, #1a151b 100%);
+    background: var(--manifesto-bg, linear-gradient(160deg, #120c0d 0%, #1a1113 42%, #2b1d1f 100%));
+    color: var(--manifesto-text, var(--color-on-surface));
   }
   .about-manifesto__inner { max-width: 720px; margin: 0 auto; position: relative; z-index: 1; }
   .about-manifesto__decor {
     display: flex; justify-content: center; gap: 10px; margin-bottom: 32px;
   }
   .about-manifesto__decor-dot {
-    width: 6px; height: 6px; border-radius: 50%; background: #854c6f;
+    width: 6px; height: 6px; border-radius: 50%; background: var(--color-primary);
     animation: aboutDotBounce 2s ease-in-out infinite;
   }
   .about-manifesto__title {
     font-family: 'Cormorant Garamond', serif;
     font-size: clamp(36px,6vw,72px); font-weight: 300;
-    color: #fff8f8; line-height: 1.1; margin-bottom: 20px;
+    color: var(--manifesto-title, var(--color-surface)); line-height: 1.1; margin-bottom: 20px;
   }
-  .about-manifesto__title em { font-style: italic; color: #c07fa5; }
+  .about-manifesto__title em { font-style: normal; color: var(--color-primary-container); }
   .about-manifesto__line {
-    width: 0; height: 0.5px; background: linear-gradient(90deg, transparent, #c07fa5, transparent);
+    width: 0; height: 0.5px; background: linear-gradient(90deg, transparent, var(--manifesto-line, var(--color-primary-container)), transparent);
     margin: 24px auto; animation: aboutLineGrow 1.2s 0.4s ease forwards;
   }
   .about-manifesto__body {
-    font-size: 16px; font-weight: 300; line-height: 1.85; color: rgba(255,251,252,0.65);
+    font-size: 16px; font-weight: 300; line-height: 1.85; color: var(--manifesto-body, rgba(255,251,252,0.65));
     margin-bottom: 40px;
   }
   .about-manifesto__cta {
     padding: 15px 48px; border-radius: 40px;
-    border: 1px solid rgba(192,127,165,0.5); background: transparent;
-    color: #c07fa5; font-size: 10.5px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
-    cursor: pointer; transition: all 0.3s; font-family: 'Jost', sans-serif;
+    border: 1px solid var(--manifesto-cta-border, rgba(192,127,165,0.5)); background: transparent;
+    color: var(--manifesto-cta-text, var(--color-primary-container)); font-size: 10.5px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.3s; font-family: 'Cormorant Garamond', serif;
     animation: aboutPulse 2.8s ease-in-out infinite;
   }
-  .about-manifesto__cta:hover { background: #854c6f; color: #fff; border-color: #854c6f; animation: none; }
+  .about-manifesto__cta:hover { background: var(--manifesto-cta-hover-bg, var(--color-primary)); color: var(--manifesto-cta-hover-text, var(--color-on-primary)); border-color: var(--manifesto-cta-hover-bg, var(--color-primary)); animation: none; }
+
+  @media (max-width: 768px) {
+    .about-marquee { height: 38px; }
+    .about-marquee__item {
+      padding: 0 22px;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+    }
+    .about-marquee__dot { margin-left: 22px; }
+
+    .about-editorial__img { height: 420px; }
+    .about-editorial__img-tag,
+    .about-editorial__img-count {
+      pointer-events: none;
+    }
+    .about-editorial__content {
+      gap: 18px;
+    }
+    .about-editorial__artisans {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .about-editorial__cta,
+    .about-manifesto__cta,
+    .about-value-card__link {
+      min-height: 48px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .about-editorial__cta,
+    .about-manifesto__cta {
+      width: 100%;
+      justify-content: center;
+    }
+    .about-value-card {
+      padding: 36px 24px;
+    }
+    .about-value-card__link {
+      opacity: 1;
+    }
+    .about-value-card__body {
+      margin-bottom: 16px;
+    }
+    .about-stats {
+      padding: 56px 20px;
+    }
+    .about-stats__item {
+      padding: 28px 16px;
+    }
+    .about-stats__num {
+      font-size: 40px;
+    }
+    .about-stats__label {
+      letter-spacing: 0.16em;
+      line-height: 1.4;
+      text-align: center;
+    }
+    .about-values__header {
+      margin-bottom: 36px;
+    }
+    .about-values__grid {
+      gap: 18px;
+    }
+    .about-texture__img {
+      height: 360px;
+    }
+    .about-texture__blockquote {
+      padding-left: 18px;
+    }
+    .about-process__steps::before {
+      left: 24px;
+    }
+    .about-process__step {
+      gap: 18px;
+      padding: 24px 0;
+    }
+    .about-process__step-num {
+      width: 46px;
+      height: 46px;
+      font-size: 20px;
+    }
+    .about-manifesto {
+      padding: 88px 24px;
+    }
+    .about-team-card__img {
+      height: 240px;
+    }
+  }
 
   /* ── Team strip ── */
   .about-team {
@@ -554,7 +644,7 @@ const STYLES = `
   .about-team-card {
     border-radius: 16px; overflow: hidden;
     border: 0.5px solid rgba(212,180,192,0.3);
-    background: #fffbfc;
+    background: var(--color-surface);
     box-shadow: 0 4px 20px rgba(133,76,111,0.06);
     transition: all 0.4s; cursor: default;
   }
@@ -567,14 +657,14 @@ const STYLES = `
   .about-team-card__info { padding: 22px 24px; }
   .about-team-card__role {
     font-size: 9.5px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
-    color: #854c6f; margin-bottom: 6px;
+    color: var(--color-primary); margin-bottom: 6px;
   }
   .about-team-card__name {
-    font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; color: #1f1a1d;
+    font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; color: var(--color-on-surface);
     margin-bottom: 8px;
   }
   .about-team-card__bio {
-    font-size: 13px; font-weight: 300; line-height: 1.7; color: #82737a;
+    font-size: 13px; font-weight: 300; line-height: 1.7; color: var(--color-outline);
   }
 `;
 
@@ -582,21 +672,21 @@ const STYLES = `
 const VALUES = [
   {
     icon: "🌿", glow: "rgba(106,173,169,0.15)",
-    iconBg: "linear-gradient(135deg,#e8f5f4,#d4eeec)",
+    iconBg: "linear-gradient(135deg,var(--color-surface-container-low),var(--color-surface-container-low))",
     num: "01",
     title: "Sustainability",
     body: "Ethical sourcing isn't a goal — it's our foundation. We partner with heritage mills that prioritize low-impact production and regenerative practices to protect our shared landscape.",
   },
   {
     icon: "✦", glow: "rgba(133,76,111,0.15)",
-    iconBg: "linear-gradient(135deg,#fce8f0,#f2d4e4)",
+    iconBg: "linear-gradient(135deg,var(--color-surface-container-low),var(--color-primary-container))",
     num: "02",
     title: "Craftsmanship",
     body: "We celebrate the human touch. From hand-rolled hems to custom-dyed fibers, our designs are brought to life by artisans who have spent generations perfecting their craft.",
   },
   {
     icon: "◈", glow: "rgba(196,179,216,0.2)",
-    iconBg: "linear-gradient(135deg,#f2edf8,#e4d8f2)",
+    iconBg: "linear-gradient(135deg,var(--color-surface-container-low),var(--color-surface-container-high))",
     num: "03",
     title: "Individuality",
     body: "Elegance is personal. Our collections are designed to be interpreted by you — offering a canvas for self-expression that transcends fleeting seasonal trends.",
@@ -695,9 +785,23 @@ function ValueCard({ v, i, visible }) {
 function HeroSection() {
   const [mouse, setMouse] = useState({ x: 0.5, y: 0.5 });
   useEffect(() => {
-    const fn = (e) => setMouse({ x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight });
-    window.addEventListener("mousemove", fn);
-    return () => window.removeEventListener("mousemove", fn);
+    let frameId = 0;
+    let latest = { x: 0.5, y: 0.5 };
+
+    const fn = (e) => {
+      latest = { x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight };
+      if (frameId) return;
+      frameId = window.requestAnimationFrame(() => {
+        setMouse(latest);
+        frameId = 0;
+      });
+    };
+
+    window.addEventListener("pointermove", fn, { passive: true });
+    return () => {
+      window.removeEventListener("pointermove", fn);
+      if (frameId) window.cancelAnimationFrame(frameId);
+    };
   }, []);
 
   return (
@@ -731,7 +835,7 @@ function HeroSection() {
       <h1 className="about-hero__title">
         Artistry in every thread,
         <br />
-        <em>elegance in every movement.</em>
+        <span>elegance in every movement.</span>
       </h1>
 
       {/* Divider line */}
@@ -744,21 +848,21 @@ function HeroSection() {
       </p>
 
       {/* CTAs */}
-      <div className="about-hero__btns">
+      {/* <div className="about-hero__btns">
         <button className="about-hero__btn-primary">Discover Our Story</button>
         <button className="about-hero__btn-outline">Watch Film ▶</button>
-      </div>
+      </div> */}
     </section>
   );
 }
 
-function MarqueeStrip() {
+function MarqueeStrip({ style }) {
   const items = [
     "Slow Luxury", "Timeless Design", "Handcrafted in Sri Lanka",
     "Ethically Sourced", "Season 2025", "The Atelier Collection",
   ];
   return (
-    <div className="about-marquee">
+    <div className="about-marquee" style={style}>
       <div className="about-marquee__track">
         {[...items, ...items].map((item, i) => (
           <span key={i} className="about-marquee__item">
@@ -814,7 +918,7 @@ function EditorialSplit() {
 
         <h2 className="about-editorial__title">
           The Handcrafted
-          <br /><em>Legacy</em>
+          <br /><span>Legacy</span>
         </h2>
 
         <p className="about-editorial__body">
@@ -907,7 +1011,7 @@ function TextureSection() {
             <span className="about-eyebrow-line" /> Tactile Beauty
           </div>
           <h2 className="about-texture__title">
-            Defined by<br /><em>Texture.</em>
+            Defined by<br /><span>Texture.</span>
           </h2>
           <p className="about-texture__body">
             We believe the way a fabric feels against the skin is as important as the way it catches the light.
@@ -942,91 +1046,115 @@ function TextureSection() {
 
 function ProcessSection() {
   const [ref, visible] = useFadeIn();
-  return (
-    <div ref={ref} className="about-process">
-      <div className="about-eyebrow" style={{ marginBottom:14 }}>
-        <span className="about-eyebrow-line" /> How We Create
-      </div>
-      <h2 style={{
-        fontFamily:"'Cormorant Garamond',serif", fontSize:"clamp(34px,5vw,54px)",
-        fontWeight:400, color:"#1f1a1d", marginBottom:52,
-        opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)",
-        transition: "opacity 0.8s ease, transform 0.8s ease",
-      }}>
-        The Making of a HUES Piece
-      </h2>
-      <div className="about-process__steps">
-        {PROCESS_STEPS.map((step, i) => (
-          <div
-            key={step.title}
-            className="about-process__step"
-            style={{
-              opacity: visible ? 1 : 0,
-              transform: visible ? "translateX(0)" : "translateX(-20px)",
-              transition: `opacity 0.7s ${i * 0.12}s ease, transform 0.7s ${i * 0.12}s ease`,
-            }}
-          >
-            <div className="about-process__step-num">{i + 1}</div>
-            <div className="about-process__step-content">
-              <h3 className="about-process__step-title">{step.title}</h3>
-              <p className="about-process__step-body">{step.body}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  // return (
+  //   <div ref={ref} className="about-process">
+  //     <div className="about-eyebrow" style={{ marginBottom:14 }}>
+  //       <span className="about-eyebrow-line" /> How We Create
+  //     </div>
+  //     <h2 style={{
+  //       fontFamily:"'Cormorant Garamond',serif", fontSize:"clamp(34px,5vw,54px)",
+  //       fontWeight:400, color:"var(--color-on-surface)", marginBottom:52,
+  //       opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)",
+  //       transition: "opacity 0.8s ease, transform 0.8s ease",
+  //     }}>
+  //       The Making of a HUES Piece
+  //     </h2>
+  //     <div className="about-process__steps">
+  //       {PROCESS_STEPS.map((step, i) => (
+  //         <div
+  //           key={step.title}
+  //           className="about-process__step"
+  //           style={{
+  //             opacity: visible ? 1 : 0,
+  //             transform: visible ? "translateX(0)" : "translateX(-20px)",
+  //             transition: `opacity 0.7s ${i * 0.12}s ease, transform 0.7s ${i * 0.12}s ease`,
+  //           }}
+  //         >
+  //           <div className="about-process__step-num">{i + 1}</div>
+  //           <div className="about-process__step-content">
+  //             <h3 className="about-process__step-title">{step.title}</h3>
+  //             <p className="about-process__step-body">{step.body}</p>
+  //           </div>
+  //         </div>
+  //       ))}
+  //     </div>
+  //   </div>
+  // );
 }
 
 function TeamSection() {
   const [ref, visible] = useFadeIn();
-  return (
-    <section style={{ background:"linear-gradient(135deg,#fff8fa,#fce8f0)", borderTop:"0.5px solid rgba(212,180,192,0.3)", borderBottom:"0.5px solid rgba(212,180,192,0.3)" }}>
-      <div ref={ref} className="about-team">
-        <div className="about-eyebrow" style={{ marginBottom:12 }}>
-          <span className="about-eyebrow-line" /> The Makers
-        </div>
-        <h2 style={{
-          fontFamily:"'Cormorant Garamond',serif", fontSize:"clamp(34px,5vw,54px)",
-          fontWeight:400, color:"#1f1a1d",
-          opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)",
-          transition: "opacity 0.8s ease, transform 0.8s ease",
-        }}>
-          The Minds Behind HUES
-        </h2>
-        <div className="about-team__grid">
-          {TEAM.map((member, i) => (
-            <div
-              key={member.name}
-              className="about-team-card"
-              style={{
-                opacity: visible ? 1 : 0,
-                transform: visible ? "translateY(0)" : "translateY(32px)",
-                transition: `opacity 0.8s ${i * 0.15}s ease, transform 0.8s ${i * 0.15}s ease`,
-              }}
-            >
-              <div style={{ overflow:"hidden" }}>
-                <img src={member.img} alt={member.name} className="about-team-card__img" />
-              </div>
-              <div className="about-team-card__info">
-                <p className="about-team-card__role">{member.role}</p>
-                <h3 className="about-team-card__name">{member.name}</h3>
-                <p className="about-team-card__bio">{member.bio}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+  // return (
+  //   <section style={{ background:"linear-gradient(135deg,var(--color-surface),var(--color-surface-container-low))", borderTop:"0.5px solid rgba(212,180,192,0.3)", borderBottom:"0.5px solid rgba(212,180,192,0.3)" }}>
+  //     <div ref={ref} className="about-team">
+  //       <div className="about-eyebrow" style={{ marginBottom:12 }}>
+  //         <span className="about-eyebrow-line" /> The Makers
+  //       </div>
+  //       <h2 style={{
+  //         fontFamily:"'Cormorant Garamond',serif", fontSize:"clamp(34px,5vw,54px)",
+  //         fontWeight:400, color:"var(--color-on-surface)",
+  //         opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)",
+  //         transition: "opacity 0.8s ease, transform 0.8s ease",
+  //       }}>
+  //         The Minds Behind HUES
+  //       </h2>
+  //       <div className="about-team__grid">
+  //         {TEAM.map((member, i) => (
+  //           <div
+  //             key={member.name}
+  //             className="about-team-card"
+  //             style={{
+  //               opacity: visible ? 1 : 0,
+  //               transform: visible ? "translateY(0)" : "translateY(32px)",
+  //               transition: `opacity 0.8s ${i * 0.15}s ease, transform 0.8s ${i * 0.15}s ease`,
+  //             }}
+  //           >
+  //             <div style={{ overflow:"hidden" }}>
+  //               <img src={member.img} alt={member.name} className="about-team-card__img" />
+  //             </div>
+  //             <div className="about-team-card__info">
+  //               <p className="about-team-card__role">{member.role}</p>
+  //               <h3 className="about-team-card__name">{member.name}</h3>
+  //               <p className="about-team-card__bio">{member.bio}</p>
+  //             </div>
+  //           </div>
+  //         ))}
+  //       </div>
+  //     </div>
+  //   </section>
+  // );
 }
 
 function Manifesto() {
   const [ref, visible] = useFadeIn();
+  const { theme } = useTheme();
+  const manifestoStyles = theme === "dark"
+    ? {
+        "--manifesto-bg": "linear-gradient(160deg, #120c0d 0%, #1a1113 42%, #2b1d1f 100%)",
+        "--manifesto-text": "#f3eeef",
+        "--manifesto-title": "#fff8f7",
+        "--manifesto-body": "rgba(243,238,239,0.72)",
+        "--manifesto-line": "#c46a74",
+        "--manifesto-cta-border": "rgba(232,169,180,0.5)",
+        "--manifesto-cta-text": "#e8a9b4",
+        "--manifesto-cta-hover-bg": "#e8a9b4",
+        "--manifesto-cta-hover-text": "#4a1018",
+      }
+    : {
+        "--manifesto-bg": "linear-gradient(160deg, #f6e7e6 0%, #efdbda 42%, #e4cacc 100%)",
+        "--manifesto-text": "#2b1d1f",
+        "--manifesto-title": "#1e1718",
+        "--manifesto-body": "rgba(30,23,24,0.82)",
+        "--manifesto-line": "#6f1f2f",
+        "--manifesto-cta-border": "rgba(111,31,47,0.35)",
+        "--manifesto-cta-text": "#6f1f2f",
+        "--manifesto-cta-hover-bg": "#6f1f2f",
+        "--manifesto-cta-hover-text": "#fff8f7",
+      };
   return (
-    <section className="about-manifesto">
+    <section className="about-manifesto" style={manifestoStyles}>
       {/* Bg orbs */}
-      <div className="about-orb" style={{ width:500, height:500, top:-150, left:"50%", transform:"translateX(-50%)", background:"radial-gradient(circle,rgba(133,76,111,0.18) 0%,transparent 70%)", animation:"aboutGlowPulse 4s ease-in-out infinite" }} />
+      <div className="about-orb" style={{ width:500, height:500, top:-150, left:"50%", transform:"translateX(-50%)", background:"radial-gradient(circle, rgba(233,171,185,0.18) 0%, transparent 72%)", animation:"aboutGlowPulse 4s ease-in-out infinite" }} />
 
       <div
         ref={ref}
@@ -1045,15 +1173,15 @@ function Manifesto() {
 
         <div style={{ marginBottom:24 }}>
           <div className="about-eyebrow" style={{ justifyContent:"center", color:"rgba(192,127,165,0.8)" }}>
-            <span style={{ width:22, height:"0.5px", background:"#c07fa5", display:"inline-block" }} />
+            <span style={{ width:22, height:"0.5px", background:"var(--color-primary-container)", display:"inline-block" }} />
             Our Manifesto
-            <span style={{ width:22, height:"0.5px", background:"#c07fa5", display:"inline-block" }} />
+            <span style={{ width:22, height:"0.5px", background:"var(--color-primary-container)", display:"inline-block" }} />
           </div>
         </div>
 
         <h2 className="about-manifesto__title">
           HUES exists for those<br />
-          who find power in <em>subtlety.</em>
+          who find power in <span>subtlety.</span>
         </h2>
 
         <div className="about-manifesto__line" />
@@ -1074,13 +1202,18 @@ function Manifesto() {
 
 // ── Main Export ───────────────────────────────────────────────────────────
 export default function About() {
+  const { theme } = useTheme();
+  const marqueeStyle = theme === "dark"
+    ? { background: "#fdf2f1", color: "#111111" }
+    : { background: "var(--color-on-surface)", color: "rgba(255,251,252,0.7)" };
+
   return (
     <div className="about-root">
       <style>{STYLES}</style>
       <NavBar />
       <main>
         <HeroSection />
-        <MarqueeStrip />
+        <MarqueeStrip style={marqueeStyle} />
         <EditorialSplit />
         <StatsBar />
         <ValuesSection />
