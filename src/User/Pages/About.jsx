@@ -470,6 +470,103 @@ const STYLES = `
   }
 
   /* ── Process steps ── */
+  /* Mail settings */
+  .about-mail {
+    padding: 96px 80px;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+  @media(max-width:768px){ .about-mail{ padding:60px 24px; } }
+  .about-mail__header {
+    text-align: center;
+    margin-bottom: 42px;
+  }
+  .about-mail__title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(34px, 5vw, 54px);
+    font-weight: 400;
+    color: var(--color-on-surface);
+    margin: 12px 0 0;
+  }
+  .about-mail__subtitle {
+    max-width: 760px;
+    margin: 16px auto 0;
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--color-on-surface-variant);
+  }
+  .about-mail__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+  @media(max-width:900px){ .about-mail__grid{ grid-template-columns:1fr; } }
+  .about-mail-card {
+    position: relative;
+    padding: 30px;
+    border-radius: 20px;
+    border: 0.5px solid rgba(212,180,192,0.35);
+    background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-container-low) 100%);
+    box-shadow: 0 14px 48px rgba(133,76,111,0.08);
+  }
+  .about-mail-card__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: rgba(133,76,111,0.08);
+    color: var(--color-primary);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .about-mail-card__title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 500;
+    color: var(--color-on-surface);
+    margin: 0 0 10px;
+  }
+  .about-mail-card__body {
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--color-on-surface-variant);
+    margin-bottom: 18px;
+  }
+  .about-mail-card__list {
+    display: grid;
+    gap: 12px;
+  }
+  .about-mail-card__item {
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.55);
+    border: 0.5px solid rgba(212,180,192,0.35);
+  }
+  .about-mail-card__label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+  }
+  .about-mail-card__value {
+    font-size: 14px;
+    color: var(--color-on-surface);
+    line-height: 1.6;
+    word-break: break-word;
+  }
+  .about-mail-card__note {
+    margin-top: 14px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--color-outline);
+  }
   .about-process {
     padding: 96px 80px; max-width: 1440px; margin: 0 auto;
   }
@@ -1044,6 +1141,85 @@ function TextureSection() {
   );
 }
 
+function MailSettingsSection() {
+  const [ref, visible] = useFadeIn();
+  return (
+    <section ref={ref} className="about-mail">
+      <div className="about-mail__header">
+        <div className="about-eyebrow" style={{ justifyContent: "center" }}>
+          <span className="about-eyebrow-line" />
+          Client Configuration
+          <span className="about-eyebrow-line" />
+        </div>
+        <h2 className="about-mail__title">Email, Calendar, and Contacts</h2>
+        <p className="about-mail__subtitle">
+          Use these manual settings for <strong>inquiry@huesforever.com</strong>. The mailbox password
+          should be entered directly in your client, not stored in the page source.
+        </p>
+      </div>
+
+      <div
+        className="about-mail__grid"
+        style={{
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(24px)",
+          transition: "opacity 0.8s ease, transform 0.8s ease",
+        }}
+      >
+        <article className="about-mail-card">
+          <div className="about-mail-card__tag">Mail Client Manual Settings</div>
+          <h3 className="about-mail-card__title">Secure SSL/TLS</h3>
+          <p className="about-mail-card__body">Recommended setup for IMAP, POP3, and SMTP clients.</p>
+          <div className="about-mail-card__list">
+            <div className="about-mail-card__item">
+              <span className="about-mail-card__label">Username</span>
+              <div className="about-mail-card__value">inquiry@huesforever.com</div>
+            </div>
+            <div className="about-mail-card__item">
+              <span className="about-mail-card__label">Incoming Server</span>
+              <div className="about-mail-card__value">mail.huesforever.com</div>
+            </div>
+            <div className="about-mail-card__item">
+              <span className="about-mail-card__label">Ports</span>
+              <div className="about-mail-card__value">IMAP 993, POP3 995, SMTP 465</div>
+            </div>
+            <div className="about-mail-card__item">
+              <span className="about-mail-card__label">Authentication</span>
+              <div className="about-mail-card__value">Required for IMAP, POP3, and SMTP</div>
+            </div>
+          </div>
+          <div className="about-mail-card__note">Password: use the mailbox password in your mail app.</div>
+        </article>
+
+        <article className="about-mail-card">
+          <div className="about-mail-card__tag">Calendar & Contacts</div>
+          <h3 className="about-mail-card__title">CalDAV and CardDAV</h3>
+          <p className="about-mail-card__body">Secure endpoints for calendars and address books.</p>
+          <div className="about-mail-card__list">
+            <div className="about-mail-card__item">
+              <span className="about-mail-card__label">Secure Server</span>
+              <div className="about-mail-card__value">https://mail.huesforever.com:2080</div>
+            </div>
+            <div className="about-mail-card__item">
+              <span className="about-mail-card__label">CalDAV Calendar</span>
+              <div className="about-mail-card__value">https://mail.huesforever.com:2080/calendars/inquiry@huesforever.com/calendar</div>
+            </div>
+            <div className="about-mail-card__item">
+              <span className="about-mail-card__label">CardDAV Address Book</span>
+              <div className="about-mail-card__value">https://mail.huesforever.com:2080/addressbooks/inquiry@huesforever.com/addressbook</div>
+            </div>
+            <div className="about-mail-card__item">
+              <span className="about-mail-card__label">Non-SSL Fallback</span>
+              <div className="about-mail-card__value">http://mail.huesforever.com:2079</div>
+            </div>
+          </div>
+          <div className="about-mail-card__note">Non-SSL endpoints are available only as a fallback and are not recommended.</div>
+        </article>
+      </div>
+    </section>
+  );
+}
+
 function ProcessSection() {
   const [ref, visible] = useFadeIn();
   // return (
@@ -1218,6 +1394,7 @@ export default function About() {
         <StatsBar />
         <ValuesSection />
         <TextureSection />
+        <MailSettingsSection />
         <ProcessSection />
         <TeamSection />
         <Manifesto />
