@@ -83,21 +83,22 @@ export default function Footer() {
         }}
       />
 
-      <span
-        aria-hidden="true"
-        className="pointer-events-none select-none absolute bottom-[-14px] left-1/2 -translate-x-1/2 whitespace-nowrap font-light tracking-widest z-0"
-        style={{
-          fontFamily: "'Gillie Quest', 'Cormorant Garamond', Georgia, serif",
-          fontSize: "clamp(72px, 13vw, 100px)",
-          background: "linear-gradient(115deg, var(--color-primary-container) 0%, color-mix(in srgb, var(--color-primary-container) 70%, var(--color-surface) 30%) 35%, color-mix(in srgb, var(--color-primary) 70%, var(--color-surface) 30%) 70%, var(--color-primary) 100%)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          backgroundClip: "text",
-          opacity: 0.25,
-        }}
-      >
-        HUES
-      </span>
+        <span
+          aria-hidden="true"
+          className="pointer-events-none select-none absolute left-1/2 top-[68%] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap font-light tracking-widest z-0 leading-none"
+          style={{
+            fontFamily: "'Gillie Quest', 'Cormorant Garamond', Georgia, serif",
+            fontSize: "clamp(90px, 17vw, 170px)",
+            background:
+              "linear-gradient(115deg, var(--color-primary-container) 0%, color-mix(in srgb, var(--color-primary-container) 70%, var(--color-surface) 30%) 35%, color-mix(in srgb, var(--color-primary) 70%, var(--color-surface) 30%) 70%, var(--color-primary) 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+            opacity: 0.1,
+          }}
+        >
+          HUES
+        </span>
 
       <div className="relative z-10 max-w-[1440px] mx-auto px-12 pt-16 pb-8">
         <div className="flex flex-wrap items-center justify-between gap-6 pb-10 mb-14 border-b border-[var(--color-outline-variant)]">

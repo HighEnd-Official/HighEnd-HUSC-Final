@@ -387,7 +387,6 @@ function ContactGrid({ isDark }) {
       {/* Form card */}
       <div className={`glass-card${isDark ? " dark" : ""} rounded-3xl p-8 md:p-12 relative overflow-hidden`}>
         {/* Decorative corner petals */}
-        <Petal style={{ top: 16, right: 24, animationDelay: "0s" }} />
         <Petal style={{ bottom: 24, left: 16, animationDelay: "1.5s", fontSize: 16 }} />
 
         {submitted ? (
@@ -476,9 +475,9 @@ function ContactGrid({ isDark }) {
           </span>
         </div>
 
-        <InfoCard title="Concierge Hours" icon={<IconClock size={16} />} dark={isDark}>
-          <p className="font-body text-[13px] leading-relaxed mb-1" style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}>Monday — Friday · 09:00–18:00 CET</p>
-          <p className="font-body text-[13px] leading-relaxed mb-3" style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}>Saturday · 10:00–14:00 CET</p>
+        <InfoCard title="Open Hours" icon={<IconClock size={16} />} dark={isDark}>
+          <p className="font-body text-[13px] leading-relaxed mb-1" style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}>Monday — Friday · 09:00–18:00 IST</p>
+          <p className="font-body text-[13px] leading-relaxed mb-3" style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}>Saturday · 10:00–14:00 IST</p>
           <span className={`info-pill${isDark ? " dark" : ""}`}><span style={{ display: "inline-flex", verticalAlign: "middle", marginRight: 5 }}><IconSparkle size={12} /></span>Urgent inquiries welcome</span>
         </InfoCard>
 
@@ -593,59 +592,7 @@ function LocationSection({ isDark }) {
   );
 }
 
-/* ─── Newsletter ────────────────────────────────────────────────────────── */
-function Newsletter({ isDark }) {
-  const [email, setEmail] = useState("");
-  const [done, setDone] = useState(false);
 
-  const submit = (e) => {
-    e.preventDefault();
-    if (email) { setDone(true); setTimeout(() => { setDone(false); setEmail(""); }, 3000); }
-  };
-
-  return (
-    <section className={`mt-24 py-16 px-8 md:px-20 rounded-3xl text-center relative overflow-hidden newsletter-bg${isDark ? " dark" : ""}`}>
-      <Petal style={{ top: 18, left: "8%", color: "var(--color-on-primary)", animationDelay: "0s" }} />
-      <Petal style={{ top: 30, right: "6%", color: "var(--color-on-primary)", animationDelay: "1.2s", fontSize: 16 }} />
-      <Petal style={{ bottom: 18, left: "20%", color: "var(--color-on-primary)", animationDelay: "2s", fontSize: 14 }} />
-
-      <div className="max-w-2xl mx-auto relative z-10">
-        <div style={{ fontSize: 36, marginBottom: 8, display: "inline-flex" }}><IconMail size={36} /></div>
-        <h3 className="font-display text-3xl md:text-4xl text-white mb-2">Stay Connected</h3>
-        <p className="font-body text-[14px] mb-8" style={{ color: "var(--color-surface)" }}>
-          Receive updates on new collections, exclusive events, and design insights.
-        </p>
-        {done ? (
-          <div className="font-body text-white text-[15px] font-medium py-3 px-6 rounded-full" style={{ background: "var(--color-surface)", backdropFilter: "blur(8px)" }}>
-            🎉 Thank you for subscribing! You're wonderful.
-          </div>
-        ) : (
-          <form onSubmit={submit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Your email address"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              className="font-body flex-1 px-5 py-3 rounded-full border-none outline-none text-[var(--color-on-surface)] text-[14px]"
-              style={{ background: "var(--color-surface)" }}
-            />
-            <button
-              type="submit"
-              className="font-body font-bold text-[11px] tracking-[0.16em] uppercase px-6 py-3 rounded-full transition-all duration-300 hover:shadow-xl hover:scale-105"
-              style={{ background: "var(--color-surface)", color: "var(--color-on-primary)", backdropFilter: "blur(8px)", border: "1px solid var(--color-surface)" }}
-            >
-              Subscribe 💖
-            </button>
-          </form>
-        )}
-        <p className="font-body text-[10px] mt-4" style={{ color: "var(--color-surface)" }}>
-          Unsubscribe anytime. We respect your privacy.
-        </p>
-      </div>
-    </section>
-  );
-}
 
 /* ─── Page ──────────────────────────────────────────────────────────────── */
 export default function Contact() {
@@ -729,10 +676,6 @@ export default function Contact() {
           <div className="fade-in-6">
             <LocationSection isDark={isDark} />
           </div>
-
-          {/* ── Newsletter ── */}
-          <Newsletter isDark={isDark} />
-
         </main>
         <Footer />
       </div>

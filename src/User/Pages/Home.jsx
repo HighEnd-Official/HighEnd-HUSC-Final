@@ -456,8 +456,8 @@ export default function Home() {
         />
         <div className="hero-overlay">
           <span className="hero-badge">Summer Collection 2026</span>
-          <h1 className="hero-title">The Poetry of<br /><span>Elegance</span></h1>
-          <p className="hero-subtitle">Timeless pieces crafted with love and attention to every delicate detail.</p>
+          <h1 className="hero-title">Simplicity With<br /><span>A Touch Of Spice</span></h1>
+          <p className="hero-subtitle">A curated collection of casuals and Indian-inspired everyday wear designed to keep you comfortable and stylish</p>
           <button className="btn-primary" onClick={() => navigate("/collections/dress")}>
             Explore Collection <i className="ti ti-arrow-right" aria-hidden="true"></i>
           </button>
@@ -601,7 +601,7 @@ export default function Home() {
             <div className="bento-body">
             <span className="bento-emoji"></span>
             <div className="bento-title">New Arrivals</div>
-            <p className="bento-desc">Refined silhouettes that speak to the modern minimalist. Discover the latest curation of seasonal essentials crafted with intention.</p>
+            <p className="bento-desc">Explore our newest arrivals featuring a blend of easy-going, normal casuals and vibrant, Indian-inspired everyday wear.</p>
             <button className="bento-link" onClick={() => navigate("/collections")}>
               Shop Now <i className="ti ti-arrow-right" aria-hidden="true"></i>
             </button>
@@ -635,11 +635,11 @@ export default function Home() {
       <section className="editorial-section" style={{ padding: "0 0 64px" }}>
         <div className="editorial">
           <div className="editorial-text">
-            <span className="section-tag" style={{ textAlign: "left" }}>The Journal</span>
-            <h2 className="section-title" style={{ textAlign: "left", lineHeight: "1.2" }}>Crafting Beauty<br />in Every <span>Stitch</span></h2>
-            <p className="section-desc" style={{ textAlign: "left", margin: "14px 0 24px", maxWidth: "360px" }}>An exploration of the artisan techniques behind our signature collections and the philosophy of slow luxury.</p>
+            <span className="section-tag" style={{ textAlign: "left" }}>Our Story</span>
+            <h2 className="section-title" style={{ textAlign: "left", lineHeight: "1.2" }}>Effortless Looks,<br />Thoughtfully Sourced</h2>
+            <p className="section-desc" style={{ textAlign: "left", margin: "14px 0 24px", maxWidth: "360px" }}>Born from a passion for relaxed, easy-going fashion, we curate collections that seamlessly blend unique Indian-inspired details with normal, everyday casuals. Thoughtfully sourced and globally delivered, every piece is selected to bring a sense of effortless style to your wardrobe, wherever you are.</p>
             <button className="bento-link" style={{ fontSize: "11px" }} onClick={() => navigate("/about")}>
-              Read the Story <i className="ti ti-arrow-right" aria-hidden="true"></i>
+              Our Journey <i className="ti ti-arrow-right" aria-hidden="true"></i>
             </button>
           </div>
           <div className="editorial-images">
@@ -663,18 +663,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
-
-      {/* NEWSLETTER */}
-      <section className="newsletter">
-        <span style={{ fontSize: "36px", display: "block" }}>💌</span>
-        <h2 className="nl-title">Join Our Circle</h2>
-        <p className="nl-desc">Be the first to discover new arrivals, exclusive offers, and style inspiration.</p>
-        <div className="nl-form">
-          <input className="nl-input" type="email" placeholder="Your email address" />
-          <button className="btn-white">Subscribe</button>
-        </div>
-        <p className="nl-fine">By subscribing you agree to our Privacy Policy. Unsubscribe anytime.</p>
       </section>
 
       <Footer />

@@ -1010,18 +1010,16 @@ function EditorialSplit() {
       >
         <div className="about-eyebrow" style={{ marginBottom:20 }}>
           <span className="about-eyebrow-line" />
-          The Legacy
+          Instead Of The Legacy
         </div>
 
         <h2 className="about-editorial__title">
-          The Handcrafted
-          <br /><span>Legacy</span>
+          Designed for Daily
+          <br /><span>Comfort</span>
         </h2>
 
         <p className="about-editorial__body">
-          Our atelier is a sanctuary where time-honored techniques meet modern silhouettes.
-          Every stitch is placed with intention, ensuring that each HUES piece carries the weight
-          of history and the lightness of innovation. We do not chase trends — we craft permanence.
+          Our journey is rooted in a love for simple, easy-going fashion that fits beautifully into any wardrobe. By sourcing directly from India, we pair the vibrant, breezy charm of subtle traditional inspiration with your favourite everyday casual essentials.
         </p>
 
         <div className="about-editorial__artisans">
@@ -1033,7 +1031,7 @@ function EditorialSplit() {
             ))}
           </div>
           <p className="about-editorial__artisan-text">
-            <strong>+47 master artisans</strong> across South Asia bring each piece to life
+            <strong>+47 master artisans</strong> Bringing the effortless charm of Indian-inspired casuals to your everyday wardrobe
           </p>
         </div>
 

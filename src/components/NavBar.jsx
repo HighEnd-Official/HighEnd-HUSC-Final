@@ -190,6 +190,7 @@ function MobileDrawer({
   isActiveRoute,
   isCollectionsActive,
   currentPath,
+  onSearchClick,
 }) {
   const [openDropdown, setOpenDropdown] = useState(null);
   const { theme } = useTheme();
@@ -282,7 +283,7 @@ function MobileDrawer({
         {/* footer auth */}
         <div className="hues-drawer__foot">
           <div className="hues-drawer__quick-actions">
-            <button className="hues-drawer__quick-action" type="button" onClick={onClose}>
+            <button className="hues-drawer__quick-action" type="button" onClick={() => { onSearchClick(); onClose(); }}>
               <IconSearch /> Search
             </button>
             <button className="hues-drawer__quick-action hues-drawer__quick-action--bag" type="button" onClick={() => go("/payment")}>
@@ -1058,6 +1059,7 @@ export default function NavBar() {
         isActiveRoute={isActiveRoute}
         isCollectionsActive={isCollectionsActive}
         currentPath={location.pathname}
+        onSearchClick={() => navigate("/collections")}
       />
 
       {/* ── Nav ── */}
@@ -1125,7 +1127,7 @@ export default function NavBar() {
           {/* Right: actions */}
           <div className="hues-nav__right">
 
-            <ActionBtn label="Search" className="hues-nav__action--search">
+            <ActionBtn onClick={() => navigate("/collections")} label="Search" className="hues-nav__action--search">
               <IconSearch />
             </ActionBtn>
 
@@ -1191,9 +1193,10 @@ export default function NavBar() {
             )}
             </div>
           </div>
-
         </div>
       </nav>
+
+
     </>
   );
 }
