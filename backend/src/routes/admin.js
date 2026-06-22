@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 import { asyncHandler, createHttpError } from "../lib/http.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
+import { sendEmail } from "../lib/mailer.js";
 
 const router = express.Router();
 
@@ -14,6 +15,10 @@ const expenseSchema = z.object({
   category: z.string().min(1).max(120),
   note: z.string().max(500).optional().nullable(),
   amount: z.number().positive(),
+});
+
+const replySchema = z.object({
+  replyMessage: z.string().trim().min(1).max(4000),
 });
 
 function expenseToResponse(expense) {
@@ -122,6 +127,22 @@ router.get(
   })
 );
 
+function buildReplyBody(contactMessage, replyMessage) {
+  return [
+    `Hi ${contactMessage.name},`,
+    "",
+    "Thanks for contacting Huse. Here's our reply:",
+    "",
+    replyMessage,
+    "",
+    "Original message:",
+    contactMessage.message,
+    "",
+    "Best regards,",
+    "Huse Support",
+  ].join("\n");
+}
+
 router.patch(
   "/contact-messages/:id/read",
   asyncHandler(async (req, res) => {
@@ -131,6 +152,40 @@ router.patch(
       include: { user: { select: { id: true, username: true, email: true, role: true } } },
     });
     res.json({ contactMessage });
+  })
+);
+
+router.post(
+  "/contact-messages/:id/reply",
+  asyncHandler(async (req, res) => {
+    const input = replySchema.parse(req.body);
+    const contactMessage = await prisma.contactMessage.findUnique({
+      where: { id: req.params.id },
+      include: { user: { select: { id: true, username: true, email: true, role: true } } },
+    });
+
+    if (!contactMessage) {
+      throw createHttpError(404, "Contact message not found.");
+    }
+
+    await sendEmail({
+      to: contactMessage.email,
+      subject: `Reply from Huse Support`,
+      text: buildReplyBody(contactMessage, input.replyMessage),
+    });
+
+    const updatedContactMessage = await prisma.contactMessage.update({
+      where: { id: req.params.id },
+      data: {
+        replyMessage: input.replyMessage,
+        repliedAt: new Date(),
+        isRead: true,
+        readAt: contactMessage.readAt || new Date(),
+      },
+      include: { user: { select: { id: true, username: true, email: true, role: true } } },
+    });
+
+    res.json({ contactMessage: updatedContactMessage });
   })
 );
 

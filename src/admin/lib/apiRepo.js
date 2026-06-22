@@ -176,6 +176,8 @@ function contactMessageToAdminShape(message) {
     message: message.message,
     isRead: Boolean(message.isRead),
     readAt: message.readAt ? String(message.readAt).slice(0, 16).replace("T", " ") : "",
+    replyMessage: message.replyMessage || "",
+    repliedAt: message.repliedAt ? String(message.repliedAt).slice(0, 16).replace("T", " ") : "",
     user: message.user || null,
   };
 }
@@ -201,6 +203,14 @@ export async function getContactMessages() {
 export async function markContactMessageRead(messageId) {
   const data = await apiFetch(`/admin/contact-messages/${messageId}/read`, {
     method: "PATCH",
+  });
+  return contactMessageToAdminShape(data.contactMessage);
+}
+
+export async function replyContactMessage(messageId, replyMessage) {
+  const data = await apiFetch(`/admin/contact-messages/${messageId}/reply`, {
+    method: "POST",
+    body: JSON.stringify({ replyMessage }),
   });
   return contactMessageToAdminShape(data.contactMessage);
 }

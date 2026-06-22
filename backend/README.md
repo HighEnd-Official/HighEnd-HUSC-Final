@@ -4,7 +4,8 @@
 
 1. Create a MySQL database (example: `hues`).
 2. Create `backend/.env` from `backend/.env.example` and set `DATABASE_URL`, `JWT_SECRET`.
-3. Install and migrate:
+3. If you want admin replies to be emailed to customers, fill in the SMTP settings in `backend/.env`.
+4. Install and migrate:
 
 ```bash
 cd backend
@@ -33,4 +34,4 @@ Health check: `GET /health`
 - `POST /orders` (Bearer token)
 - `GET /orders/mine` (Bearer token)
 - `GET /orders/:id` (Bearer token)
-
+- `POST /admin/contact-messages/:id/reply` (Admin/SuperAdmin only, Bearer token)
