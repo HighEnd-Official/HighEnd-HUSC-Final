@@ -142,85 +142,6 @@ function TabBar({ activeTab, onTab, onFilter, onSort }) {
   );
 }
 
-/* ─── Philosophy / Editorial strip ───────────────────────────────────── */
-function EditorialStrip() {
-  const [email, setEmail]       = useState("");
-  const [subscribed, setSub]    = useState(false);
-
-  const handleSub = () => {
-    if (email.trim()) { setSub(true); setEmail(""); }
-  };
-
-  return (
-    <section className="hues-col-editorial">
-      {/* Large decorative serif watermark */}
-      <span className="hues-col-editorial__watermark" aria-hidden="true">H</span>
-
-      <div className="hues-col-editorial__inner">
-        {/* Left — quote */}
-        <div className="hues-col-editorial__quote-box">
-          <span className="hues-col-editorial__tag">The Philosophy</span>
-
-          <blockquote className="hues-col-editorial__quote">
-            "Clothing should be an extension of one's aura — subtle, evocative, and profoundly personal."
-          </blockquote>
-
-          <div className="hues-col-editorial__author-row">
-            <span className="hues-col-editorial__author-line" />
-            <p className="hues-col-editorial__author-text">Creative Director, HUES</p>
-          </div>
-
-          <p className="hues-col-editorial__desc">
-            Every piece is designed with the intention of effortless elegance — focused on the tiny
-            details that ensure your presence is felt before it is seen.
-          </p>
-
-          {/* <button className="hues-col-editorial__lookbook-btn">
-            Explore the Lookbook
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-            </svg>
-          </button> */}
-        </div>
-
-        {/* Right — newsletter card */}
-        <div className="hues-col-editorial__card">
-          <span className="hues-col-editorial__card-emoji" aria-hidden="true">💌</span>
-          <h3 className="hues-col-editorial__card-title">Join the World of HUES</h3>
-          <p className="hues-col-editorial__card-desc">
-            Receive exclusive access to new collections, editorial insights, and private sale invitations.
-          </p>
-
-          {subscribed ? (
-            <div className="hues-col-editorial__success">
-              <span className="hues-col-editorial__success-emoji">🌸</span>
-              <p className="hues-col-editorial__success-text">Welcome to the world of HUES.</p>
-            </div>
-          ) : (
-            <div className="hues-col-editorial__form">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSub()}
-                placeholder="Email Address"
-                className="hues-col-editorial__input"
-                aria-label="Email address"
-              />
-              <button onClick={handleSub} className="hues-col-editorial__submit-btn">
-                Subscribe
-              </button>
-              <p className="hues-col-editorial__fine-print">
-                No spam, ever. Unsubscribe anytime.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 /* ─── Styles & Keyframes ─────────────────────────────────────────────── */
 const KEYFRAMES = `
   
@@ -594,10 +515,6 @@ const CollectionLayout = () => {
       <main className="flex-1">
         <Outlet />
       </main>
-
-      {/* Editorial strip + newsletter */}
-      <EditorialStrip />
-
       <Footer />
     </div>
   );

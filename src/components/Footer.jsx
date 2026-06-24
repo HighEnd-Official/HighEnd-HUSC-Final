@@ -115,7 +115,7 @@ export default function Footer() {
             <span className="text-[var(--color-primary)]">curated luxury</span> and intentional design.
           </p>
           <a
-            href="/collections"
+            href="/collections/dress"
             className="inline-flex items-center gap-2.5 px-7 py-3 rounded-full border border-[var(--color-primary)] text-[var(--color-primary)] text-[10px] font-semibold tracking-[0.18em] uppercase transition-all duration-300 hover:bg-[var(--color-primary)] hover:text-[var(--color-on-primary)] hover:scale-[1.03] no-underline"
             style={{ fontFamily: "'Cormorant Garamond', serif", whiteSpace: "nowrap" }}
           >
@@ -147,25 +147,6 @@ export default function Footer() {
             >
               Where minimalism meets feminine elegance — crafted for the modern woman.
             </p>
-            <div
-              className="flex max-w-[240px] rounded overflow-hidden border border-[var(--color-outline-variant)]"
-              role="form"
-              aria-label="Newsletter signup"
-            >
-              <input
-                type="email"
-                placeholder="Your email"
-                aria-label="Email address"
-                className="flex-1 px-3 py-2 text-[11px] tracking-wide bg-[var(--color-surface-container-low)] text-[var(--color-on-surface)] placeholder-[var(--color-on-surface-variant)] border-none outline-none font-[Jost,'Helvetica_Neue',sans-serif]"
-              />
-              <button
-                type="button"
-                aria-label="Subscribe"
-                className="px-3.5 py-2 bg-[var(--color-primary)] text-[var(--color-on-primary)] text-[11px] font-semibold tracking-[0.1em] uppercase border-none cursor-pointer transition-colors duration-250 hover:bg-[var(--color-primary-container)] font-[Jost,'Helvetica_Neue',sans-serif]"
-              >
-                Join
-              </button>
-            </div>
           </div>
 
           <div>

@@ -14,7 +14,6 @@ import Contact      from "./User/Pages/Contact";
 
 // ── Collections ───────────────────────────────────────────────────────────
 import CollectionLayout from "./User/Pages/Collection/CollectionLayout";
-import AllCollections   from "./User/Pages/Collection/AllCollections";
 import Blouse          from "./User/Pages/Collection/Blouse";
 import CropTops        from "./User/Pages/Collection/CropTops";
 import Dress           from "./User/Pages/Collection/Dress";
@@ -59,7 +58,6 @@ function App() {
             {/* ── Public routes (anyone can view) ── */}
             <Route path="/" element={<Home />} />
             <Route path="/collections" element={<CollectionLayout />}>
-              <Route index element={<AllCollections />} />
               <Route path="blouse" element={<Blouse />} />
               <Route path="crop-tops" element={<CropTops />} />
               <Route path="dress" element={<Dress />} />

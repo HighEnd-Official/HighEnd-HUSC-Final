@@ -1,12 +1,16 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useTheme } from "../context/ThemeContext";
-import { getApiBaseUrl } from "../api/client";
+import { apiFetch, getApiBaseUrl } from "../api/client";
 import { CATEGORY_GROUPS } from "../lib/productCategories";
 import logoImg from "../assets/logo/logo.png";
 import logoDarkImg from "../assets/logo/logow.png";
+import QuickView from "../User/Pages/Collection/QuickView";
+import { productToCollectionShape } from "../User/Pages/Collection/collectionUtils";
+import { isProductVisible } from "../lib/productAvailability";
+import { groupProductsForDisplay } from "../lib/productGrouping";
 
 /* ─── Nav Links ─────────────────────────────────────────────────────────── */
 const PUBLIC_LINKS = [
@@ -335,6 +339,14 @@ export default function NavBar() {
   const [desktopDropdownOpen, setDesktopDropdownOpen] = useState(null);
   const wishlistRef = useRef(null);
 
+  // Search states
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [products, setProducts] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
   const { theme } = useTheme();
   const { isAuthenticated, user, logout, hasRole } = useAuth();
   const { totalItems, wishlist = [], addItem, toggleWishlist } = useCart();
@@ -365,6 +377,55 @@ export default function NavBar() {
       return () => clearTimeout(t);
     }
   }, [wishlist.length]);
+
+  // Fetch products when search overlay is opened
+  useEffect(() => {
+    if (showSearch && products.length === 0) {
+      setSearchLoading(true);
+      apiFetch("/products")
+        .then((data) => {
+          setProducts(
+            groupProductsForDisplay(
+              (data.products || []).map(productToCollectionShape).filter((product) => isProductVisible(product))
+            )
+          );
+          setSearchError("");
+        })
+        .catch((err) => {
+          setSearchError(err?.message || "Unable to load products.");
+        })
+        .finally(() => {
+          setSearchLoading(false);
+        });
+    }
+  }, [showSearch, products.length]);
+
+  // Prevent body scroll when search overlay is active
+  useEffect(() => {
+    if (showSearch) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showSearch]);
+
+  const filteredProducts = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return [];
+    return products.filter((product) => {
+      return (
+        product.name?.toLowerCase().includes(query) ||
+        product.category?.toLowerCase().includes(query) ||
+        product.subcategory?.toLowerCase().includes(query) ||
+        product.collection?.toLowerCase().includes(query) ||
+        product.description?.toLowerCase().includes(query) ||
+        product.subtitle?.toLowerCase().includes(query)
+      );
+    });
+  }, [products, searchQuery]);
 
   const handleLogout = () => {
     logout();
@@ -1032,6 +1093,275 @@ export default function NavBar() {
           .hues-action-btn { width: 36px; height: 36px; }
           .hues-nav__right { gap: 4px; }
         }
+
+        /* ── Search Overlay Styles ── */
+        .hues-search-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 999;
+          background: color-mix(in srgb, var(--hues-bg) 95%, transparent);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          display: flex;
+          flex-direction: column;
+          animation: huesSearchFadeIn 0.3s ease both;
+        }
+
+        @keyframes huesSearchFadeIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hues-search-overlay__header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 24px 48px;
+          border-bottom: 0.5px solid var(--hues-border);
+          gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+          .hues-search-overlay__header {
+            padding: 16px 20px;
+          }
+        }
+
+        .hues-search-overlay__input-wrapper {
+          display: flex;
+          align-items: center;
+          flex: 1;
+          gap: 16px;
+          background: color-mix(in srgb, var(--hues-petal) 40%, transparent);
+          padding: 12px 20px;
+          border-radius: 40px;
+          border: 0.5px solid var(--hues-border);
+          max-width: 800px;
+          margin: 0 auto;
+          position: relative;
+        }
+
+        .hues-search-overlay__input-wrapper svg {
+          color: var(--hues-rose);
+          flex-shrink: 0;
+        }
+
+        .hues-search-overlay__input {
+          flex: 1;
+          background: transparent;
+          border: none;
+          outline: none;
+          font-family: var(--ff-body);
+          font-size: 15px;
+          color: var(--hues-rose);
+        }
+
+        .hues-search-overlay__input::placeholder {
+          color: var(--hues-muted);
+          opacity: 0.7;
+        }
+
+        .hues-search-overlay__clear {
+          background: transparent;
+          border: none;
+          color: var(--hues-muted);
+          cursor: pointer;
+          padding: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: color 0.2s;
+        }
+
+        .hues-search-overlay__clear:hover {
+          color: var(--hues-rose);
+        }
+
+        .hues-search-overlay__close-btn {
+          font-family: var(--ff-body);
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: var(--hues-muted);
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          transition: color 0.2s;
+          padding: 8px 16px;
+        }
+
+        .hues-search-overlay__close-btn:hover {
+          color: var(--hues-rose);
+        }
+
+        .hues-search-overlay__body {
+          flex: 1;
+          overflow-y: auto;
+          padding: 48px;
+          max-width: 1200px;
+          width: 100%;
+          margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+          .hues-search-overlay__body {
+            padding: 24px 20px;
+          }
+        }
+
+        .hues-search-overlay__section-title {
+          font-family: 'Cormorant Garamond', Georgia, serif;
+          font-size: 16px;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--hues-rose);
+          margin-bottom: 24px;
+          border-bottom: 0.5px solid var(--hues-border);
+          padding-bottom: 8px;
+        }
+
+        .hues-search-overlay__suggestions {
+          max-width: 600px;
+          margin: 0 auto;
+        }
+
+        .hues-search-overlay__suggestion-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+
+        .hues-search-overlay__tag-btn {
+          font-family: var(--ff-body);
+          font-size: 12px;
+          font-weight: 500;
+          color: var(--hues-rose);
+          background: transparent;
+          border: 0.5px solid var(--hues-border);
+          padding: 8px 20px;
+          border-radius: 30px;
+          cursor: pointer;
+          transition: all 0.25s;
+        }
+
+        .hues-search-overlay__tag-btn:hover {
+          background: var(--hues-petal);
+          border-color: var(--hues-blush);
+        }
+
+        .hues-search-overlay__loading,
+        .hues-search-overlay__empty,
+        .hues-search-overlay__error {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          padding: 64px 0;
+          color: var(--hues-muted);
+          font-family: var(--ff-body);
+        }
+
+        .hues-search-overlay__loading p,
+        .hues-search-overlay__empty p,
+        .hues-search-overlay__error {
+          font-size: 16px;
+          color: var(--hues-rose);
+          margin-bottom: 8px;
+        }
+
+        .hues-search-overlay__spinner {
+          width: 32px;
+          height: 32px;
+          border: 2px solid var(--hues-border);
+          border-top-color: var(--hues-rose);
+          border-radius: 50%;
+          animation: huesSearchSpinner 0.8s linear infinite;
+          margin-bottom: 16px;
+        }
+
+        @keyframes huesSearchSpinner {
+          to { transform: rotate(360deg); }
+        }
+
+        .hues-search-overlay__results-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 24px;
+          padding-bottom: 48px;
+        }
+
+        .hues-search-result-card {
+          display: flex;
+          gap: 16px;
+          padding: 16px;
+          border: 0.5px solid var(--hues-border);
+          border-radius: 16px;
+          background: var(--hues-bg);
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+
+        .hues-search-result-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 30px rgba(111, 31, 47, 0.04);
+          border-color: var(--hues-blush);
+        }
+
+        .hues-search-result-card__image {
+          width: 80px;
+          height: 100px;
+          border-radius: 8px;
+          overflow: hidden;
+          background: var(--hues-petal);
+          flex-shrink: 0;
+        }
+
+        .hues-search-result-card__image img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .hues-search-result-card__info {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          min-width: 0;
+        }
+
+        .hues-search-result-card__collection {
+          font-family: var(--ff-body);
+          font-size: 9px;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--hues-blush);
+          margin-bottom: 4px;
+        }
+
+        .hues-search-result-card__name {
+          font-family: 'Cormorant Garamond', Georgia, serif;
+          font-size: 16px;
+          font-weight: 500;
+          color: var(--hues-rose);
+          margin: 0 0 6px 0;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .hues-search-result-card__price {
+          font-family: var(--ff-body);
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--hues-rose);
+        }
       `}</style>
 
       {/* ── Announcement bar ── */}
@@ -1059,7 +1389,7 @@ export default function NavBar() {
         isActiveRoute={isActiveRoute}
         isCollectionsActive={isCollectionsActive}
         currentPath={location.pathname}
-        onSearchClick={() => navigate("/collections")}
+        onSearchClick={() => setShowSearch(true)}
       />
 
       {/* ── Nav ── */}
@@ -1127,7 +1457,7 @@ export default function NavBar() {
           {/* Right: actions */}
           <div className="hues-nav__right">
 
-            <ActionBtn onClick={() => navigate("/collections")} label="Search" className="hues-nav__action--search">
+            <ActionBtn onClick={() => setShowSearch(true)} label="Search" className="hues-nav__action--search">
               <IconSearch />
             </ActionBtn>
 
@@ -1196,7 +1526,110 @@ export default function NavBar() {
         </div>
       </nav>
 
+      {/* ── Search Overlay ── */}
+      {showSearch && (
+        <div className="hues-search-overlay" role="dialog" aria-modal="true" aria-label="Search site">
+          <div className="hues-search-overlay__header">
+            <div className="hues-search-overlay__input-wrapper">
+              <IconSearch />
+              <input
+                type="text"
+                className="hues-search-overlay__input"
+                placeholder="Search our collections..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  className="hues-search-overlay__clear"
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Clear search"
+                >
+                  <IconClose />
+                </button>
+              )}
+            </div>
+            <button
+              type="button"
+              className="hues-search-overlay__close-btn"
+              onClick={() => {
+                setShowSearch(false);
+                setSearchQuery("");
+              }}
+              aria-label="Close search"
+            >
+              Close
+            </button>
+          </div>
 
+          <div className="hues-search-overlay__body">
+            {searchLoading ? (
+              <div className="hues-search-overlay__loading">
+                <div className="hues-search-overlay__spinner" />
+                <p>Loading collection items...</p>
+              </div>
+            ) : searchError ? (
+              <div className="hues-search-overlay__error">{searchError}</div>
+            ) : !searchQuery ? (
+              <div className="hues-search-overlay__suggestions">
+                <h4 className="hues-search-overlay__section-title">Trending Searches</h4>
+                <div className="hues-search-overlay__suggestion-tags">
+                  {["Dresses", "Tops", "Shirts", "Skirts", "Pants", "Accessories"].map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      className="hues-search-overlay__tag-btn"
+                      onClick={() => setSearchQuery(tag)}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="hues-search-overlay__empty">
+                <p>No results found for "{searchQuery}"</p>
+                <span>Try searching for something else, e.g. "dress" or "pants"</span>
+              </div>
+            ) : (
+              <div className="hues-search-overlay__results">
+                <h4 className="hues-search-overlay__section-title">
+                  Search Results ({filteredProducts.length})
+                </h4>
+                <div className="hues-search-overlay__results-grid">
+                  {filteredProducts.map((product) => (
+                    <div
+                      key={product.id}
+                      className="hues-search-result-card"
+                      onClick={() => setSelectedProduct(product)}
+                    >
+                      <div className="hues-search-result-card__image">
+                        <img src={product.image} alt={product.name} />
+                      </div>
+                      <div className="hues-search-result-card__info">
+                        <span className="hues-search-result-card__collection">
+                          {product.collection}
+                        </span>
+                        <h4 className="hues-search-result-card__name">{product.name}</h4>
+                        <span className="hues-search-result-card__price">{product.price}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {selectedProduct && (
+        <QuickView
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+        />
+      )}
     </>
   );
 }

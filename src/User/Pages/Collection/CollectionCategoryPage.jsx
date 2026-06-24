@@ -113,19 +113,10 @@ export default function CollectionCategoryPage({
   }, [currentPage, totalPages]);
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface)] pt-[72px]">
-      
-      <main className="mx-auto max-w-[1440px] px-6 py-12 md:px-10 lg:px-16">
-        <section className="rounded-[36px] border border-[var(--color-outline-variant)] bg-gradient-to-br from-[var(--color-surface)] via-[var(--color-surface-container-low)] to-[var(--color-surface-container)] px-6 py-14 text-center md:px-12 md:py-20">
-          <p className="text-[10px] font-semibold tracking-[0.32em] uppercase text-[var(--color-primary)]">{eyebrow}</p>
-          <h1 className="mt-4 text-[clamp(42px,6vw,72px)] leading-[1.02] text-[var(--color-on-surface)]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300 }}>
-            {title}
-          </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-[15px] leading-relaxed text-[var(--color-on-surface-variant)]">{intro}</p>
-        </section>
-
+    <div className="min-h-screen bg-[var(--color-surface)]">
+      <main className="mx-auto max-w-[1440px] px-6 pt-4 pb-12 md:px-10 lg:px-16">
         {subcategories.length ? (
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3">
             <button
               type="button"
               onClick={() => {

@@ -626,7 +626,9 @@ export default function Home() {
             <i className="ti ti-star" style={{ fontSize: "28px", color: "var(--color-primary)" }} aria-hidden="true"></i>
             <div className="cta-title">Private Styling</div>
             <p className="cta-desc">Experience HUES with a personal design consultant, tailored to you.</p>
-            <button className="btn-outline" onClick={() => navigate("/contact")}>Book Appointment</button>
+            <button className="btn-outline" 
+            onClick={() => navigate("/contact")}>
+              Book Appointment</button>
           </div>
         </div>
       </div>
