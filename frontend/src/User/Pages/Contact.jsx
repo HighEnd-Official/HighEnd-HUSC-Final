@@ -73,21 +73,36 @@ const IconInstagram = (props) => (
   </IconBase>
 );
 
-const IconPinterest = (props) => (
+const IconFacebook = (props) => (
   <IconBase {...props}>
-    <path d="M12 21c1.5 0 3-5 3-8.5a4.5 4.5 0 1 0-6.6 4" />
-    <circle cx="12" cy="12" r="8" />
+    <path d="M15 8h-2a2 2 0 0 0-2 2v2H9v3h2v5h3v-5h2.2l.5-3H14v-1.5c0-.4.2-.5.6-.5H17V8h-2z" />
   </IconBase>
 );
 
-const IconLinkedIn = (props) => (
+const IconTikTok = (props) => (
   <IconBase {...props}>
-    <rect x="4" y="4" width="16" height="16" rx="2" />
-    <path d="M8 11v5" />
-    <path d="M8 8.5h0" />
-    <path d="M12 16v-3a2 2 0 0 1 4 0v3" />
+    <path d="M14 3v10.3a3.7 3.7 0 1 1-3.7-3.7c.4 0 .8.1 1.2.2" />
+    <path d="M14 3c.5 3 2.2 4.7 5 5" />
   </IconBase>
 );
+
+const SOCIAL_LINKS = [
+  {
+    n: "Instagram",
+    url: "https://www.instagram.com/huesforever?igsh=ZGQzZXcwemVsc3B0&utm_source=qr",
+    e: <IconInstagram size={14} />,
+  },
+  {
+    n: "Facebook",
+    url: "https://www.facebook.com/share/1BY7ewmvLN/?mibextid=wwXIfr",
+    e: <IconFacebook size={14} />,
+  },
+  {
+    n: "TikTok",
+    url: "https://www.tiktok.com/@huesforever?_r=1&_t=ZS-91WObW5NP3R",
+    e: <IconTikTok size={14} />,
+  },
+];
 
 /* ─── Inject styles ────────────────────────────────────────────────────── */
 const STYLES = `
@@ -206,13 +221,15 @@ const STYLES = `
   .send-btn.dark { background:linear-gradient(135deg,var(--color-primary),var(--color-primary-container),var(--color-primary-container)); }
 
   .social-btn {
-    display:inline-flex; align-items:center; gap:6px;
-    font-family: 'Italiana', serif; font-size:12px; font-weight:500;
-    color:var(--color-on-surface-variant); border:1px solid rgba(200,120,160,0.35);
-    padding:8px 16px; border-radius:999px;
-    background:var(--color-surface); cursor:pointer; border-style:solid;
-    transition:all .3s;
-  }
+  display:inline-flex; align-items:center; gap:6px;
+  font-family: 'Italiana', serif; font-size:12px; font-weight:500;
+  color:var(--color-on-surface-variant); border:1px solid rgba(200,120,160,0.35);
+  padding:8px 16px; border-radius:999px;
+  background:var(--color-surface); cursor:pointer; border-style:solid;
+  transition:all .3s;
+  text-decoration:none;
+}
+
   .social-btn:hover { background:rgba(200,120,160,0.15); transform:translateY(-2px); box-shadow:0 4px 16px rgba(180,60,110,0.12); }
   .social-btn.dark { color:var(--color-outline); border-color:rgba(160,80,120,0.40); background:rgba(28,14,22,0.60); }
   .social-btn.dark:hover { background:rgba(160,80,120,0.20); }
@@ -493,10 +510,17 @@ function ContactGrid({ isDark }) {
 
         <InfoCard title="Follow Our Journal" icon={<IconSparkle size={16} />} dark={isDark}>
           <div className="flex flex-wrap gap-2 mt-1">
-            {[{ n: "Instagram", e: <IconInstagram size={14} /> }, { n: "Pinterest", e: <IconPinterest size={14} /> }, { n: "LinkedIn", e: <IconLinkedIn size={14} /> }].map(s => (
-              <button key={s.n} type="button" className={`social-btn${isDark ? " dark" : ""}`}>
+            {SOCIAL_LINKS.map((s) => (
+              <a
+                key={s.n}
+                href={s.url}
+                target="_blank"
+                rel="noreferrer"
+                className={`social-btn${isDark ? " dark" : ""}`}
+                aria-label={`Open ${s.n}`}
+              >
                 <span>{s.e}</span> {s.n}
-              </button>
+              </a>
             ))}
           </div>
         </InfoCard>

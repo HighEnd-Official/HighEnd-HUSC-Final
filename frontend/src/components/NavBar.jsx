@@ -1484,7 +1484,7 @@ export default function NavBar() {
 
             <ActionBtn
               onClick={() => navigate("/payment")}
-              label="Shopping bag"
+              label="Cart"
               badge={totalItems || null}
               dot={!totalItems}
             >

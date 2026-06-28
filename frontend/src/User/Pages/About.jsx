@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
 
 // ── Replace with your actual imports ─────────────────────────────────────
@@ -973,6 +974,7 @@ function MarqueeStrip({ style }) {
 }
 
 function EditorialSplit() {
+  const navigate = useNavigate();
   const [ref, visible] = useFadeIn();
   return (
     <div ref={ref} className="about-editorial">
@@ -1035,7 +1037,7 @@ function EditorialSplit() {
           </p>
         </div>
 
-        <button className="about-editorial__cta">
+        <button type="button" className="about-editorial__cta" onClick={() => navigate("/signin")}>
           Discover The Process
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
@@ -1366,9 +1368,9 @@ function Manifesto() {
           and the enduring spirit of elegance — in every thread, in every choice, in every HUES piece.
         </p>
 
-        <button className="about-manifesto__cta">
+        <a href="/collections/dress" className="about-manifesto__cta">
           Explore the Collection
-        </button>
+        </a>
       </div>
     </section>
   );
