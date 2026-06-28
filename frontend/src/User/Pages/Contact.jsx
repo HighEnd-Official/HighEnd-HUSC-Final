@@ -267,7 +267,6 @@ function Petal({ style }) {
       style={{ position: "absolute", fontSize: 22, opacity: 0.18, ...style }}
       aria-hidden="true"
     >
-      ✿
     </div>
   );
 }
@@ -529,95 +528,6 @@ function ContactGrid({ isDark }) {
   );
 }
 
-/* ─── Location section ──────────────────────────────────────────────────── */
-function LocationSection({ isDark }) {
-  return (
-    <section className="mt-28 pt-14" style={{ borderTop: `1px solid ${isDark ? "rgba(130,50,90,0.30)" : "rgba(210,150,180,0.30)"}` }}>
-      <div className="text-center mb-14">
-        <span style={{ fontSize: 36, display: "block", marginBottom: 8 }}>🌿</span>
-        <h2 className="font-display text-4xl md:text-5xl" style={{ color: isDark ? "var(--color-surface)" : "var(--color-on-surface)" }}>
-          Visit Our Atelier
-        </h2>
-        <div className="mx-auto mt-3 h-px w-16 origin-left" style={{ background: "linear-gradient(90deg,var(--color-primary-container),transparent)", animationName: "lineGrow", animationDuration: "0.8s", animationFillMode: "both" }} />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
-        {/* Map-ish decorative panel */}
-        <div className={`glass-card${isDark ? " dark" : ""} rounded-2xl overflow-hidden`} style={{ aspectRatio: "16/9", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-          <div
-            className="absolute inset-0"
-            style={{
-              background: isDark
-                ? "radial-gradient(ellipse at 30% 40%, rgba(180,60,110,0.18) 0%, transparent 60%), radial-gradient(ellipse at 70% 70%, rgba(120,40,80,0.14) 0%, transparent 60%)"
-                : "radial-gradient(ellipse at 30% 40%, rgba(240,180,210,0.35) 0%, transparent 60%), radial-gradient(ellipse at 70% 70%, rgba(200,140,180,0.22) 0%, transparent 60%)",
-            }}
-          />
-          <div className="relative z-10 text-center">
-            <div style={{ fontSize: 48, marginBottom: 8, display: "inline-flex" }}><IconLocation size={48} /></div>
-            <div className="font-display text-xl" style={{ color: isDark ? "var(--color-primary-container)" : "var(--color-primary)" }}>Via della Spiga, 14</div>
-            <div className="font-body text-[13px] mt-1" style={{ color: isDark ? "var(--color-outline)" : "var(--color-outline)" }}>Milano MI, Italy</div>
-          </div>
-          {/* Decorative grid lines */}
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="absolute w-full" style={{ top: `${15 + i * 18}%`, height: 1, background: isDark ? "rgba(180,80,130,0.08)" : "rgba(200,130,170,0.12)" }} />
-          ))}
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="absolute h-full" style={{ left: `${10 + i * 20}%`, width: 1, background: isDark ? "rgba(180,80,130,0.08)" : "rgba(200,130,170,0.12)" }} />
-          ))}
-        </div>
-
-        <div className="space-y-5 text-center lg:text-left">
-          <div className="inline-flex items-center gap-2">
-            <div className="w-8 h-px" style={{ background: "linear-gradient(90deg,var(--color-primary-container),transparent)" }} />
-            <span className="font-body text-[10.5px] font-semibold tracking-[0.22em] uppercase" style={{ color: isDark ? "var(--color-outline)" : "var(--color-primary)" }}>The Atelier</span>
-          </div>
-
-          <h2 className="font-display text-5xl md:text-6xl" style={{ color: isDark ? "var(--color-surface)" : "var(--color-on-surface)", lineHeight: 1.05 }}>
-            Milan Flagship
-          </h2>
-
-          <p className="font-body text-[15px] leading-relaxed" style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}>
-            Via della Spiga, 14<br />20121 Milano MI, Italy<br />
-            <span style={{ fontSize: 13, opacity: .8 }}>🚇 Montenapoleone (2 min walk)</span>
-          </p>
-
-          <div
-            className="p-4 rounded-xl"
-            style={{ background: isDark ? "rgba(180,60,110,0.10)" : "rgba(240,180,210,0.18)" }}
-          >
-            <p className="font-body text-[13px] leading-relaxed" style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}>
-              "Appointments recommended for private viewings and bespoke consultations."
-            </p>
-          </div>
-
-          <div className="flex gap-3 justify-center lg:justify-start pt-2 flex-wrap">
-            <button
-              type="button"
-              className="font-body text-[11px] font-bold tracking-[0.16em] uppercase px-6 py-3 rounded-full text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
-              style={{ background: "linear-gradient(135deg,var(--color-primary),var(--color-primary-container))", boxShadow: "0 4px 16px rgba(168,56,94,0.28)" }}
-            >
-              Book Appointment
-            </button>
-            <button
-              type="button"
-              className="font-body text-[11px] font-bold tracking-[0.16em] uppercase px-6 py-3 rounded-full transition-all duration-300 hover:-translate-y-0.5"
-              style={{
-                border: `2px solid ${isDark ? "rgba(200,110,160,0.50)" : "rgba(168,56,94,0.45)"}`,
-                color: isDark ? "var(--color-outline)" : "var(--color-primary)",
-                background: "transparent",
-              }}
-            >
-              Get Directions
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-
-
 /* ─── Page ──────────────────────────────────────────────────────────────── */
 export default function Contact() {
   const [isDark, setIsDark] = useState(false);
@@ -694,11 +604,6 @@ export default function Contact() {
           {/* ── Contact grid ── */}
           <div className="fade-in-5">
             <ContactGrid isDark={isDark} />
-          </div>
-
-          {/* ── Location ── */}
-          <div className="fade-in-6">
-            <LocationSection isDark={isDark} />
           </div>
         </main>
         <Footer />
