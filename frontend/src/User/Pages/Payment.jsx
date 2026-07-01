@@ -5,7 +5,7 @@ import Footer from "../../components/Footer";
 import { useCart } from "../../context/CartContext"; 
 import { useAuth } from "../../context/AuthContext";
 import { apiFetch } from "../../api/client";
-import { getDefaultCheckoutAddress, hasCompleteCheckoutAddress, loadCheckoutAddress, saveCheckoutAddress } from "../lib/checkoutAddress";
+import { hasCompleteCheckoutAddress, loadCheckoutAddress, saveCheckoutAddress } from "../lib/checkoutAddress";
 
 /* ─── Styles ─────────────────────────────────────────────────────────────── */
 const STYLES = `
@@ -254,7 +254,7 @@ const Payment = () => {
   const [paymentMethod, setPaymentMethod] = useState("bank"); 
   const [submitted, setSubmitted] = useState(false); 
   const [form, setForm] = useState({ cardholderName: "", cardNumber: "", expiry: "", cvc: "" }); 
-  const [customer, setCustomer] = useState(() => getDefaultCheckoutAddress());
+  const [customer, setCustomer] = useState(() => loadCheckoutAddress());
 
   // — Cart context (replace with real hook in your project) —
   const {
@@ -276,8 +276,7 @@ const Payment = () => {
   const { isAuthenticated, user, updateProfile } = useAuth();
 
   useEffect(() => {
-    if (!isAuthenticated) return;
-    setCustomer(loadCheckoutAddress(user));
+    setCustomer(loadCheckoutAddress(isAuthenticated ? user : null));
   }, [isAuthenticated, user]);
 
   const toCents = (amount) => Math.round((Number(amount) || 0) * 100);
@@ -314,10 +313,6 @@ const Payment = () => {
  
   const handleSubmit = async (e) => { 
     e.preventDefault(); 
-    if (!isAuthenticated) { 
-      navigate("/signin", { state: { from: { pathname: "/payment" } } }); 
-      return; 
-    } 
     if (!items?.length) return;
     if (!isAddressComplete) {
       alert("Please complete your shipping address before placing the order.");
@@ -327,18 +322,22 @@ const Payment = () => {
 
     try {
       await apiFetch("/orders", { method: "POST", body: JSON.stringify(buildOrderPayload("Card")) });
-      try {
-        const nextUser = await updateProfile({
-          phone: customer.phone || null,
-          addressLine1: customer.addressLine1 || null,
-          addressLine2: customer.addressLine2 || null,
-          city: customer.city || null,
-          postalCode: customer.postalCode || null,
-          country: customer.country || null,
-        });
-        saveCheckoutAddress(nextUser || user, customer);
-      } catch {
-        saveCheckoutAddress(user, customer);
+      if (isAuthenticated) {
+        try {
+          const nextUser = await updateProfile({
+            phone: customer.phone || null,
+            addressLine1: customer.addressLine1 || null,
+            addressLine2: customer.addressLine2 || null,
+            city: customer.city || null,
+            postalCode: customer.postalCode || null,
+            country: customer.country || null,
+          });
+          saveCheckoutAddress(nextUser || user, customer);
+        } catch {
+          saveCheckoutAddress(user, customer);
+        }
+      } else {
+        saveCheckoutAddress(null, customer);
       }
       setSubmitted(true); 
       setTimeout(() => { clear(); navigate("/", { replace: true }); }, 3200); 
@@ -467,7 +466,19 @@ const Payment = () => {
                           </div>
                         ))}
                       </div>
-                      <button type="button" onClick={() => navigate("/bank-deposit")} className="pay-btn-outline">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!items?.length) return;
+                          if (!isAddressComplete) {
+                            alert("Please complete your shipping address before continuing.");
+                            return;
+                          }
+                          saveCheckoutAddress(isAuthenticated ? user : null, customer);
+                          navigate("/bank-deposit");
+                        }}
+                        className="pay-btn-outline"
+                      >
                         Confirm — Bank Deposit
                       </button>
                     </div>
@@ -618,6 +629,3 @@ const Payment = () => {
 };
 
 export default Payment;
-
-
-

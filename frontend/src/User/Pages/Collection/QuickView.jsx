@@ -414,12 +414,150 @@ const QuickView = ({ product, onClose }) => {
           transform: scale(1.1);
         }
         .quickview-panel {
-          box-shadow: 0 28px 80px rgba(18, 10, 13, 0.28);
-          border: 1px solid color-mix(in srgb, var(--color-outline-variant) 75%, transparent);
+          --quickview-ink: #2d2430;
+          --quickview-muted: rgba(95, 74, 91, 0.76);
+          --quickview-line: rgba(95, 67, 86, 0.13);
+          --quickview-line-strong: rgba(95, 67, 86, 0.22);
+          --quickview-glass: rgba(255, 255, 255, 0.66);
+          --quickview-glass-strong: rgba(255, 255, 255, 0.82);
+          background:
+            radial-gradient(circle at 52% 12%, rgba(221, 222, 233, 0.72), transparent 32%),
+            radial-gradient(circle at 96% 92%, rgba(203, 143, 174, 0.30), transparent 36%),
+            linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(248, 239, 247, 0.76)) !important;
+          box-shadow: 0 34px 96px rgba(91, 59, 82, 0.30);
+          border: 1px solid var(--quickview-line);
+          backdrop-filter: blur(28px) saturate(1.14);
+          -webkit-backdrop-filter: blur(28px) saturate(1.14);
+        }
+        .dark .quickview-panel,
+        [data-theme="dark"] .quickview-panel {
+          --quickview-ink: var(--color-on-surface);
+          --quickview-muted: rgba(215, 198, 199, 0.84);
+          --quickview-line: rgba(232, 169, 180, 0.14);
+          --quickview-line-strong: rgba(232, 169, 180, 0.22);
+          --quickview-glass: rgba(23, 17, 24, 0.78);
+          --quickview-glass-strong: rgba(32, 23, 33, 0.90);
+          background:
+            radial-gradient(circle at 52% 12%, rgba(53, 46, 64, 0.62), transparent 32%),
+            radial-gradient(circle at 96% 92%, rgba(116, 58, 86, 0.30), transparent 36%),
+            linear-gradient(135deg, rgba(32, 23, 33, 0.94), rgba(23, 17, 24, 0.86)) !important;
+        }
+        .quickview-panel::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background:
+            radial-gradient(circle at 44% 20%, rgba(255, 255, 255, 0.34), transparent 28%),
+            radial-gradient(circle at 100% 100%, rgba(203, 143, 174, 0.18), transparent 34%);
+          z-index: 0;
+        }
+        .quickview-panel > * {
+          position: relative;
+          z-index: 1;
+        }
+        .quickview-mobile-gallery {
+          background:
+            radial-gradient(circle at 50% 34%, rgba(221, 222, 233, 0.70), transparent 42%),
+            linear-gradient(135deg, rgba(232, 204, 210, 0.42), rgba(255, 255, 255, 0.58)) !important;
+          border-right: 1px solid var(--quickview-line);
+        }
+        .quickview-mobile-image {
+          background:
+            radial-gradient(circle at 50% 38%, rgba(221, 222, 233, 0.44), transparent 44%),
+            rgba(255, 255, 255, 0.24);
+        }
+        .quickview-mobile-thumbs {
+          background: rgba(255, 255, 255, 0.46) !important;
+          border-top: 1px solid var(--quickview-line) !important;
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+        }
+        .quickview-mobile-thumbs button {
+          border-radius: 14px;
+          box-shadow: 0 12px 26px rgba(91, 59, 82, 0.13);
+        }
+        .quickview-panel button {
+          outline: none;
+        }
+        .quickview-panel button:focus-visible,
+        .quickview-panel input:focus,
+        .quickview-panel textarea:focus,
+        .quickview-panel select:focus {
+          box-shadow: 0 0 0 4px rgba(203, 143, 174, 0.16);
+          border-color: rgba(203, 143, 174, 0.52) !important;
+        }
+        .quickview-panel input,
+        .quickview-panel textarea,
+        .quickview-panel select {
+          background: rgba(255, 255, 255, 0.58) !important;
+          border-color: var(--quickview-line) !important;
+          color: var(--quickview-ink);
+        }
+        .quickview-panel form,
+        .quickview-panel [class*="rounded-2xl"],
+        .quickview-panel [class*="rounded-full"] {
+          border-color: var(--quickview-line);
+        }
+        .quickview-panel form {
+          background: rgba(255, 255, 255, 0.50) !important;
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.48);
+          backdrop-filter: blur(14px);
+        }
+        .quickview-panel [class*="md:w-[42%]"],
+        .quickview-panel [class*="lg:w-[38%]"] {
+          background: rgba(255, 255, 255, 0.52) !important;
+          backdrop-filter: blur(20px) saturate(1.08);
+          -webkit-backdrop-filter: blur(20px) saturate(1.08);
+        }
+        .quickview-panel h2 {
+          color: var(--quickview-ink);
+          letter-spacing: 0;
+        }
+        .quickview-panel p,
+        .quickview-panel li,
+        .quickview-panel label,
+        .quickview-panel span {
+          text-wrap: pretty;
+        }
+        .size-btn {
+          min-width: 44px;
+          border-radius: 999px !important;
+          box-shadow: 0 8px 18px rgba(91, 59, 82, 0.08);
+        }
+        .size-btn:hover {
+          box-shadow: 0 12px 24px rgba(91, 59, 82, 0.14);
+        }
+        .color-swatch {
+          border-radius: 999px;
+          filter: drop-shadow(0 10px 16px rgba(91, 59, 82, 0.12));
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(203, 143, 174, 0.56);
+        }
+        .dark .quickview-mobile-gallery,
+        [data-theme="dark"] .quickview-mobile-gallery,
+        .dark .quickview-mobile-thumbs,
+        [data-theme="dark"] .quickview-mobile-thumbs,
+        .dark .quickview-panel [class*="md:w-[42%]"],
+        [data-theme="dark"] .quickview-panel [class*="md:w-[42%]"],
+        .dark .quickview-panel [class*="lg:w-[38%]"],
+        [data-theme="dark"] .quickview-panel [class*="lg:w-[38%]"],
+        .dark .quickview-panel form,
+        [data-theme="dark"] .quickview-panel form,
+        .dark .quickview-panel input,
+        [data-theme="dark"] .quickview-panel input,
+        .dark .quickview-panel textarea,
+        [data-theme="dark"] .quickview-panel textarea,
+        .dark .quickview-panel select,
+        [data-theme="dark"] .quickview-panel select {
+          background: rgba(255, 255, 255, 0.06) !important;
         }
         @media (max-width: 767px) {
           .quickview-mobile-gallery {
             min-height: 42vh;
+            border-right: 0;
+            border-bottom: 1px solid var(--quickview-line);
           }
           .quickview-mobile-image img {
             object-fit: contain !important;
@@ -427,6 +565,10 @@ const QuickView = ({ product, onClose }) => {
           }
           .quickview-mobile-thumbs {
             height: 76px;
+          }
+          .quickview-panel {
+            border-radius: 24px !important;
+            max-height: 92vh;
           }
         }
       `}</style>
@@ -935,4 +1077,3 @@ const QuickView = ({ product, onClose }) => {
 };
 
 export default QuickView;
-

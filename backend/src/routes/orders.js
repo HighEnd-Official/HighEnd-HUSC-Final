@@ -5,7 +5,7 @@ import path from "node:path";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 import { asyncHandler, createHttpError } from "../lib/http.js";
-import { requireAuth } from "../middleware/auth.js";
+import { optionalAuth, requireAuth } from "../middleware/auth.js";
 
 const router = express.Router();
 const paymentProofDir = path.resolve("uploads", "payment-proofs");
@@ -83,7 +83,7 @@ function getRequestedProductQuantities(items) {
 
 router.post(
   "/",
-  requireAuth,
+  optionalAuth,
   asyncHandler(async (req, res) => {
     const input = createOrderSchema.parse(req.body);
     const productQuantities = getRequestedProductQuantities(input.items);
@@ -123,7 +123,7 @@ router.post(
 
       return tx.order.create({
         data: {
-          userId: req.auth.sub,
+          userId: req.auth?.sub ?? null,
           status: "order pending",
           paymentMethod: input.paymentMethod,
           promoCode: input.promoCode ?? null,

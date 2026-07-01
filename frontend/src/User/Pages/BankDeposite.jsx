@@ -5,7 +5,7 @@ import NavBar from "../../components/NavBar";
 import Footer from "../../components/Footer"; 
 import { useAuth } from "../../context/AuthContext";
 import { apiFetch } from "../../api/client";
-import { getDefaultCheckoutAddress, hasCompleteCheckoutAddress, loadCheckoutAddress, saveCheckoutAddress } from "../lib/checkoutAddress";
+import { hasCompleteCheckoutAddress, loadCheckoutAddress, saveCheckoutAddress } from "../lib/checkoutAddress";
 
 /* ─── Styles ─────────────────────────────────────────────────────────────── */
 const STYLES = `
@@ -223,7 +223,7 @@ const BankDeposit = () => {
   const navigate = useNavigate(); 
   const { clear, totalPrice, items = [], subtotal = 0, shippingCost = 0 } = useCart(); 
   const { isAuthenticated, user, updateProfile } = useAuth();
-  const [customer, setCustomer] = useState(() => getDefaultCheckoutAddress());
+  const [customer, setCustomer] = useState(() => loadCheckoutAddress());
 
   const [fileName, setFileName] = useState(null);
   const [fileSize, setFileSize] = useState(null);
@@ -234,8 +234,7 @@ const BankDeposit = () => {
   const allowedProofTypes = ["image/png", "image/jpeg", "application/pdf"];
 
   useEffect(() => {
-    if (!isAuthenticated) return;
-    setCustomer(loadCheckoutAddress(user));
+    setCustomer(loadCheckoutAddress(isAuthenticated ? user : null));
   }, [isAuthenticated, user]);
 
   const selectPaymentProof = (file) => {
@@ -304,10 +303,6 @@ const BankDeposit = () => {
 
   const handleSubmit = async (e) => { 
     e.preventDefault(); 
-    if (!isAuthenticated) { 
-      navigate("/signin", { state: { from: { pathname: "/bank-deposit" } } }); 
-      return; 
-    } 
     if (!items?.length) return;
     if (!hasCompleteCheckoutAddress(customer)) {
       alert("Please complete your shipping address before placing the order.");
@@ -316,18 +311,22 @@ const BankDeposit = () => {
 
     try {
       await apiFetch("/orders", { method: "POST", body: JSON.stringify(await buildOrderPayload()) });
-      try {
-        const nextUser = await updateProfile({
-          phone: customer.phone || null,
-          addressLine1: customer.addressLine1 || null,
-          addressLine2: customer.addressLine2 || null,
-          city: customer.city || null,
-          postalCode: customer.postalCode || null,
-          country: customer.country || null,
-        });
-        saveCheckoutAddress(nextUser || user, customer);
-      } catch {
-        saveCheckoutAddress(user, customer);
+      if (isAuthenticated) {
+        try {
+          const nextUser = await updateProfile({
+            phone: customer.phone || null,
+            addressLine1: customer.addressLine1 || null,
+            addressLine2: customer.addressLine2 || null,
+            city: customer.city || null,
+            postalCode: customer.postalCode || null,
+            country: customer.country || null,
+          });
+          saveCheckoutAddress(nextUser || user, customer);
+        } catch {
+          saveCheckoutAddress(user, customer);
+        }
+      } else {
+        saveCheckoutAddress(null, customer);
       }
       setSubmitted(true); 
       setTimeout(() => { clear(); navigate("/", { replace: true }); }, 3500); 
@@ -748,5 +747,3 @@ const BankDeposit = () => {
 };
 
 export default BankDeposit;
-
-

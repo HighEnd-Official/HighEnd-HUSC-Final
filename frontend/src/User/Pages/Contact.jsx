@@ -109,11 +109,14 @@ const STYLES = `
   
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  ::selection { background: var(--color-primary-container); color: #3a0f28; }
+  ::selection { background: var(--color-primary-container); color: var(--color-on-primary-container); }
 
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: var(--color-surface-container-low); }
-  ::-webkit-scrollbar-thumb { background: linear-gradient(var(--color-primary-container), var(--color-primary-container)); border-radius: 6px; }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(var(--color-primary), var(--color-primary-container));
+    border-radius: 999px;
+  }
 
   @keyframes floatUp  { from { opacity:0; transform:translateY(40px); } to { opacity:1; transform:translateY(0); } }
   @keyframes drift    { 0%,100% { transform:translateY(0) rotate(0deg); } 50% { transform:translateY(-14px) rotate(3deg); } }
@@ -128,17 +131,39 @@ const STYLES = `
   @keyframes bgShift  { 0%,100%{ background-position:0% 50%; } 50%{ background-position:100% 50%; } }
   @keyframes petalSpin{ 0%{ transform:rotate(0deg) scale(1); opacity:.7; } 100%{ transform:rotate(360deg) scale(1.2); opacity:0; } }
 
-  .font-display { font-family:Gillie Quest; }
-  .font-body    { font-family: 'Italiana', serif; }
+  .font-display { font-family: 'Gillie Quest', 'Cormorant Garamond', Georgia, serif; }
+  .font-body    { font-family: 'Manrope', 'Inter', system-ui, sans-serif; }
 
   .contact-bg {
-    background: linear-gradient(-45deg, var(--color-surface), var(--color-surface), var(--color-surface-container-low), var(--color-surface));
+    --contact-bg: var(--color-surface);
+    --contact-bg-soft: var(--color-surface-container-low);
+    --contact-bg-raised: var(--color-surface-container);
+    --contact-bg-strong: var(--color-surface-container-high);
+    --contact-text: var(--color-on-surface);
+    --contact-muted: var(--color-on-surface-variant);
+    --contact-soft: var(--color-outline);
+    --contact-accent: var(--color-primary);
+    --contact-accent-soft: var(--color-primary-container);
+    --contact-border: color-mix(in srgb, var(--color-primary) 18%, transparent);
+    --contact-border-strong: color-mix(in srgb, var(--color-primary) 34%, transparent);
+    --contact-shadow: 0 18px 56px color-mix(in srgb, var(--color-primary) 13%, transparent);
+    --contact-shadow-strong: 0 28px 84px color-mix(in srgb, var(--color-primary) 22%, transparent);
+    background:
+      radial-gradient(56% 42% at 12% 4%, color-mix(in srgb, var(--contact-accent-soft) 24%, transparent), transparent 72%),
+      radial-gradient(48% 38% at 100% 18%, color-mix(in srgb, var(--contact-accent) 10%, transparent), transparent 70%),
+      linear-gradient(145deg, var(--contact-bg) 0%, var(--contact-bg-soft) 48%, var(--contact-bg) 100%);
     background-size: 400% 400%;
     animation: bgShift 14s ease infinite;
     min-height:100vh;
+    color: var(--contact-text);
   }
   .contact-bg.dark {
-    background: linear-gradient(-45deg, var(--color-surface-container-highest), var(--color-surface-container-highest), var(--color-surface-container-highest), var(--color-surface-container-highest));
+    --contact-shadow: 0 20px 64px rgba(0,0,0,0.42);
+    --contact-shadow-strong: 0 32px 92px rgba(0,0,0,0.56);
+    background:
+      radial-gradient(56% 42% at 10% 0%, color-mix(in srgb, var(--contact-accent) 18%, transparent), transparent 72%),
+      radial-gradient(48% 38% at 100% 16%, color-mix(in srgb, var(--contact-accent-soft) 12%, transparent), transparent 70%),
+      linear-gradient(145deg, var(--color-surface-container-low) 0%, var(--color-surface) 54%, var(--color-surface-container-high) 100%);
     background-size: 400% 400%;
   }
 
@@ -159,32 +184,35 @@ const STYLES = `
   }
 
   .glass-card {
-    background: var(--color-surface);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(220,160,190,0.25);
-    box-shadow: 0 8px 40px rgba(180,60,110,0.08), 0 1px 0 var(--color-surface) inset;
-    transition: box-shadow .4s, transform .4s;
+    background: color-mix(in srgb, var(--contact-bg) 86%, transparent);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    border: 1px solid var(--contact-border);
+    box-shadow: var(--contact-shadow), inset 0 1px 0 color-mix(in srgb, var(--contact-bg) 80%, transparent);
+    transition: box-shadow .35s ease, transform .35s ease, border-color .35s ease;
   }
   .glass-card:hover {
-    box-shadow: 0 16px 60px rgba(180,60,110,0.14);
+    border-color: var(--contact-border-strong);
+    box-shadow: var(--contact-shadow-strong);
     transform: translateY(-3px);
   }
   .glass-card.dark {
-    background: rgba(28,14,22,0.82);
-    border: 1px solid rgba(130,60,100,0.30);
-    box-shadow: 0 8px 40px rgba(0,0,0,0.40);
+    background: color-mix(in srgb, var(--color-surface-container-high) 72%, transparent);
+    border: 1px solid var(--contact-border);
+    box-shadow: var(--contact-shadow);
   }
-  .glass-card.dark:hover { box-shadow: 0 16px 60px rgba(0,0,0,0.55); }
+  .glass-card.dark:hover { box-shadow: var(--contact-shadow-strong); }
 
   .field-line-anim { animation: lineGrow 0.45s cubic-bezier(.4,0,.2,1) forwards; }
 
   .petal-float { animation: drift 5s ease-in-out infinite; }
 
   .toggle-pill {
-    width:50px; height:28px; border-radius:999px; cursor:pointer; border:none; outline:none;
-    position:relative; transition:background .35s;
+    width:50px; height:28px; border-radius:999px; cursor:pointer; border:1px solid var(--contact-border); outline:none;
+    position:relative; transition:background .35s, box-shadow .35s, transform .25s;
+    box-shadow: 0 8px 18px color-mix(in srgb, var(--contact-accent) 18%, transparent);
   }
+  .toggle-pill:hover { transform: translateY(-1px); box-shadow: 0 10px 24px color-mix(in srgb, var(--contact-accent) 24%, transparent); }
   .toggle-knob {
     position:absolute; top:4px; left:4px; width:20px; height:20px;
     border-radius:50%; background:var(--color-on-primary);
@@ -194,45 +222,62 @@ const STYLES = `
   .toggle-pill.on .toggle-knob { transform:translateX(22px); }
 
   .info-pill {
-    font-family: 'Italiana', serif; font-size:10px; font-weight:600;
-    letter-spacing:.12em; text-transform:uppercase;
-    padding:3px 10px; border-radius:999px;
-    background:rgba(200,120,160,0.12); color:var(--color-primary);
+    font-family: 'Manrope', system-ui, sans-serif; font-size:10px; font-weight:700;
+    letter-spacing:.11em; text-transform:uppercase;
+    padding:5px 11px; border-radius:999px;
+    background: color-mix(in srgb, var(--contact-accent) 10%, transparent);
+    color:var(--contact-accent);
+    border: 1px solid var(--contact-border);
     display:inline-block;
   }
-  .info-pill.dark { background:rgba(180,80,130,0.20); color:var(--color-primary-container); }
+  .info-pill.dark {
+    background: color-mix(in srgb, var(--contact-accent) 16%, transparent);
+    color:var(--contact-accent-soft);
+  }
 
   .send-btn {
     position:relative; overflow:hidden; border:none; cursor:pointer;
-    font-family: 'Italiana', serif; font-size:11px; font-weight:700;
-    letter-spacing:.20em; text-transform:uppercase;
-    padding:15px 40px; border-radius:999px;
-    color:var(--color-on-primary); transition:transform .3s, box-shadow .3s;
-    background:linear-gradient(135deg,var(--color-primary),var(--color-primary-container),var(--color-primary-container));
+    font-family: 'Manrope', system-ui, sans-serif; font-size:11px; font-weight:800;
+    letter-spacing:.18em; text-transform:uppercase;
+    padding:15px 42px; border-radius:999px;
+    color:var(--color-on-primary); transition:transform .25s ease, box-shadow .25s ease, background-position .35s ease;
+    background:linear-gradient(135deg,var(--contact-accent),var(--contact-accent-soft),var(--contact-accent));
     background-size:200% auto;
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--contact-accent) 28%, transparent);
   }
-  .send-btn:hover { transform:translateY(-2px) scale(1.03); box-shadow:0 10px 32px rgba(168,56,94,0.35); background-position:right center; }
+  .send-btn:hover { transform:translateY(-2px) scale(1.02); box-shadow:0 16px 42px color-mix(in srgb, var(--contact-accent) 36%, transparent); background-position:right center; }
   .send-btn::before {
     content:''; position:absolute; inset:0;
     background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.18) 50%,transparent 60%);
     transform:translateX(-100%); transition:transform .6s;
   }
   .send-btn:hover::before { transform:translateX(100%); }
-  .send-btn.dark { background:linear-gradient(135deg,var(--color-primary),var(--color-primary-container),var(--color-primary-container)); }
+  .send-btn:disabled {
+    cursor: wait;
+    opacity: 0.72;
+    transform: none;
+  }
+  .send-btn.dark { background:linear-gradient(135deg,var(--contact-accent),var(--contact-accent-soft),var(--contact-accent)); }
 
   .social-btn {
   display:inline-flex; align-items:center; gap:6px;
-  font-family: 'Italiana', serif; font-size:12px; font-weight:500;
-  color:var(--color-on-surface-variant); border:1px solid rgba(200,120,160,0.35);
-  padding:8px 16px; border-radius:999px;
-  background:var(--color-surface); cursor:pointer; border-style:solid;
-  transition:all .3s;
+  font-family: 'Manrope', system-ui, sans-serif; font-size:12px; font-weight:700;
+  color:var(--contact-muted); border:1px solid var(--contact-border);
+  padding:9px 16px; border-radius:999px;
+  background:color-mix(in srgb, var(--contact-bg) 78%, transparent); cursor:pointer; border-style:solid;
+  transition:transform .25s ease, box-shadow .25s ease, background-color .25s ease, color .25s ease, border-color .25s ease;
   text-decoration:none;
 }
 
-  .social-btn:hover { background:rgba(200,120,160,0.15); transform:translateY(-2px); box-shadow:0 4px 16px rgba(180,60,110,0.12); }
-  .social-btn.dark { color:var(--color-outline); border-color:rgba(160,80,120,0.40); background:rgba(28,14,22,0.60); }
-  .social-btn.dark:hover { background:rgba(160,80,120,0.20); }
+  .social-btn:hover {
+    color: var(--contact-accent);
+    border-color: var(--contact-border-strong);
+    background: color-mix(in srgb, var(--contact-accent) 10%, var(--contact-bg));
+    transform:translateY(-2px);
+    box-shadow:0 10px 24px color-mix(in srgb, var(--contact-accent) 14%, transparent);
+  }
+  .social-btn.dark { color:var(--contact-soft); border-color:var(--contact-border); background:color-mix(in srgb, var(--color-surface-container-high) 70%, transparent); }
+  .social-btn.dark:hover { background:color-mix(in srgb, var(--contact-accent) 16%, transparent); }
 
   .confetti-piece {
     position:absolute; width:8px; height:8px; border-radius:2px;
@@ -248,12 +293,69 @@ const STYLES = `
   .fade-in-6 { animation: floatUp 0.75s 0.66s ease both; }
 
   .newsletter-bg {
-    background: linear-gradient(135deg,var(--color-primary),var(--color-primary-container),var(--color-primary-container),var(--color-primary-container),var(--color-primary));
+    background: linear-gradient(135deg,var(--contact-accent),var(--contact-accent-soft),var(--contact-accent-soft),var(--contact-accent));
     background-size:300% auto; animation: shimmer 6s linear infinite;
   }
   .newsletter-bg.dark {
-    background: linear-gradient(135deg,var(--color-primary),var(--color-primary-container),var(--color-primary-container),var(--color-primary-container),var(--color-primary));
+    background: linear-gradient(135deg,var(--contact-accent),var(--contact-accent-soft),var(--contact-accent-soft),var(--contact-accent));
     background-size:300% auto;
+  }
+
+  .contact-bg main {
+    position: relative;
+  }
+
+  .contact-bg main > section:first-child {
+    padding: 18px 0 4px;
+  }
+
+  .contact-bg input::placeholder,
+  .contact-bg textarea::placeholder {
+    color: var(--contact-soft);
+    opacity: 0.7;
+  }
+
+  .contact-bg input,
+  .contact-bg textarea {
+    font-family: 'Manrope', system-ui, sans-serif;
+    letter-spacing: 0.01em;
+  }
+
+  .contact-bg label {
+    color: var(--contact-muted);
+  }
+
+  .contact-bg a:focus-visible,
+  .contact-bg button:focus-visible,
+  .contact-bg input:focus-visible,
+  .contact-bg textarea:focus-visible {
+    outline: 2px solid var(--contact-accent);
+    outline-offset: 4px;
+  }
+
+  @media (max-width: 768px) {
+    .glass-card {
+      border-radius: 18px;
+    }
+    .send-btn {
+      width: 100%;
+      justify-content: center;
+      padding-inline: 24px;
+    }
+    .social-btn {
+      min-height: 42px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .contact-bg *,
+    .contact-bg *::before,
+    .contact-bg *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 `;
 
@@ -499,7 +601,7 @@ function ContactGrid({ isDark }) {
 
         <InfoCard title="Direct Contact" icon={<IconPhone size={16} />} dark={isDark}>
           <p className="font-body text-[13px] mb-1" style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}>concierge@hues.com</p>
-          <p className="font-body text-[13px] mb-3" style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}>+44 (0) 20 7946 0123</p>
+          <p className="font-body text-[13px] mb-3" style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}>+94 77 726 0926</p>
           <div className="flex gap-2 flex-wrap">
             {["WhatsApp", "Telegram"].map(s => (
               <span key={s} className={`info-pill${isDark ? " dark" : ""}`}>{s}</span>
@@ -611,5 +713,4 @@ export default function Contact() {
     </>
   );
 }
-
 

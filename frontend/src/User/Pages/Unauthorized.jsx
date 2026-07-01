@@ -10,6 +10,20 @@ export default function Unauthorized() {
     <>
       <style>{`
         ::selection { background: var(--color-primary-container); color: var(--color-on-primary-container); }
+        main.flex-grow.flex.items-center.justify-center {
+          padding-top: 132px;
+          padding-bottom: 72px;
+          align-items: flex-start;
+        }
+        main.flex-grow.flex.items-center.justify-center > div {
+          margin-top: clamp(24px, 6vh, 72px);
+        }
+        @media (max-width: 768px) {
+          main.flex-grow.flex.items-center.justify-center {
+            padding-top: 124px;
+            padding-bottom: 56px;
+          }
+        }
       `}</style>
 
       <div className="min-h-screen flex flex-col bg-[var(--color-surface)] dark:bg-zinc-950 transition-colors duration-300">
@@ -63,4 +77,3 @@ export default function Unauthorized() {
     </>
   );
 }
-

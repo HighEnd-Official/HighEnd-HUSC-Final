@@ -2,8 +2,8 @@ import { useTheme } from "../context/ThemeContext";
 import logoImg from "../assets/logo/logo.png";
 import logoDarkImg from "../assets/logo/logow.png";
 
-const FOOTER_SHOP = ["All Products", "New Arrivals", "Best Sellers", "Archive"];
-const FOOTER_ASSIST = ["Shipping & Returns", "Care Guide", "Size Chart", "Contact Us"];
+const FOOTER_SHOP = ["All Products", "New Arrivals", "Best Sellers"];
+const FOOTER_ASSIST = ["Shipping & Returns", "Care Guide", "Size Chart"];
 
 const SOCIALS = [
   {
@@ -76,6 +76,218 @@ export default function Footer() {
       className="relative overflow-hidden bg-[var(--color-surface)] text-[var(--color-on-surface)] font-[Jost,'Helvetica_Neue',sans-serif]"
       role="contentinfo"
     >
+      <style>{`
+        footer[role="contentinfo"] {
+          --footer-ink: #2d2430;
+          --footer-muted: rgba(95, 74, 91, 0.78);
+          --footer-line: rgba(95, 67, 86, 0.12);
+          --footer-line-strong: rgba(203, 143, 174, 0.34);
+          --footer-glass: rgba(255, 255, 255, 0.50);
+          --footer-glass-strong: rgba(255, 255, 255, 0.72);
+          --footer-shadow: rgba(91, 59, 82, 0.14);
+          background:
+            radial-gradient(circle at 50% 30%, rgba(221, 222, 233, 0.86), transparent 30%),
+            radial-gradient(circle at 12% 12%, rgba(224, 220, 233, 0.88), transparent 34%),
+            radial-gradient(circle at 78% 18%, rgba(219, 199, 223, 0.70), transparent 30%),
+            radial-gradient(circle at 18% 82%, rgba(232, 204, 210, 0.74), transparent 34%),
+            radial-gradient(circle at 92% 90%, rgba(203, 143, 174, 0.62), transparent 34%),
+            linear-gradient(135deg, #e0dce9 0%, #ddcbe0 26%, #e4bfc9 48%, #d6bfd7 72%, #dddee9 100%) !important;
+          color: var(--footer-ink);
+          isolation: isolate;
+        }
+
+        footer[role="contentinfo"]::before,
+        footer[role="contentinfo"]::after {
+          content: "";
+          position: absolute;
+          pointer-events: none;
+          border-radius: 999px;
+          filter: blur(58px);
+          z-index: 0;
+        }
+
+        footer[role="contentinfo"]::before {
+          width: min(58vw, 760px);
+          height: min(58vw, 760px);
+          left: 26%;
+          top: 4%;
+          background: radial-gradient(circle, rgba(221, 222, 233, 0.72), rgba(224, 220, 233, 0.34) 48%, transparent 72%);
+        }
+
+        footer[role="contentinfo"]::after {
+          width: min(54vw, 720px);
+          height: min(54vw, 720px);
+          right: -14%;
+          bottom: -24%;
+          background: radial-gradient(circle, rgba(203, 143, 174, 0.48), rgba(228, 191, 201, 0.30) 48%, transparent 74%);
+        }
+
+        footer[role="contentinfo"] > div:first-of-type {
+          height: 4px !important;
+          background: linear-gradient(90deg, transparent 0%, #dbc7df 20%, #e8ccd2 44%, #cb8fae 72%, transparent 100%) !important;
+          box-shadow: 0 10px 28px rgba(203, 143, 174, 0.18);
+        }
+
+        footer[role="contentinfo"] > span[aria-hidden="true"] {
+          background: linear-gradient(115deg, rgba(219, 199, 223, 0.82), rgba(232, 204, 210, 0.78), rgba(203, 143, 174, 0.58)) !important;
+          -webkit-background-clip: text !important;
+          background-clip: text !important;
+          opacity: 0.12 !important;
+          filter: blur(0.2px);
+        }
+
+        footer[role="contentinfo"] > div.relative.z-10 {
+          position: relative;
+          z-index: 1;
+        }
+
+        footer[role="contentinfo"] > div.relative.z-10 > div:first-child {
+          padding: 28px;
+          border: 1px solid var(--footer-line) !important;
+          border-radius: 28px;
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.64), rgba(255, 255, 255, 0.34));
+          box-shadow: 0 24px 62px var(--footer-shadow);
+          backdrop-filter: blur(22px) saturate(1.12);
+          -webkit-backdrop-filter: blur(22px) saturate(1.12);
+        }
+
+        footer[role="contentinfo"] p,
+        footer[role="contentinfo"] a {
+          text-wrap: pretty;
+        }
+
+        footer[role="contentinfo"] p {
+          color: var(--footer-muted) !important;
+        }
+
+        footer[role="contentinfo"] p.text-\\[var\\(--color-on-surface\\)\\],
+        footer[role="contentinfo"] p.text-\\[var\\(--color-on-surface\\)\\] span {
+          color: var(--footer-ink) !important;
+        }
+
+        footer[role="contentinfo"] p.text-\\[var\\(--color-on-surface\\)\\] span,
+        footer[role="contentinfo"] h4,
+        footer[role="contentinfo"] a.text-\\[var\\(--color-primary\\)\\] {
+          color: #6f4a60 !important;
+        }
+
+        footer[role="contentinfo"] a[href="/collections/dress"] {
+          border-color: rgba(95, 67, 86, 0.18) !important;
+          background: linear-gradient(135deg, #5f4356 0%, #cb8fae 58%, #e4bfc9 100%);
+          color: #ffffff !important;
+          box-shadow: 0 18px 38px rgba(95, 67, 86, 0.22);
+        }
+
+        footer[role="contentinfo"] a[href="/collections/dress"]:hover {
+          transform: translateY(-2px) scale(1.02);
+          box-shadow: 0 22px 46px rgba(95, 67, 86, 0.28);
+        }
+
+        footer[role="contentinfo"] .grid > div {
+          min-width: 0;
+        }
+
+        footer[role="contentinfo"] .grid > div:not(:first-child) {
+          padding: 18px;
+          border: 1px solid var(--footer-line);
+          border-radius: 22px;
+          background: rgba(255, 255, 255, 0.30);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+        }
+
+        footer[role="contentinfo"] li a {
+          color: var(--footer-muted) !important;
+          border-radius: 999px;
+          padding: 4px 0;
+        }
+
+        footer[role="contentinfo"] li a:hover {
+          color: #6f4a60 !important;
+        }
+
+        footer[role="contentinfo"] li a span {
+          background: linear-gradient(90deg, #cb8fae, #e4bfc9) !important;
+        }
+
+        footer[role="contentinfo"] a[aria-label] {
+          border-color: var(--footer-line) !important;
+          background: rgba(255, 255, 255, 0.44) !important;
+          color: #6f4a60 !important;
+          box-shadow: 0 12px 26px rgba(91, 59, 82, 0.10);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+        }
+
+        footer[role="contentinfo"] a[aria-label]:hover {
+          border-color: var(--footer-line-strong) !important;
+          background: rgba(255, 255, 255, 0.72) !important;
+          color: #5f4356 !important;
+          box-shadow: 0 16px 34px rgba(91, 59, 82, 0.16);
+        }
+
+        footer[role="contentinfo"] .h-px {
+          background: linear-gradient(90deg, transparent, rgba(95, 67, 86, 0.20), transparent) !important;
+        }
+
+        footer[role="contentinfo"] img {
+          filter: drop-shadow(0 12px 24px rgba(91, 59, 82, 0.14)) !important;
+        }
+
+        .dark footer[role="contentinfo"],
+        [data-theme="dark"] footer[role="contentinfo"] {
+          --footer-ink: var(--color-on-surface);
+          --footer-muted: rgba(215, 198, 199, 0.84);
+          --footer-line: rgba(232, 169, 180, 0.14);
+          --footer-line-strong: rgba(232, 169, 180, 0.24);
+          --footer-shadow: rgba(0, 0, 0, 0.36);
+          background:
+            radial-gradient(circle at 50% 34%, rgba(53, 46, 64, 0.82), transparent 30%),
+            radial-gradient(circle at 12% 12%, rgba(73, 55, 78, 0.76), transparent 34%),
+            radial-gradient(circle at 92% 90%, rgba(116, 58, 86, 0.42), transparent 34%),
+            linear-gradient(135deg, #151018 0%, #1e1722 44%, #261722 100%) !important;
+        }
+
+        .dark footer[role="contentinfo"] > div.relative.z-10 > div:first-child,
+        [data-theme="dark"] footer[role="contentinfo"] > div.relative.z-10 > div:first-child,
+        .dark footer[role="contentinfo"] .grid > div:not(:first-child),
+        [data-theme="dark"] footer[role="contentinfo"] .grid > div:not(:first-child),
+        .dark footer[role="contentinfo"] a[aria-label],
+        [data-theme="dark"] footer[role="contentinfo"] a[aria-label] {
+          background: rgba(255, 255, 255, 0.06) !important;
+          border-color: var(--footer-line) !important;
+        }
+
+        .dark footer[role="contentinfo"] p.text-\\[var\\(--color-on-surface\\)\\],
+        [data-theme="dark"] footer[role="contentinfo"] p.text-\\[var\\(--color-on-surface\\)\\],
+        .dark footer[role="contentinfo"] p.text-\\[var\\(--color-on-surface\\)\\] span,
+        [data-theme="dark"] footer[role="contentinfo"] p.text-\\[var\\(--color-on-surface\\)\\] span {
+          color: var(--footer-ink) !important;
+        }
+
+        @media (max-width: 900px) {
+          footer[role="contentinfo"] > div.relative.z-10 {
+            padding-left: 24px;
+            padding-right: 24px;
+          }
+        }
+
+        @media (max-width: 520px) {
+          footer[role="contentinfo"] > div.relative.z-10 {
+            padding-left: 18px;
+            padding-right: 18px;
+            padding-top: 48px;
+          }
+
+          footer[role="contentinfo"] > div.relative.z-10 > div:first-child {
+            padding: 22px;
+          }
+
+          footer[role="contentinfo"] .grid > div:not(:first-child) {
+            padding: 16px;
+          }
+        }
+      `}</style>
       <div
         className="h-[3px] w-full"
         style={{
@@ -166,7 +378,7 @@ export default function Footer() {
             </h4>
             <ul className="flex flex-col gap-2.5 list-none m-0 p-0">
               {FOOTER_ASSIST.map((item) => (
-                <FooterLink key={item} href="#">{item}</FooterLink>
+                <FooterLink key={item} href="/my-orders">{item}</FooterLink>
               ))}
             </ul>
           </div>

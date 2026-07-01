@@ -564,7 +564,7 @@ const Registration = () => {
                     Your account is ready. Taking you home…
                   </p>
                   <div style={{ marginTop: 24, fontSize: 20, animation: "petalDrift 3s ease-in-out infinite" }}>
-                    ✿
+                    
                   </div>
                 </div>
 

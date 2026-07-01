@@ -14,6 +14,7 @@ import Contact      from "./User/Pages/Contact";
 
 // ── Collections ───────────────────────────────────────────────────────────
 import CollectionLayout from "./User/Pages/Collection/CollectionLayout";
+import CollectionCategoryPage from "./User/Pages/Collection/CollectionCategoryPage";
 import Blouse          from "./User/Pages/Collection/Blouse";
 import CropTops        from "./User/Pages/Collection/CropTops";
 import Dress           from "./User/Pages/Collection/Dress";
@@ -58,6 +59,19 @@ function App() {
             {/* ── Public routes (anyone can view) ── */}
             <Route path="/" element={<Home />} />
             <Route path="/collections" element={<CollectionLayout />}>
+              <Route
+                index
+                element={
+                  <CollectionCategoryPage
+                    categoryKey="all"
+                    eyebrow="Archive"
+                    title="All Collections"
+                    intro="Browse every visible product from the full HUES collection."
+                    emptyTitle="No products available yet"
+                    emptyBody="Add products in the admin dashboard and they will appear here automatically."
+                  />
+                }
+              />
               <Route path="blouse" element={<Blouse />} />
               <Route path="crop-tops" element={<CropTops />} />
               <Route path="dress" element={<Dress />} />
@@ -73,6 +87,8 @@ function App() {
             </Route>
             <Route path="/about"      element={<About />} />
             <Route path="/contact"    element={<Contact />} />
+            <Route path="/payment"      element={<Payment />} />
+            <Route path="/bank-deposit" element={<BankDeposit />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
             {/* ── Guest-only routes (redirect away if already logged in) ── */}
@@ -85,8 +101,6 @@ function App() {
 
             {/* ── Protected: any authenticated user ── */}
             <Route element={<ProtectedRoute />}>
-              <Route path="/payment"      element={<Payment />} />
-              <Route path="/bank-deposit" element={<BankDeposit />} />
               <Route path="/my-orders"    element={<MyOrders />} />
               <Route path="/profile"      element={<Profile />} />
             </Route>

@@ -3,6 +3,9 @@ import NavBar from "../../components/NavBar";
 import Footer from "../../components/Footer";
 import { apiFetch, getApiBaseUrl } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
+import adminAvatarImg from "../../assets/logo/Admin.png";
+import superAdminAvatarImg from "../../assets/logo/superAdmin.png";
+import userAvatarImg from "../../assets/logo/user.png";
 
 const emptyProfile = {
   username: "",
@@ -96,6 +99,12 @@ export default function Profile() {
   }, []);
 
   const recentOrders = useMemo(() => orders.slice(0, 3), [orders]);
+  const roleKey = String(user?.role || "").toLowerCase().replace(/[^a-z]/g, "");
+  const defaultAvatarSrc =
+    roleKey === "superadmin" ? superAdminAvatarImg :
+    roleKey === "admin" ? adminAvatarImg :
+    userAvatarImg;
+  const displayAvatarSrc = avatarPreview || defaultAvatarSrc;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -161,8 +170,17 @@ export default function Profile() {
           <section style={{ background: "var(--color-surface)", border: "1px solid rgba(210,155,185,0.22)", borderRadius: 28, boxShadow: "0 18px 48px rgba(180,60,110,0.08)", padding: 28 }}>
             <div className="flex items-center gap-4 mb-8">
               <div style={{ width: 76, height: 76, borderRadius: "50%", overflow: "hidden", background: "linear-gradient(135deg, var(--color-surface-container-low), var(--color-surface-container-low))", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(210,155,185,0.28)" }}>
-                {avatarPreview ? (
-                  <img src={avatarPreview} alt="Profile avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                {displayAvatarSrc ? (
+                  <img
+                    src={displayAvatarSrc}
+                    alt="Profile avatar"
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    onError={(event) => {
+                      if (defaultAvatarSrc && event.currentTarget.src !== defaultAvatarSrc) {
+                        event.currentTarget.src = defaultAvatarSrc;
+                      }
+                    }}
+                  />
                 ) : (
                   <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, color: "var(--color-primary)" }}>
                     {(profile.username || user?.username || "U")[0]?.toUpperCase()}
@@ -387,4 +405,3 @@ function Field({ label, value, onChange, name, readOnly = false }) {
     </label>
   );
 }
-

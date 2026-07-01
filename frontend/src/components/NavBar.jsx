@@ -7,6 +7,9 @@ import { apiFetch, getApiBaseUrl } from "../api/client";
 import { CATEGORY_GROUPS } from "../lib/productCategories";
 import logoImg from "../assets/logo/logo.png";
 import logoDarkImg from "../assets/logo/logow.png";
+import adminAvatarImg from "../assets/logo/Admin.png";
+import superAdminAvatarImg from "../assets/logo/superAdmin.png";
+import userAvatarImg from "../assets/logo/user.png";
 import QuickView from "../User/Pages/Collection/QuickView";
 import { productToCollectionShape } from "../User/Pages/Collection/collectionUtils";
 import { isProductVisible } from "../lib/productAvailability";
@@ -190,6 +193,7 @@ function MobileDrawer({
   handleLogout,
   navigate,
   avatarSrc,
+  defaultAvatarSrc,
   userInitial,
   isActiveRoute,
   isCollectionsActive,
@@ -299,7 +303,17 @@ function MobileDrawer({
               <div className="hues-drawer__user">
                 <span className="hues-user-pill__avatar" style={{ width: 28, height: 28, fontSize: 11, overflow: "hidden" }}>
                   {avatarSrc ? (
-                    <img src={avatarSrc} alt="" aria-hidden="true" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <img
+                      src={avatarSrc}
+                      alt=""
+                      aria-hidden="true"
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      onError={(event) => {
+                        if (defaultAvatarSrc && event.currentTarget.src !== defaultAvatarSrc) {
+                          event.currentTarget.src = defaultAvatarSrc;
+                        }
+                      }}
+                    />
                   ) : (
                     userInitial
                   )}
@@ -352,9 +366,15 @@ export default function NavBar() {
   const { totalItems, wishlist = [], addItem, toggleWishlist } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
-  const avatarSrc = user?.avatarUrl
+  const savedAvatarSrc = user?.avatarUrl
     ? (String(user.avatarUrl).startsWith("http") ? user.avatarUrl : `${getApiBaseUrl()}${user.avatarUrl}`)
     : "";
+  const roleKey = String(user?.role || "").toLowerCase().replace(/[^a-z]/g, "");
+  const defaultAvatarSrc =
+    roleKey === "superadmin" ? superAdminAvatarImg :
+    roleKey === "admin" ? adminAvatarImg :
+    userAvatarImg;
+  const avatarSrc = savedAvatarSrc || defaultAvatarSrc;
   const userInitial = (user?.username || "U")[0].toUpperCase();
   const userFirstName = (user?.username || "User").split(" ")[0];
 
@@ -456,26 +476,34 @@ export default function NavBar() {
       <style>{`
         
         :root {
-          --hues-rose:    #6f1f2f;
-          --hues-blush:   #c46a74;
-          --hues-petal:   #f9ecec;
-          --hues-cream:   #fff8f7;
+          --hues-rose:    var(--color-primary);
+          --hues-blush:   var(--color-primary-container);
+          --hues-petal:   var(--color-surface-container-low);
+          --hues-cream:   var(--color-surface);
+          --hues-bg:      var(--color-surface);
           --hues-ink:     var(--color-on-surface);
-          --hues-muted:   #6c4950;
-          --hues-border:  rgba(111,31,47,0.22);
-          --hues-shadow:  rgba(111,31,47,0.12);
-          --hues-r:       4px;
+          --hues-muted:   var(--color-on-surface-variant);
+          --hues-soft:    var(--color-outline);
+          --hues-border:  color-mix(in srgb, var(--color-primary) 18%, transparent);
+          --hues-border-strong: color-mix(in srgb, var(--color-primary) 34%, transparent);
+          --hues-shadow:  color-mix(in srgb, var(--color-primary) 14%, transparent);
+          --hues-shadow-strong: color-mix(in srgb, var(--color-primary) 24%, transparent);
+          --hues-r:       8px;
           --nav-h:        64px;
           --ff-display:   'Cormorant Garamond', Georgia, serif;
-          --ff-body:      'Jost', 'Helvetica Neue', sans-serif;
+          --ff-body:      'Manrope', 'Jost', 'Helvetica Neue', sans-serif;
         }
         .dark {
-          --hues-cream:   #110c0d;
-          --hues-petal:   #201215;
-          --hues-ink:     #f0e4eb;
-          --hues-muted:   #d7c6c7;
-          --hues-border:  rgba(232,169,180,0.18);
-          --hues-shadow:  rgba(0,0,0,0.35);
+          --hues-cream:   var(--color-surface);
+          --hues-petal:   var(--color-surface-container-high);
+          --hues-bg:      var(--color-surface);
+          --hues-ink:     var(--color-on-surface);
+          --hues-muted:   var(--color-on-surface-variant);
+          --hues-soft:    var(--color-outline);
+          --hues-border:  color-mix(in srgb, var(--color-primary) 20%, transparent);
+          --hues-border-strong: color-mix(in srgb, var(--color-primary) 38%, transparent);
+          --hues-shadow:  rgba(0,0,0,0.38);
+          --hues-shadow-strong: rgba(0,0,0,0.55);
         }
 
         /* ── Nav shell ── */
@@ -487,15 +515,16 @@ export default function NavBar() {
           font-family: var(--ff-body);
           backdrop-filter: blur(20px) saturate(180%);
           -webkit-backdrop-filter: blur(20px) saturate(180%);
-          border-bottom: 0.5px solid var(--hues-border);
-          transition: background 0.4s ease, box-shadow 0.4s ease;
+          border-bottom: 1px solid var(--hues-border);
+          transition: background 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
         }
         .hues-nav--scrolled {
-          background: color-mix(in srgb, var(--hues-cream) 96%, transparent);
-          box-shadow: 0 8px 40px var(--hues-shadow);
+          background: color-mix(in srgb, var(--hues-cream) 94%, transparent);
+          box-shadow: 0 12px 44px var(--hues-shadow);
+          border-color: var(--hues-border-strong);
         }
         .hues-nav--top {
-          background: color-mix(in srgb, var(--hues-cream) 70%, transparent);
+          background: color-mix(in srgb, var(--hues-cream) 76%, transparent);
         }
         .hues-nav__inner {
           width: 100%; max-width: 1440px; margin: 0 auto;
@@ -518,11 +547,11 @@ export default function NavBar() {
           display: block;
           border-radius: 6px;
           transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), opacity 0.3s, filter 0.3s;
-          filter: drop-shadow(0 2px 8px rgba(111,31,47,0.18));
+          filter: drop-shadow(0 2px 10px var(--hues-shadow));
         }
         .hues-logo:hover .hues-logo__image {
           transform: scale(1.06);
-          filter: drop-shadow(0 4px 16px rgba(111,31,47,0.32)) brightness(1.04);
+          filter: drop-shadow(0 5px 18px var(--hues-shadow-strong)) brightness(1.04);
           opacity: 0.92;
         }
 
@@ -535,19 +564,19 @@ export default function NavBar() {
 
         .hues-link {
           display: inline-flex; align-items: center; gap: 5px;
-          font-size: 14px; font-weight: 500;
-          letter-spacing: 0.18em; text-transform: uppercase;
+          font-size: 12px; font-weight: 700;
+          letter-spacing: 0.16em; text-transform: uppercase;
           color: var(--hues-muted);
           text-decoration: none;
           padding: 20px 0;
-          transition: color 0.25s;
+          transition: color 0.25s ease;
           white-space: nowrap;
           background: none; border: none; cursor: pointer;
         }
         .hues-link::after {
           content: '';
           position: absolute; bottom: 14px; left: 0;
-          width: 0; height: 0.5px;
+          width: 0; height: 1px;
           background: var(--hues-rose);
           transition: width 0.35s cubic-bezier(.25,1,.5,1);
         }
@@ -568,10 +597,12 @@ export default function NavBar() {
           position: absolute; top: calc(100% - 2px); left: -20px;
           min-width: 320px;
           max-width: 560px;
-          background: var(--hues-cream);
-          border: 0.5px solid var(--hues-border);
+          background: color-mix(in srgb, var(--hues-cream) 96%, transparent);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+          border: 1px solid var(--hues-border);
           border-radius: 0 0 var(--hues-r) var(--hues-r);
-          box-shadow: 0 20px 50px var(--hues-shadow);
+          box-shadow: 0 24px 64px var(--hues-shadow-strong);
           overflow: hidden;
           opacity: 0; pointer-events: none;
           transform: translateY(6px);
@@ -593,11 +624,11 @@ export default function NavBar() {
         }
         .hues-dropdown__link {
           display: block; padding: 12px 24px;
-          font-size: 14px; font-weight: 500;
-          letter-spacing: 0.14em; text-transform: uppercase;
+          font-size: 12px; font-weight: 700;
+          letter-spacing: 0.13em; text-transform: uppercase;
           color: var(--hues-muted);
           text-decoration: none;
-          transition: background 0.2s, color 0.2s;
+          transition: background 0.2s ease, color 0.2s ease, padding-left 0.2s ease;
           white-space: nowrap;
         }
         .hues-dropdown__link--group {
@@ -610,11 +641,12 @@ export default function NavBar() {
           letter-spacing: 0.12em;
         }
         .hues-dropdown__link:hover {
-          background: var(--hues-petal);
+          background: color-mix(in srgb, var(--hues-petal) 72%, transparent);
           color: var(--hues-rose);
+          padding-left: 28px;
         }
         .hues-dropdown__link--active {
-          background: var(--hues-petal);
+          background: color-mix(in srgb, var(--hues-petal) 78%, transparent);
           color: var(--hues-rose);
         }
         .hues-dropdown__divider {
@@ -628,23 +660,25 @@ export default function NavBar() {
           position: relative;
           display: flex; align-items: center; justify-content: center;
           width: 38px; height: 38px;
-          background: none; border: none; cursor: pointer;
+          background: transparent; border: 1px solid transparent; cursor: pointer;
           color: var(--hues-muted);
           border-radius: 50%;
-          transition: color 0.25s, background 0.25s, transform 0.2s;
+          transition: color 0.25s ease, background 0.25s ease, transform 0.2s ease, border-color 0.25s ease, box-shadow 0.25s ease;
         }
         .hues-action-btn:hover {
           color: var(--hues-rose);
-          background: var(--hues-petal);
-          transform: scale(1.08);
+          background: color-mix(in srgb, var(--hues-petal) 78%, transparent);
+          border-color: var(--hues-border);
+          box-shadow: 0 8px 20px var(--hues-shadow);
+          transform: translateY(-1px);
         }
         .hues-action-btn:active { transform: scale(0.96); }
 
         .hues-badge {
           position: absolute; top: -2px; right: -2px;
           min-width: 17px; height: 17px; padding: 0 4px;
-          background: var(--hues-rose); color: #fff;
-          font-size: 9.5px; font-weight: 600;
+          background: linear-gradient(135deg, var(--hues-rose), var(--hues-blush)); color: var(--color-on-primary);
+          font-size: 9.5px; font-weight: 800;
           border-radius: 10px;
           display: flex; align-items: center; justify-content: center;
           font-family: var(--ff-body);
@@ -675,17 +709,17 @@ export default function NavBar() {
         .hues-user-pill {
           display: inline-flex; align-items: center; gap: 6px;
           padding: 5px 13px 5px 8px;
-          background: var(--hues-petal);
-          border: 0.5px solid var(--hues-border);
+          background: color-mix(in srgb, var(--hues-petal) 84%, transparent);
+          border: 1px solid var(--hues-border);
           border-radius: 20px;
-          font-size: 11px; font-weight: 600;
+          font-size: 10px; font-weight: 800;
           letter-spacing: 0.1em; text-transform: uppercase;
           color: var(--hues-rose);
           font-family: var(--ff-body);
         }
         .hues-user-pill__avatar {
           width: 20px; height: 20px; border-radius: 50%;
-          background: var(--hues-rose); color: #fff;
+          background: linear-gradient(135deg, var(--hues-rose), var(--hues-blush)); color: var(--color-on-primary);
           font-size: 9px; font-weight: 700;
           display: flex; align-items: center; justify-content: center;
           font-family: var(--ff-body);
@@ -696,10 +730,12 @@ export default function NavBar() {
         .hues-wishlist-panel {
           position: absolute; top: calc(100% + 10px); right: 0;
           width: 320px;
-          background: var(--hues-cream);
-          border: 0.5px solid var(--hues-border);
+          background: color-mix(in srgb, var(--hues-cream) 96%, transparent);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid var(--hues-border);
           border-radius: var(--hues-r);
-          box-shadow: 0 24px 60px var(--hues-shadow);
+          box-shadow: 0 28px 74px var(--hues-shadow-strong);
           overflow: hidden;
           animation: huesPanelIn 0.28s cubic-bezier(.25,1,.5,1) both;
           z-index: 300;
@@ -711,22 +747,22 @@ export default function NavBar() {
         .hues-wishlist-panel__header {
           display: flex; justify-content: space-between; align-items: center;
           padding: 14px 16px 13px;
-          border-bottom: 0.5px solid var(--hues-border);
+          border-bottom: 1px solid var(--hues-border);
           background: color-mix(in srgb, var(--hues-petal) 60%, transparent);
         }
         .hues-wishlist-panel__title {
-          font-size: 11px; font-weight: 600;
+          font-size: 11px; font-weight: 800;
           letter-spacing: 0.16em; text-transform: uppercase;
           color: var(--hues-muted);
           font-family: var(--ff-body);
         }
         .hues-wishlist-panel__clear {
           font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
-          color: #9b4a57; background: none; border: none; cursor: pointer;
+          color: var(--hues-rose); background: none; border: none; cursor: pointer;
           text-transform: uppercase; font-family: var(--ff-body);
           transition: color 0.2s;
         }
-        .hues-wishlist-panel__clear:hover { color: #6f1f2f; }
+        .hues-wishlist-panel__clear:hover { color: var(--hues-blush); }
         .hues-wishlist-panel__close {
           display: flex; align-items: center; justify-content: center;
           width: 26px; height: 26px; border-radius: 50%;
@@ -758,7 +794,7 @@ export default function NavBar() {
           border-bottom: 0.5px solid var(--hues-border);
           transition: background 0.2s;
         }
-        .hues-wishlist-item:hover { background: var(--hues-petal); }
+        .hues-wishlist-item:hover { background: color-mix(in srgb, var(--hues-petal) 72%, transparent); }
         .hues-wishlist-item:last-child { border-bottom: none; }
         .hues-wishlist-item__img {
           width: 46px; height: 60px; border-radius: 3px;
@@ -795,7 +831,7 @@ export default function NavBar() {
           color: var(--hues-muted); flex-shrink: 0;
           transition: background 0.2s, color 0.2s;
         }
-        .hues-wishlist-item__remove:hover { background: #f9ecec; color: #6f1f2f; }
+        .hues-wishlist-item__remove:hover { background: var(--hues-petal); color: var(--hues-rose); }
 
         /* ── Announce bar ── */
         .hues-announce {
@@ -805,15 +841,15 @@ export default function NavBar() {
           top: var(--nav-h);
           z-index: 199;
           height: 34px;
-          background: var(--hues-rose);
-          color: rgba(236,236,230,0.92);
+          background: linear-gradient(90deg, var(--hues-rose) 0%, var(--hues-blush) 52%, var(--hues-rose) 100%);
+          color: var(--color-on-primary);
           display: flex;
           align-items: center;
           overflow: hidden;
           font-family: var(--ff-body);
-          font-size: 11px;
-          font-weight: 500;
-          letter-spacing: 0.18em;
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 0.17em;
           text-transform: uppercase;
         }
 
@@ -864,12 +900,14 @@ export default function NavBar() {
         .hues-drawer {
           position: fixed; top: 0; left: 0; bottom: 0; z-index: 500;
           width: min(320px, 85vw);
-          background: var(--hues-cream);
+          background: color-mix(in srgb, var(--hues-cream) 98%, transparent);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
           display: flex; flex-direction: column;
           transform: translateX(-100%);
           transition: transform 0.38s cubic-bezier(.25,1,.5,1);
           overflow: hidden;
-          box-shadow: 4px 0 40px rgba(111,31,47,0.18);
+          box-shadow: 10px 0 54px var(--hues-shadow-strong);
           pointer-events: none;
         }
         .hues-drawer--open {
@@ -879,7 +917,7 @@ export default function NavBar() {
         .hues-drawer__head {
           display: flex; align-items: center; justify-content: space-between;
           padding: 0 20px; height: var(--nav-h);
-          border-bottom: 0.5px solid var(--hues-border); flex-shrink: 0;
+          border-bottom: 1px solid var(--hues-border); flex-shrink: 0;
         }
         .hues-drawer__close {
           display: flex; align-items: center; justify-content: center;
@@ -891,20 +929,21 @@ export default function NavBar() {
         .hues-drawer__nav { flex: 1; overflow-y: auto; padding: 12px 0; }
         .hues-drawer__nav::-webkit-scrollbar { width: 3px; }
         .hues-drawer__nav::-webkit-scrollbar-thumb { background: var(--hues-border); border-radius: 4px; }
-        .hues-drawer__item { border-bottom: 0.5px solid var(--hues-border); }
+        .hues-drawer__item { border-bottom: 1px solid var(--hues-border); }
         .hues-drawer__item:last-child { border-bottom: none; }
         .hues-drawer__link {
           display: flex; align-items: center; justify-content: space-between;
           width: 100%; padding: 16px 24px;
-          font-family: var(--ff-body); font-size: 14px; font-weight: 600;
-          letter-spacing: 0.18em; text-transform: uppercase;
+          font-family: var(--ff-body); font-size: 13px; font-weight: 800;
+          letter-spacing: 0.15em; text-transform: uppercase;
           color: var(--hues-muted);
           background: none; border: none; cursor: pointer; text-align: left;
-          transition: color 0.2s, background 0.2s;
+          transition: color 0.2s ease, background 0.2s ease, padding-left 0.2s ease;
         }
         .hues-drawer__link:hover {
           color: var(--hues-rose);
           background: color-mix(in srgb, var(--hues-petal) 50%, transparent);
+          padding-left: 28px;
         }
         .hues-drawer__link--active {
           color: var(--hues-rose);
@@ -947,7 +986,7 @@ export default function NavBar() {
         .hues-drawer__sublink--active { color: var(--hues-rose); }
         .hues-drawer__foot {
           padding: 20px 24px;
-          border-top: 0.5px solid var(--hues-border);
+          border-top: 1px solid var(--hues-border);
           background: color-mix(in srgb, var(--hues-petal) 40%, transparent);
           flex-shrink: 0; display: flex; flex-direction: column; gap: 14px;
         }
@@ -966,14 +1005,14 @@ export default function NavBar() {
           width: 100%; padding: 10px 14px;
           font-family: var(--ff-body); font-size: 11px; font-weight: 600;
           letter-spacing: 0.14em; text-transform: uppercase;
-          background: none; border: 0.5px solid var(--hues-border);
+          background: color-mix(in srgb, var(--hues-cream) 54%, transparent); border: 1px solid var(--hues-border);
           border-radius: var(--hues-r); cursor: pointer;
-          transition: background 0.25s, color 0.25s;
+          transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
         }
-        .hues-drawer__signout { color: #9b4a57; }
-        .hues-drawer__signout:hover { background: #f9ecec; }
+        .hues-drawer__signout { color: var(--hues-rose); }
+        .hues-drawer__signout:hover { background: var(--hues-petal); border-color: var(--hues-border-strong); transform: translateY(-1px); }
         .hues-drawer__signin { color: var(--hues-rose); }
-        .hues-drawer__signin:hover { background: var(--hues-petal); }
+        .hues-drawer__signin:hover { background: var(--hues-petal); border-color: var(--hues-border-strong); transform: translateY(-1px); }
 
         /* ── Responsive ── */
         @media (max-width: 768px) {
@@ -988,7 +1027,7 @@ export default function NavBar() {
             display: flex;
             width: 42px;
             height: 42px;
-            border: 0.5px solid var(--hues-border);
+            border: 1px solid var(--hues-border);
             background: color-mix(in srgb, var(--hues-petal) 35%, transparent);
           }
           .hues-hamburger:active { transform: scale(0.96); }
@@ -1023,7 +1062,7 @@ export default function NavBar() {
           .hues-action-btn {
             width: 38px;
             height: 38px;
-            border: 0.5px solid var(--hues-border);
+            border: 1px solid var(--hues-border);
             border-radius: 50%;
             background: color-mix(in srgb, var(--hues-petal) 28%, transparent);
           }
@@ -1037,7 +1076,7 @@ export default function NavBar() {
             width: min(360px, 88vw);
             border-top-right-radius: 24px;
             border-bottom-right-radius: 24px;
-            border-right: 0.5px solid var(--hues-border);
+            border-right: 1px solid var(--hues-border);
           }
           .hues-drawer__head {
             padding: 0 18px;
@@ -1072,13 +1111,13 @@ export default function NavBar() {
             width: 100%;
             min-height: 44px;
             padding: 10px 14px;
-            border: 0.5px solid var(--hues-border);
+            border: 1px solid var(--hues-border);
             border-radius: var(--hues-r);
-            background: color-mix(in srgb, var(--hues-petal) 35%, transparent);
+            background: color-mix(in srgb, var(--hues-petal) 45%, transparent);
             color: var(--hues-muted);
             font-family: var(--ff-body);
             font-size: 11px;
-            font-weight: 600;
+            font-weight: 800;
             letter-spacing: 0.14em;
             text-transform: uppercase;
             cursor: pointer;
@@ -1102,9 +1141,11 @@ export default function NavBar() {
           width: 100%;
           height: 100%;
           z-index: 999;
-          background: color-mix(in srgb, var(--hues-bg) 95%, transparent);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
+          background:
+            radial-gradient(54% 40% at 8% 0%, color-mix(in srgb, var(--hues-blush) 18%, transparent), transparent 72%),
+            color-mix(in srgb, var(--hues-bg) 96%, transparent);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
           display: flex;
           flex-direction: column;
           animation: huesSearchFadeIn 0.3s ease both;
@@ -1120,7 +1161,7 @@ export default function NavBar() {
           align-items: center;
           justify-content: space-between;
           padding: 24px 48px;
-          border-bottom: 0.5px solid var(--hues-border);
+          border-bottom: 1px solid var(--hues-border);
           gap: 24px;
         }
 
@@ -1135,13 +1176,14 @@ export default function NavBar() {
           align-items: center;
           flex: 1;
           gap: 16px;
-          background: color-mix(in srgb, var(--hues-petal) 40%, transparent);
-          padding: 12px 20px;
+          background: color-mix(in srgb, var(--hues-petal) 58%, transparent);
+          padding: 13px 20px;
           border-radius: 40px;
-          border: 0.5px solid var(--hues-border);
+          border: 1px solid var(--hues-border);
           max-width: 800px;
           margin: 0 auto;
           position: relative;
+          box-shadow: 0 12px 34px var(--hues-shadow);
         }
 
         .hues-search-overlay__input-wrapper svg {
@@ -1156,7 +1198,7 @@ export default function NavBar() {
           outline: none;
           font-family: var(--ff-body);
           font-size: 15px;
-          color: var(--hues-rose);
+          color: var(--hues-ink);
         }
 
         .hues-search-overlay__input::placeholder {
@@ -1183,8 +1225,8 @@ export default function NavBar() {
         .hues-search-overlay__close-btn {
           font-family: var(--ff-body);
           font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 0.18em;
+          font-weight: 800;
+          letter-spacing: 0.16em;
           text-transform: uppercase;
           color: var(--hues-muted);
           background: transparent;
@@ -1221,7 +1263,7 @@ export default function NavBar() {
           text-transform: uppercase;
           color: var(--hues-rose);
           margin-bottom: 24px;
-          border-bottom: 0.5px solid var(--hues-border);
+          border-bottom: 1px solid var(--hues-border);
           padding-bottom: 8px;
         }
 
@@ -1239,11 +1281,11 @@ export default function NavBar() {
         .hues-search-overlay__tag-btn {
           font-family: var(--ff-body);
           font-size: 12px;
-          font-weight: 500;
+          font-weight: 700;
           color: var(--hues-rose);
-          background: transparent;
-          border: 0.5px solid var(--hues-border);
-          padding: 8px 20px;
+          background: color-mix(in srgb, var(--hues-cream) 64%, transparent);
+          border: 1px solid var(--hues-border);
+          padding: 9px 20px;
           border-radius: 30px;
           cursor: pointer;
           transition: all 0.25s;
@@ -1251,7 +1293,8 @@ export default function NavBar() {
 
         .hues-search-overlay__tag-btn:hover {
           background: var(--hues-petal);
-          border-color: var(--hues-blush);
+          border-color: var(--hues-border-strong);
+          transform: translateY(-1px);
         }
 
         .hues-search-overlay__loading,
@@ -1300,17 +1343,18 @@ export default function NavBar() {
           display: flex;
           gap: 16px;
           padding: 16px;
-          border: 0.5px solid var(--hues-border);
-          border-radius: 16px;
-          background: var(--hues-bg);
+          border: 1px solid var(--hues-border);
+          border-radius: var(--hues-r);
+          background: color-mix(in srgb, var(--hues-cream) 82%, transparent);
           cursor: pointer;
-          transition: all 0.3s;
+          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease;
         }
 
         .hues-search-result-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 10px 30px rgba(111, 31, 47, 0.04);
-          border-color: var(--hues-blush);
+          box-shadow: 0 16px 42px var(--hues-shadow);
+          border-color: var(--hues-border-strong);
+          background: color-mix(in srgb, var(--hues-petal) 45%, var(--hues-cream));
         }
 
         .hues-search-result-card__image {
@@ -1362,6 +1406,404 @@ export default function NavBar() {
           font-weight: 600;
           color: var(--hues-rose);
         }
+
+        /* Premium pastel aura refresh */
+        :root {
+          --hues-rose: #6f4a60;
+          --hues-blush: #cb8fae;
+          --hues-petal: #e8ccd2;
+          --hues-cream: rgba(255, 255, 255, 0.68);
+          --hues-bg: #e0dce9;
+          --hues-ink: #2d2430;
+          --hues-muted: rgba(95, 74, 91, 0.76);
+          --hues-soft: #8f6f84;
+          --hues-border: rgba(95, 67, 86, 0.12);
+          --hues-border-strong: rgba(203, 143, 174, 0.34);
+          --hues-shadow: rgba(91, 59, 82, 0.13);
+          --hues-shadow-strong: rgba(91, 59, 82, 0.22);
+          --hues-r: 18px;
+        }
+
+        .dark,
+        [data-theme="dark"] {
+          --hues-rose: #e8a9b4;
+          --hues-blush: #cb8fae;
+          --hues-petal: rgba(232, 169, 180, 0.16);
+          --hues-cream: rgba(23, 17, 24, 0.78);
+          --hues-bg: #151018;
+          --hues-ink: var(--color-on-surface);
+          --hues-muted: rgba(215, 198, 199, 0.84);
+          --hues-soft: rgba(232, 169, 180, 0.70);
+          --hues-border: rgba(232, 169, 180, 0.14);
+          --hues-border-strong: rgba(232, 169, 180, 0.24);
+          --hues-shadow: rgba(0, 0, 0, 0.36);
+          --hues-shadow-strong: rgba(0, 0, 0, 0.52);
+        }
+
+        .hues-announce {
+          background:
+            radial-gradient(circle at 50% 10%, rgba(203, 143, 174, 0.22), transparent 42%),
+            linear-gradient(90deg, #6f1f2f 0%, #7d2c42 48%, #6f1f2f 100%);
+          border-bottom: 1px solid rgba(111, 31, 47, 0.36);
+          color: #fff8f9;
+          box-shadow: 0 12px 34px rgba(111, 31, 47, 0.18);
+        }
+
+        .hues-announce__item {
+          color: #fff8f9;
+          opacity: 0.94;
+        }
+
+        .hues-nav {
+          background:
+            radial-gradient(circle at 48% 0%, rgba(221, 222, 233, 0.62), transparent 32%),
+            radial-gradient(circle at 92% 100%, rgba(203, 143, 174, 0.28), transparent 36%),
+            rgba(255, 255, 255, 0.56);
+          border-bottom: 1px solid var(--hues-border);
+          box-shadow: 0 16px 46px rgba(91, 59, 82, 0.08);
+          backdrop-filter: blur(24px) saturate(1.18);
+          -webkit-backdrop-filter: blur(24px) saturate(1.18);
+        }
+
+        .hues-nav--top {
+          background:
+            radial-gradient(circle at 50% 0%, rgba(221, 222, 233, 0.50), transparent 34%),
+            linear-gradient(90deg, rgba(224, 220, 233, 0.48), rgba(232, 204, 210, 0.34), rgba(219, 199, 223, 0.40));
+        }
+
+        .hues-nav--scrolled {
+          background:
+            radial-gradient(circle at 50% 0%, rgba(221, 222, 233, 0.70), transparent 34%),
+            rgba(255, 255, 255, 0.72);
+          box-shadow: 0 18px 48px rgba(91, 59, 82, 0.14);
+          border-color: var(--hues-border-strong);
+        }
+
+        .hues-logo__image {
+          filter: drop-shadow(0 10px 22px rgba(91, 59, 82, 0.13));
+        }
+
+        .hues-link,
+        .hues-link--button {
+          color: var(--hues-ink);
+          border-radius: 999px;
+          padding: 9px 13px;
+          transition: color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease;
+        }
+
+        .hues-link:hover,
+        .hues-link--active {
+          color: #5f4356;
+          background: rgba(255, 255, 255, 0.44);
+          box-shadow: inset 0 0 0 1px rgba(203, 143, 174, 0.24);
+        }
+
+        .hues-link::after {
+          display: none;
+        }
+
+        .hues-action-btn,
+        .hues-hamburger,
+        .hues-drawer__close,
+        .hues-wishlist-panel__close {
+          border: 1px solid var(--hues-border);
+          background: rgba(255, 255, 255, 0.46);
+          color: #5f4356;
+          box-shadow: 0 10px 24px rgba(91, 59, 82, 0.08);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+        }
+
+        .hues-action-btn:hover,
+        .hues-hamburger:hover,
+        .hues-drawer__close:hover,
+        .hues-wishlist-panel__close:hover {
+          background: rgba(255, 255, 255, 0.72);
+          border-color: var(--hues-border-strong);
+          color: #5f4356;
+          box-shadow: 0 14px 30px rgba(91, 59, 82, 0.14);
+        }
+
+        .hues-badge,
+        .hues-dot {
+          background: linear-gradient(135deg, #5f4356 0%, #cb8fae 64%, #e4bfc9 100%);
+          color: #ffffff;
+          box-shadow: 0 8px 16px rgba(95, 67, 86, 0.22);
+        }
+
+        .hues-user-pill {
+          border: 1px solid var(--hues-border);
+          background: rgba(255, 255, 255, 0.46);
+          color: #5f4356;
+          box-shadow: 0 10px 24px rgba(91, 59, 82, 0.08);
+          backdrop-filter: blur(14px);
+        }
+
+        .hues-user-pill__avatar {
+          background: linear-gradient(135deg, #e8ccd2, #dbc7df 56%, #dddee9);
+          color: #5f4356;
+          border: 1px solid rgba(95, 67, 86, 0.14);
+        }
+
+        .hues-dropdown {
+          border: 1px solid var(--hues-border);
+          background:
+            radial-gradient(circle at 52% 0%, rgba(221, 222, 233, 0.62), transparent 35%),
+            linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(248, 239, 247, 0.72));
+          box-shadow: 0 28px 70px rgba(91, 59, 82, 0.18);
+          backdrop-filter: blur(26px) saturate(1.12);
+          -webkit-backdrop-filter: blur(26px) saturate(1.12);
+        }
+
+        .hues-dropdown__link {
+          border-radius: 14px;
+          color: var(--hues-ink);
+        }
+
+        .hues-dropdown__link:hover,
+        .hues-dropdown__link--active {
+          background: rgba(232, 204, 210, 0.36);
+          color: #5f4356;
+        }
+
+        .hues-wishlist-panel {
+          border: 1px solid var(--hues-border);
+          background:
+            radial-gradient(circle at 50% 0%, rgba(221, 222, 233, 0.68), transparent 34%),
+            radial-gradient(circle at 100% 100%, rgba(203, 143, 174, 0.24), transparent 36%),
+            linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(248, 239, 247, 0.76));
+          box-shadow: 0 30px 80px rgba(91, 59, 82, 0.22);
+          backdrop-filter: blur(26px) saturate(1.14);
+          -webkit-backdrop-filter: blur(26px) saturate(1.14);
+        }
+
+        .hues-wishlist-panel__header {
+          border-bottom: 1px solid var(--hues-border);
+          background: rgba(255, 255, 255, 0.26);
+        }
+
+        .hues-wishlist-item {
+          border: 1px solid var(--hues-border);
+          background: rgba(255, 255, 255, 0.46);
+          border-radius: 18px;
+          box-shadow: 0 14px 30px rgba(91, 59, 82, 0.08);
+        }
+
+        .hues-wishlist-item__img {
+          border-radius: 14px;
+          background:
+            radial-gradient(circle at 50% 34%, rgba(221, 222, 233, 0.54), transparent 42%),
+            linear-gradient(135deg, rgba(232, 204, 210, 0.42), rgba(255, 255, 255, 0.58));
+        }
+
+        .hues-wishlist-item__add,
+        .hues-wishlist-panel__clear,
+        .hues-drawer__signin,
+        .hues-drawer__signout,
+        .hues-drawer__quick-action {
+          border-color: var(--hues-border);
+          background: rgba(255, 255, 255, 0.48);
+          color: #5f4356;
+        }
+
+        .hues-wishlist-item__add:hover,
+        .hues-wishlist-panel__clear:hover,
+        .hues-drawer__signin:hover,
+        .hues-drawer__signout:hover,
+        .hues-drawer__quick-action:hover {
+          background: rgba(255, 255, 255, 0.72);
+          border-color: var(--hues-border-strong);
+        }
+
+        .hues-drawer-backdrop {
+          background:
+            radial-gradient(circle at 50% 30%, rgba(221, 222, 233, 0.36), transparent 38%),
+            rgba(45, 36, 48, 0.28);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+        }
+
+        .hues-drawer {
+          background:
+            radial-gradient(circle at 48% 8%, rgba(221, 222, 233, 0.70), transparent 34%),
+            radial-gradient(circle at 100% 100%, rgba(203, 143, 174, 0.28), transparent 38%),
+            linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(248, 239, 247, 0.76));
+          border-left: 1px solid var(--hues-border);
+          box-shadow: -28px 0 78px rgba(91, 59, 82, 0.24);
+          backdrop-filter: blur(26px) saturate(1.14);
+          -webkit-backdrop-filter: blur(26px) saturate(1.14);
+        }
+
+        .hues-drawer__head,
+        .hues-drawer__foot {
+          border-color: var(--hues-border);
+          background: rgba(255, 255, 255, 0.24);
+        }
+
+        .hues-drawer__link,
+        .hues-drawer__sublink {
+          border: 1px solid transparent;
+          border-radius: 16px;
+          color: var(--hues-ink);
+        }
+
+        .hues-drawer__link:hover,
+        .hues-drawer__link--active,
+        .hues-drawer__sublink:hover,
+        .hues-drawer__sublink--active {
+          background: rgba(255, 255, 255, 0.52);
+          border-color: var(--hues-border);
+          color: #5f4356;
+        }
+
+        .hues-search-overlay {
+          background:
+            radial-gradient(circle at 50% 34%, rgba(221, 222, 233, 0.86), transparent 30%),
+            radial-gradient(circle at 12% 14%, rgba(224, 220, 233, 0.90), transparent 34%),
+            radial-gradient(circle at 78% 10%, rgba(219, 199, 223, 0.72), transparent 30%),
+            radial-gradient(circle at 18% 82%, rgba(232, 204, 210, 0.76), transparent 34%),
+            radial-gradient(circle at 92% 90%, rgba(203, 143, 174, 0.66), transparent 34%),
+            linear-gradient(135deg, #e0dce9 0%, #ddcbe0 26%, #e4bfc9 48%, #d6bfd7 72%, #dddee9 100%);
+          backdrop-filter: blur(24px) saturate(1.12);
+          -webkit-backdrop-filter: blur(24px) saturate(1.12);
+        }
+
+        .hues-search-overlay__header {
+          border-bottom: 1px solid var(--hues-border);
+          background: rgba(255, 255, 255, 0.32);
+          backdrop-filter: blur(20px);
+        }
+
+        .hues-search-overlay__input-wrapper,
+        .hues-search-result-card,
+        .hues-search-overlay__tag-btn {
+          border: 1px solid var(--hues-border);
+          background: rgba(255, 255, 255, 0.58);
+          box-shadow: 0 18px 44px rgba(91, 59, 82, 0.10);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+        }
+
+        .hues-search-overlay__input-wrapper:focus-within {
+          border-color: var(--hues-border-strong);
+          box-shadow: 0 22px 52px rgba(91, 59, 82, 0.14), 0 0 0 4px rgba(203, 143, 174, 0.14);
+        }
+
+        .hues-search-overlay__tag-btn:hover,
+        .hues-search-result-card:hover {
+          background: rgba(255, 255, 255, 0.78);
+          border-color: var(--hues-border-strong);
+        }
+
+        .hues-search-result-card__image {
+          border-radius: 14px;
+          background:
+            radial-gradient(circle at 50% 34%, rgba(221, 222, 233, 0.54), transparent 42%),
+            linear-gradient(135deg, rgba(232, 204, 210, 0.42), rgba(255, 255, 255, 0.58));
+        }
+
+        .dark .hues-announce,
+        [data-theme="dark"] .hues-announce,
+        .dark .hues-nav,
+        [data-theme="dark"] .hues-nav,
+        .dark .hues-dropdown,
+        [data-theme="dark"] .hues-dropdown,
+        .dark .hues-wishlist-panel,
+        [data-theme="dark"] .hues-wishlist-panel,
+        .dark .hues-drawer,
+        [data-theme="dark"] .hues-drawer {
+          background:
+            radial-gradient(circle at 50% 0%, rgba(53, 46, 64, 0.62), transparent 34%),
+            radial-gradient(circle at 100% 100%, rgba(116, 58, 86, 0.26), transparent 38%),
+            rgba(23, 17, 24, 0.84);
+        }
+
+        .dark .hues-announce,
+        [data-theme="dark"] .hues-announce {
+          background:
+            radial-gradient(circle at 50% 10%, rgba(203, 143, 174, 0.18), transparent 42%),
+            linear-gradient(90deg, #6f1f2f 0%, #7d2c42 48%, #6f1f2f 100%);
+          color: #fff8f9;
+          border-bottom: 1px solid rgba(111, 31, 47, 0.46);
+          box-shadow: 0 12px 34px rgba(111, 31, 47, 0.24);
+        }
+
+        .dark .hues-announce__item,
+        [data-theme="dark"] .hues-announce__item {
+          color: #fff8f9;
+          opacity: 0.96;
+        }
+
+        .dark .hues-action-btn,
+        [data-theme="dark"] .hues-action-btn,
+        .dark .hues-hamburger,
+        [data-theme="dark"] .hues-hamburger,
+        .dark .hues-user-pill,
+        [data-theme="dark"] .hues-user-pill,
+        .dark .hues-wishlist-item,
+        [data-theme="dark"] .hues-wishlist-item,
+        .dark .hues-search-overlay__input-wrapper,
+        [data-theme="dark"] .hues-search-overlay__input-wrapper,
+        .dark .hues-search-result-card,
+        [data-theme="dark"] .hues-search-result-card,
+        .dark .hues-search-overlay__tag-btn,
+        [data-theme="dark"] .hues-search-overlay__tag-btn,
+        .dark .hues-drawer__signin,
+        [data-theme="dark"] .hues-drawer__signin,
+        .dark .hues-drawer__signout,
+        [data-theme="dark"] .hues-drawer__signout,
+        .dark .hues-drawer__quick-action,
+        [data-theme="dark"] .hues-drawer__quick-action {
+          background: rgba(255, 255, 255, 0.07);
+          color: var(--hues-ink);
+        }
+
+        .dark .hues-search-overlay,
+        [data-theme="dark"] .hues-search-overlay {
+          background:
+            radial-gradient(circle at 50% 34%, rgba(53, 46, 64, 0.82), transparent 30%),
+            radial-gradient(circle at 12% 12%, rgba(73, 55, 78, 0.76), transparent 34%),
+            radial-gradient(circle at 92% 90%, rgba(116, 58, 86, 0.42), transparent 34%),
+            linear-gradient(135deg, #151018 0%, #1e1722 44%, #261722 100%);
+        }
+
+        @media (max-width: 768px) {
+          .hues-nav {
+            padding: 0 14px;
+            background:
+              radial-gradient(circle at 52% 0%, rgba(221, 222, 233, 0.58), transparent 34%),
+              rgba(255, 255, 255, 0.64);
+          }
+
+          .hues-logo__image {
+            filter: drop-shadow(0 8px 18px rgba(91, 59, 82, 0.12));
+          }
+
+          .hues-search-overlay__input-wrapper {
+            padding: 12px 14px;
+          }
+        }
+
+        .hues-nav button:focus-visible,
+        .hues-nav a:focus-visible,
+        .hues-drawer button:focus-visible,
+        .hues-drawer a:focus-visible,
+        .hues-search-overlay button:focus-visible,
+        .hues-search-overlay input:focus-visible {
+          outline: 2px solid var(--hues-rose);
+          outline-offset: 4px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .hues-nav *,
+          .hues-drawer *,
+          .hues-search-overlay *,
+          .hues-announce * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
+        }
       `}</style>
 
       {/* ── Announcement bar ── */}
@@ -1385,6 +1827,7 @@ export default function NavBar() {
         handleLogout={handleLogout}
         navigate={navigate}
         avatarSrc={avatarSrc}
+        defaultAvatarSrc={defaultAvatarSrc}
         userInitial={userInitial}
         isActiveRoute={isActiveRoute}
         isCollectionsActive={isCollectionsActive}
@@ -1497,7 +1940,17 @@ export default function NavBar() {
                 <span className="hues-user-pill" style={{ marginLeft: 6 }}>
                   <span className="hues-user-pill__avatar" aria-hidden="true" style={{ overflow: "hidden" }}>
                     {avatarSrc ? (
-                      <img src={avatarSrc} alt="" aria-hidden="true" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <img
+                        src={avatarSrc}
+                        alt=""
+                        aria-hidden="true"
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        onError={(event) => {
+                          if (defaultAvatarSrc && event.currentTarget.src !== defaultAvatarSrc) {
+                            event.currentTarget.src = defaultAvatarSrc;
+                          }
+                        }}
+                      />
                     ) : (
                       userInitial
                     )}
@@ -1633,4 +2086,3 @@ export default function NavBar() {
     </>
   );
 }
-
