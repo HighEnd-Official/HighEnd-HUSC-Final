@@ -1,6 +1,7 @@
 import { useTheme } from "../context/ThemeContext";
 import logoImg from "../assets/logo/logo.png";
 import logoDarkImg from "../assets/logo/logow.png";
+import highEndLogoImg from "../assets/logo/HightEndLogo-removebg-preview.png";
 
 const FOOTER_SHOP = ["All Products", "New Arrivals", "Best Sellers"];
 const FOOTER_ASSIST = ["Shipping & Returns", "Care Guide", "Size Chart"];
@@ -422,9 +423,11 @@ export default function Footer() {
           <p className="text-[10px] tracking-[0.14em] uppercase text-[var(--color-on-surface-variant)]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
             © 2026 HUES Editorial Fashion. All rights reserved.
           </p>
-          <p className="text-[10px] tracking-[0.14em] uppercase text-[var(--color-on-surface-variant)]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-            🚀 HIGH END
-          </p>
+          <img
+            src={highEndLogoImg}
+            alt="HIGH END"
+            className="h-16 max-w-[300px] object-contain opacity-90 hover:opacity-100 transition-opacity duration-300"
+          />
         </div>
       </div>
     </footer>
