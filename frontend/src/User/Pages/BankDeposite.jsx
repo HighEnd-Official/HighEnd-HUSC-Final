@@ -6,6 +6,8 @@ import Footer from "../../components/Footer";
 import { useAuth } from "../../context/AuthContext";
 import { apiFetch } from "../../api/client";
 import { hasCompleteCheckoutAddress, loadCheckoutAddress, saveCheckoutAddress } from "../lib/checkoutAddress";
+import { Toast } from "../../components/Toast";
+import { useToast } from "../../hooks/useToast";
 
 /* ─── Styles ─────────────────────────────────────────────────────────────── */
 const STYLES = `
@@ -189,10 +191,10 @@ const STYLES = `
 
 /* ─── Bank details ─────────────────────────────────────────────────────── */
 const bankDetails = [
-  { label: "Bank Name",      value: "Etheric National Bank" },
-  { label: "Account Name",   value: "HUES ATELIER (PVT) LTD" },
-  { label: "Account Number", value: "0012 8847 2291" },
-  { label: "Branch",         value: "Central Boutique District" },
+  { label: "Bank Name",      value: "Commercial Bank" },
+  { label: "Account Name",   value: "R D Weerasinghe" },
+  { label: "Account Number", value: "8004941206" },
+  { label: "Branch",         value: "Maharagama" },
 ];
 
 const steps = [
@@ -232,6 +234,7 @@ const BankDeposit = () => {
   const [submitted, setSubmitted] = useState(false);
   const fileInputRef = useRef(null);
   const allowedProofTypes = ["image/png", "image/jpeg", "application/pdf"];
+  const { toast, showToast, hideToast } = useToast();
 
   useEffect(() => {
     setCustomer(loadCheckoutAddress(isAuthenticated ? user : null));
@@ -240,11 +243,11 @@ const BankDeposit = () => {
   const selectPaymentProof = (file) => {
     if (!file) return;
     if (!allowedProofTypes.includes(file.type)) {
-      alert("Please upload a PNG, JPG, or PDF deposit slip.");
+      showToast("Please upload a PNG, JPG, or PDF deposit slip.");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      alert("Please upload a deposit slip smaller than 5 MB.");
+      showToast("Please upload a deposit slip smaller than 5 MB.");
       return;
     }
     setPaymentProofFile(file);
@@ -305,7 +308,7 @@ const BankDeposit = () => {
     e.preventDefault(); 
     if (!items?.length) return;
     if (!hasCompleteCheckoutAddress(customer)) {
-      alert("Please complete your shipping address before placing the order.");
+      showToast("Please complete your shipping address before placing the order.");
       return;
     }
 
@@ -331,14 +334,15 @@ const BankDeposit = () => {
       setSubmitted(true); 
       setTimeout(() => { clear(); navigate("/", { replace: true }); }, 3500); 
     } catch (err) {
-      alert(err?.message || "Failed to place order.");
+      showToast(err?.message || "Failed to place order.");
     }
   }; 
 
   return (
     <div className="bd-page">
       <style>{STYLES}</style>
-      <NavBar />
+    {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
+    <NavBar />
 
       <main className="max-w-[1440px] mx-auto px-6 md:px-14 lg:px-20 pt-[100px] pb-28">
 

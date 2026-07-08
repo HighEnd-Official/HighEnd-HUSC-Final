@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import NavBar from "../../components/NavBar";
 import Footer from "../../components/Footer";
 import { useAuth } from "../../context/AuthContext";
+import { Toast } from "../../components/Toast";
+import { useToast } from "../../hooks/useToast";
 
 /* ── Floating petal ─────────────────────────────────────────────────────── */
 function Petal({ x, y, delay, size, char }) {
@@ -180,6 +182,8 @@ const Registration = () => {
       setTimeout(() => navigate("/signin"), 1800); 
     }, 900); 
   }; 
+
+  const { toast, showToast, hideToast } = useToast();
 
   return (
     <>
@@ -467,7 +471,8 @@ const Registration = () => {
       `}</style>
 
       <div className="reg-root">
-        <NavBar />
+    {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
+    <NavBar />
 
         <main
           className="reg-split flex flex-grow"
@@ -743,11 +748,11 @@ const Registration = () => {
                       <p style={{ marginTop: 16, fontSize: 10, color: "var(--color-outline)", lineHeight: 1.7, textAlign: "center" }}>
                         By creating an account you agree to our{" "}
                         <button type="button" style={{ background: "none", border: "none", color: "var(--color-primary-container)", fontSize: 10, cursor: "pointer", textDecoration: "underline", fontFamily: "'Cormorant Garamond', serif" }}
-                          onClick={() => alert("Terms of Service coming soon.")}>
+                          onClick={() => showToast("Terms of Service coming soon.")}>
                           Terms
                         </button>{" "}and{" "}
                         <button type="button" style={{ background: "none", border: "none", color: "var(--color-primary-container)", fontSize: 10, cursor: "pointer", textDecoration: "underline", fontFamily: "'Cormorant Garamond', serif" }}
-                          onClick={() => alert("Privacy Policy coming soon.")}>
+                          onClick={() => showToast("Privacy Policy coming soon.")}>
                           Privacy Policy
                         </button>.
                       </p>

@@ -3,6 +3,8 @@ import { useMemo, useState } from "react";
 import NavBar from "../../../components/NavBar";
 import Footer from "../../../components/Footer";
 import { CATEGORY_GROUPS } from "../../../lib/productCategories";
+import heroFashionBg from "../../../assets/logo/hero-fashion-bg.png";
+
 const tabs = CATEGORY_GROUPS.map((group) => ({
   label: group.label,
   path: group.route,
@@ -182,10 +184,15 @@ const KEYFRAMES = `
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     text-align: center; padding: 144px 32px 96px;
     overflow: hidden;
-    background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-container-low) 50%, var(--color-surface-container) 100%);
+    background-image: 
+      linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.75) 50%, rgba(255,255,255,0.85) 100%),
+      url('${heroFashionBg}');
+    background-size: cover;
+    background-position: center 30%;
+    background-repeat: no-repeat;
     border-bottom: 0.5px solid var(--color-outline-variant);
     transition: background 0.4s ease, border-color 0.4s ease;
-  }
+}
   .hues-col-hero__ring {
     position: absolute; border: 1px solid var(--color-outline-variant); opacity: 0.12; border-radius: 50%; pointer-events: none;
   }
@@ -425,6 +432,13 @@ const KEYFRAMES = `
   }
   @media (max-width: 768px) {
     .hues-col-panel { padding: 16px 20px 0; }
+  }
+  /* ── Mobile Adjustments ── */
+  @media (max-width: 768px) {
+    .hues-col-hero {
+      background-position: center 15%;
+      padding: 100px 20px 64px;
+    }
   }
   .hues-col-panel__inner {
     border: 0.5px solid var(--color-outline-variant); padding: 24px;

@@ -6,7 +6,8 @@ import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { apiFetch } from "../../api/client";
 import { hasCompleteCheckoutAddress, loadCheckoutAddress, saveCheckoutAddress } from "../lib/checkoutAddress";
-
+import { Toast } from "../../components/Toast";
+import { useToast } from "../../hooks/useToast";
 /* ─── Styles ─────────────────────────────────────────────────────────────── */
 const STYLES = `
   
@@ -210,10 +211,10 @@ const STYLES = `
 
 /* ─── Bank details ────────────────────────────────────────────────────────── */
 const bankDetails = [
-  { label: "Account Name",   value: "HUES ATELIER LTD" },
-  { label: "Bank Name",      value: "SANTANDER RESERVE" },
-  { label: "Account Number", value: "8842 1190 2234" },
-  { label: "Reference",      value: "ORD-HUES-9821" },
+ { label: "Bank Name",      value: "Commercial Bank" },
+  { label: "Account Name",   value: "R D Weerasinghe" },
+  { label: "Account Number", value: "8004941206" },
+  { label: "Branch",         value: "Maharagama" },
 ];
 
 /* ─── Underline Field ─────────────────────────────────────────────────────── */
@@ -311,11 +312,13 @@ const Payment = () => {
 
   const isAddressComplete = hasCompleteCheckoutAddress(customer);
  
+const { toast, showToast, hideToast } = useToast();
+
   const handleSubmit = async (e) => { 
     e.preventDefault(); 
     if (!items?.length) return;
     if (!isAddressComplete) {
-      alert("Please complete your shipping address before placing the order.");
+      showToast("Please complete your shipping address before placing the order.");
       return;
     }
     if (!(form.cardholderName && form.cardNumber && form.expiry && form.cvc)) return;
@@ -342,14 +345,17 @@ const Payment = () => {
       setSubmitted(true); 
       setTimeout(() => { clear(); navigate("/", { replace: true }); }, 3200); 
     } catch (err) {
-      alert(err?.message || "Failed to place order.");
+      showToast(err?.message || "Failed to place order.");
     }
   }; 
 
+  
+
   return (
     <div className="pay-body">
-      <style>{STYLES}</style>
-      <NavBar />
+    <style>{STYLES}</style>
+    {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
+    <NavBar />
 
       <main className="max-w-[1440px] mx-auto px-6 md:px-14 lg:px-20 pt-[100px] pb-24">
         {/* ── Page header ── */}
@@ -471,7 +477,7 @@ const Payment = () => {
                         onClick={() => {
                           if (!items?.length) return;
                           if (!isAddressComplete) {
-                            alert("Please complete your shipping address before continuing.");
+                            showToast("Please complete your shipping address before continuing.");
                             return;
                           }
                           saveCheckoutAddress(isAuthenticated ? user : null, customer);
@@ -549,7 +555,7 @@ const Payment = () => {
                       e.preventDefault();
                       const code = e.target.elements.promoCodeInput.value;
                       const res = applyPromoCode(code);
-                      alert(res.message);
+                      showToast(res.message);
                       if (res.success) e.target.reset();
                     }}
                     style={{ display:"flex", gap:8 }}

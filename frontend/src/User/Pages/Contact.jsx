@@ -600,7 +600,7 @@ function ContactGrid({ isDark }) {
         </InfoCard>
 
         <InfoCard title="Direct Contact" icon={<IconPhone size={16} />} dark={isDark}>
-          <p className="font-body text-[13px] mb-1" style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}>concierge@hues.com</p>
+          <p className="font-body text-[13px] mb-1" style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}>inquiry@huesforever.com</p>
           <p className="font-body text-[13px] mb-3" style={{ color: isDark ? "var(--color-outline)" : "var(--color-on-surface-variant)" }}>+94 77 726 0926</p>
           <div className="flex gap-2 flex-wrap">
             {["WhatsApp", "Telegram"].map(s => (

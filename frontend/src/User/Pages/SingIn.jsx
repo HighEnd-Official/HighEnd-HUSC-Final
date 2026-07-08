@@ -3,6 +3,8 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import NavBar from "../../components/NavBar";
 import Footer from "../../components/Footer";
 import { useAuth } from "../../context/AuthContext";
+import { Toast } from "../../components/Toast";
+import { useToast } from "../../hooks/useToast";
 
 /* ── Floating blossom particle ─────────────────────────────────────────── */
 function Blossom({ x, y, delay, size, char }) {
@@ -147,6 +149,8 @@ export default function SignIn() {
       setTimeout(() => navigate(roleRedirect(result.role), { replace: true }), 1400); 
     }, 900); 
   }; 
+
+  const { toast, showToast, hideToast } = useToast();
 
   return (
     <>
@@ -423,6 +427,7 @@ export default function SignIn() {
       `}</style>
 
       <div className="si-root">
+        {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
         <NavBar />
 
         <main
@@ -612,7 +617,7 @@ export default function SignIn() {
                               textUnderlineOffset: 3,
                               fontFamily: "'Cormorant Garamond', serif",
                             }}
-                            onClick={() => alert("Password reset is not yet implemented.")}
+                            onClick={() => showToast("Password reset is not yet implemented.")}
                           >
                             Forgot?
                           </button>
