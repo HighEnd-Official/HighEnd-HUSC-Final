@@ -1767,6 +1767,32 @@ export default function NavBar() {
             linear-gradient(135deg, #151018 0%, #1e1722 44%, #261722 100%);
         }
 
+        .dark .hues-search-overlay__header,
+        [data-theme="dark"] .hues-search-overlay__header {
+          background: rgba(23, 17, 24, 0.45) !important;
+          border-bottom-color: var(--hues-border) !important;
+        }
+
+        .dark .hues-search-overlay__close-btn,
+        [data-theme="dark"] .hues-search-overlay__close-btn {
+          background: rgba(255, 255, 255, 0.07) !important;
+          color: var(--hues-ink) !important;
+          border-color: var(--hues-border) !important;
+        }
+
+        .dark .hues-search-overlay__close-btn:hover,
+        [data-theme="dark"] .hues-search-overlay__close-btn:hover {
+          background: rgba(255, 255, 255, 0.14) !important;
+          color: var(--hues-rose) !important;
+          border-color: var(--hues-border-strong) !important;
+        }
+
+        .dark .hues-search-overlay__input-wrapper:focus-within,
+        [data-theme="dark"] .hues-search-overlay__input-wrapper:focus-within {
+          border-color: var(--hues-border-strong) !important;
+          box-shadow: 0 22px 52px rgba(0, 0, 0, 0.45), 0 0 0 4px rgba(232, 169, 180, 0.14) !important;
+        }
+
         @media (max-width: 768px) {
           .hues-nav {
             padding: 0 14px;

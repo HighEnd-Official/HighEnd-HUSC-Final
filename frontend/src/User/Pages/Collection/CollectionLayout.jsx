@@ -41,6 +41,7 @@ function Petal({ style }) {
 
 /* ─── Hero section ────────────────────────────────────────────────────── */
 function Hero({ activeTab }) {
+  const navigate = useNavigate();
   const currentTab = tabs.find((tab) => tab.label === activeTab) || tabs[1];
   const isOverview = activeTab === "All Collections";
   const title = isOverview ? "The Collection Archive" : `The ${activeTab} Collection`;
@@ -82,12 +83,12 @@ function Hero({ activeTab }) {
 
       {/* CTA row */}
       <div className="hues-col-hero__btn-row animate-[huesFadeUp_0.7s_0.3s_ease_both]">
-        <button className="hues-col-hero__btn-primary">
+        <button
+          onClick={() => navigate("/collections")}
+          className="hues-col-hero__btn-primary"
+        >
           Shop Now
         </button>
-        {/* <button className="hues-col-hero__btn-outline">
-          View Lookbook
-        </button> */}
       </div>
 
       {/* Scroll hint */}
@@ -192,7 +193,14 @@ const KEYFRAMES = `
     background-repeat: no-repeat;
     border-bottom: 0.5px solid var(--color-outline-variant);
     transition: background 0.4s ease, border-color 0.4s ease;
-}
+  }
+  .dark .hues-col-hero,
+  [data-theme="dark"] .hues-col-hero {
+    background-image: 
+      linear-gradient(135deg, rgba(12, 8, 9, 0.70) 0%, rgba(12, 8, 9, 0.80) 50%, rgba(12, 8, 9, 0.90) 100%),
+      url('${heroFashionBg}');
+    border-bottom-color: rgba(232, 169, 180, 0.15);
+  }
   .hues-col-hero__ring {
     position: absolute; border: 1px solid var(--color-outline-variant); opacity: 0.12; border-radius: 50%; pointer-events: none;
   }

@@ -266,6 +266,20 @@ export default function Footer() {
           color: var(--footer-ink) !important;
         }
 
+        .dark footer[role="contentinfo"] p.text-\\[var\\(--color-on-surface\\)\\] span,
+        [data-theme="dark"] footer[role="contentinfo"] p.text-\\[var\\(--color-on-surface\\)\\] span,
+        .dark footer[role="contentinfo"] h4,
+        [data-theme="dark"] footer[role="contentinfo"] h4,
+        .dark footer[role="contentinfo"] a.text-\\[var\\(--color-primary\\)\\],
+        [data-theme="dark"] footer[role="contentinfo"] a.text-\\[var\\(--color-primary\\)\\] {
+          color: var(--color-primary) !important;
+        }
+
+        .dark footer[role="contentinfo"] a.text-\\[var\\(--color-primary\\)\\],
+        [data-theme="dark"] footer[role="contentinfo"] a.text-\\[var\\(--color-primary\\)\\] {
+          border-bottom-color: var(--color-primary) !important;
+        }
+
         @media (max-width: 900px) {
           footer[role="contentinfo"] > div.relative.z-10 {
             padding-left: 24px;
@@ -295,23 +309,6 @@ export default function Footer() {
           background: "linear-gradient(90deg, transparent 0%, var(--color-primary) 30%, var(--color-primary-container) 60%, var(--color-inverse-primary) 100%)",
         }}
       />
-
-        <span
-          aria-hidden="true"
-          className="pointer-events-none select-none absolute left-1/2 top-[68%] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap font-light tracking-widest z-0 leading-none"
-          style={{
-            fontFamily: "'Gillie Quest', 'Cormorant Garamond', Georgia, serif",
-            fontSize: "clamp(90px, 17vw, 170px)",
-            background:
-              "linear-gradient(115deg, var(--color-primary-container) 0%, color-mix(in srgb, var(--color-primary-container) 70%, var(--color-surface) 30%) 35%, color-mix(in srgb, var(--color-primary) 70%, var(--color-surface) 30%) 70%, var(--color-primary) 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-            opacity: 0.1,
-          }}
-        >
-          HUES
-        </span>
 
       <div className="relative z-10 max-w-[1440px] mx-auto px-12 pt-16 pb-8">
         <div className="flex flex-wrap items-center justify-between gap-6 pb-10 mb-14 border-b border-[var(--color-outline-variant)]">
