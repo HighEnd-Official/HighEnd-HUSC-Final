@@ -392,183 +392,214 @@ const QuickView = ({ product, onClose }) => {
     >
       <style>{`
         @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
-        @keyframes slideUp { from { opacity:0; transform:translateY(24px) } to { opacity:1; transform:translateY(0) } }
+        @keyframes slideUp { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:translateY(0) } }
         @keyframes gentlePulse { 
           0%, 100% { transform: scale(1); }
           50% { transform: scale(1.05); }
         }
-        @keyframes sparkle {
-          0%, 100% { opacity: 0; transform: scale(0); }
-          50% { opacity: 1; transform: scale(1); }
-        }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--color-outline-variant); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { 
+          background: var(--color-primary-container); 
+          border-radius: 999px;
+          opacity: 0.55;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: var(--color-primary);
+        }
+
         .heartbeat-active {
-          animation: gentlePulse 0.45s ease-in-out;
+          animation: gentlePulse 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .size-btn:hover {
-          transform: translateY(-2px);
-        }
-        .color-swatch:hover {
-          transform: scale(1.1);
-        }
+
         .quickview-panel {
-          --quickview-ink: #2d2430;
-          --quickview-muted: rgba(95, 74, 91, 0.76);
-          --quickview-line: rgba(95, 67, 86, 0.13);
-          --quickview-line-strong: rgba(95, 67, 86, 0.22);
-          --quickview-glass: rgba(255, 255, 255, 0.66);
-          --quickview-glass-strong: rgba(255, 255, 255, 0.82);
-          background:
-            radial-gradient(circle at 52% 12%, rgba(221, 222, 233, 0.72), transparent 32%),
-            radial-gradient(circle at 96% 92%, rgba(203, 143, 174, 0.30), transparent 36%),
-            linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(248, 239, 247, 0.76)) !important;
-          box-shadow: 0 34px 96px rgba(91, 59, 82, 0.30);
+          --quickview-ink: var(--color-on-surface);
+          --quickview-muted: var(--color-outline);
+          --quickview-line: rgba(111, 31, 47, 0.08);
+          --quickview-line-strong: rgba(111, 31, 47, 0.16);
+          --quickview-shadow: 0 40px 100px -20px rgba(111, 31, 47, 0.18), 0 0 1px rgba(111, 31, 47, 0.12);
+          
+          background: linear-gradient(135deg, rgba(255, 253, 254, 0.95), rgba(253, 248, 250, 0.92)) !important;
+          box-shadow: var(--quickview-shadow);
           border: 1px solid var(--quickview-line);
-          backdrop-filter: blur(28px) saturate(1.14);
-          -webkit-backdrop-filter: blur(28px) saturate(1.14);
+          backdrop-filter: blur(32px) saturate(1.2);
+          -webkit-backdrop-filter: blur(32px) saturate(1.2);
+          transition: background 0.3s ease, border-color 0.3s ease;
         }
+        
         .dark .quickview-panel,
         [data-theme="dark"] .quickview-panel {
           --quickview-ink: var(--color-on-surface);
-          --quickview-muted: rgba(215, 198, 199, 0.84);
-          --quickview-line: rgba(232, 169, 180, 0.14);
-          --quickview-line-strong: rgba(232, 169, 180, 0.22);
-          --quickview-glass: rgba(23, 17, 24, 0.78);
-          --quickview-glass-strong: rgba(32, 23, 33, 0.90);
-          background:
-            radial-gradient(circle at 52% 12%, rgba(53, 46, 64, 0.62), transparent 32%),
-            radial-gradient(circle at 96% 92%, rgba(116, 58, 86, 0.30), transparent 36%),
-            linear-gradient(135deg, rgba(32, 23, 33, 0.94), rgba(23, 17, 24, 0.86)) !important;
+          --quickview-muted: var(--color-outline);
+          --quickview-line: rgba(232, 169, 180, 0.08);
+          --quickview-line-strong: rgba(232, 169, 180, 0.18);
+          --quickview-shadow: 0 40px 100px -25px rgba(0, 0, 0, 0.6), 0 0 1px rgba(255, 255, 255, 0.1);
+          
+          background: linear-gradient(135deg, rgba(20, 14, 16, 0.96), rgba(12, 8, 9, 0.94)) !important;
+          border-color: var(--quickview-line);
         }
+
         .quickview-panel::before {
           content: "";
           position: absolute;
           inset: 0;
           pointer-events: none;
-          background:
-            radial-gradient(circle at 44% 20%, rgba(255, 255, 255, 0.34), transparent 28%),
-            radial-gradient(circle at 100% 100%, rgba(203, 143, 174, 0.18), transparent 34%);
+          background: radial-gradient(circle at top left, rgba(203, 143, 174, 0.08), transparent 35%);
           z-index: 0;
         }
-        .quickview-panel > * {
-          position: relative;
-          z-index: 1;
-        }
+
         .quickview-mobile-gallery {
-          background:
-            radial-gradient(circle at 50% 34%, rgba(221, 222, 233, 0.70), transparent 42%),
-            linear-gradient(135deg, rgba(232, 204, 210, 0.42), rgba(255, 255, 255, 0.58)) !important;
+          background: linear-gradient(135deg, var(--color-surface-container-low), var(--color-surface)) !important;
           border-right: 1px solid var(--quickview-line);
+          position: relative;
         }
-        .quickview-mobile-image {
-          background:
-            radial-gradient(circle at 50% 38%, rgba(221, 222, 233, 0.44), transparent 44%),
-            rgba(255, 255, 255, 0.24);
-        }
+
         .quickview-mobile-thumbs {
-          background: rgba(255, 255, 255, 0.46) !important;
+          background: rgba(255, 255, 255, 0.4) !important;
           border-top: 1px solid var(--quickview-line) !important;
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
         }
-        .quickview-mobile-thumbs button {
-          border-radius: 14px;
-          box-shadow: 0 12px 26px rgba(91, 59, 82, 0.13);
+        
+        .dark .quickview-mobile-thumbs,
+        [data-theme="dark"] .quickview-mobile-thumbs {
+          background: rgba(20, 14, 16, 0.4) !important;
         }
+
         .quickview-panel button {
           outline: none;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
         .quickview-panel button:focus-visible,
         .quickview-panel input:focus,
         .quickview-panel textarea:focus,
         .quickview-panel select:focus {
-          box-shadow: 0 0 0 4px rgba(203, 143, 174, 0.16);
-          border-color: rgba(203, 143, 174, 0.52) !important;
+          box-shadow: 0 0 0 3px rgba(111, 31, 47, 0.15) !important;
+          border-color: var(--color-primary) !important;
         }
+
         .quickview-panel input,
         .quickview-panel textarea,
         .quickview-panel select {
-          background: rgba(255, 255, 255, 0.58) !important;
-          border-color: var(--quickview-line) !important;
+          background: var(--color-surface) !important;
+          border-color: var(--color-outline-variant) !important;
           color: var(--quickview-ink);
+          border-radius: 14px;
+          padding: 10px 14px;
+          transition: all 0.2s ease;
         }
-        .quickview-panel form,
-        .quickview-panel [class*="rounded-2xl"],
-        .quickview-panel [class*="rounded-full"] {
-          border-color: var(--quickview-line);
-        }
+
         .quickview-panel form {
-          background: rgba(255, 255, 255, 0.50) !important;
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.48);
-          backdrop-filter: blur(14px);
+          background: rgba(255, 255, 255, 0.35) !important;
+          border-color: var(--quickview-line-strong) !important;
+          backdrop-filter: blur(12px);
+          box-shadow: 0 8px 32px rgba(111, 31, 47, 0.03);
+          transition: all 0.3s ease;
         }
+        
+        .dark .quickview-panel form,
+        [data-theme="dark"] .quickview-panel form {
+          background: rgba(20, 14, 16, 0.35) !important;
+        }
+
         .quickview-panel [class*="md:w-[42%]"],
         .quickview-panel [class*="lg:w-[38%]"] {
-          background: rgba(255, 255, 255, 0.52) !important;
-          backdrop-filter: blur(20px) saturate(1.08);
-          -webkit-backdrop-filter: blur(20px) saturate(1.08);
+          background: transparent !important;
+          border-left: 1px solid var(--quickview-line);
         }
-        .quickview-panel h2 {
-          color: var(--quickview-ink);
-          letter-spacing: 0;
-        }
-        .quickview-panel p,
-        .quickview-panel li,
-        .quickview-panel label,
-        .quickview-panel span {
-          text-wrap: pretty;
-        }
+
         .size-btn {
           min-width: 44px;
-          border-radius: 999px !important;
-          box-shadow: 0 8px 18px rgba(91, 59, 82, 0.08);
+          height: 44px;
+          border-radius: 50% !important;
+          font-size: 12px !important;
+          letter-spacing: 0.05em;
+          border: 1px solid var(--color-outline-variant) !important;
+          color: var(--color-on-surface) !important;
+          background: var(--color-surface) !important;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
-        .size-btn:hover {
-          box-shadow: 0 12px 24px rgba(91, 59, 82, 0.14);
+
+        .size-btn:hover:not(:disabled) {
+          border-color: var(--color-primary) !important;
+          color: var(--color-primary) !important;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 14px rgba(111, 31, 47, 0.1);
         }
+
+        .size-btn:active:not(:disabled) {
+          transform: translateY(0);
+        }
+
         .color-swatch {
-          border-radius: 999px;
-          filter: drop-shadow(0 10px 16px rgba(91, 59, 82, 0.12));
+          padding: 3px;
+          border-radius: 50%;
+          border: 2px solid transparent;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(203, 143, 174, 0.56);
+        
+        .color-swatch:hover:not(:disabled) {
+          transform: scale(1.08);
         }
-        .dark .quickview-mobile-gallery,
-        [data-theme="dark"] .quickview-mobile-gallery,
-        .dark .quickview-mobile-thumbs,
-        [data-theme="dark"] .quickview-mobile-thumbs,
-        .dark .quickview-panel [class*="md:w-[42%]"],
-        [data-theme="dark"] .quickview-panel [class*="md:w-[42%]"],
-        .dark .quickview-panel [class*="lg:w-[38%]"],
-        [data-theme="dark"] .quickview-panel [class*="lg:w-[38%]"],
-        .dark .quickview-panel form,
-        [data-theme="dark"] .quickview-panel form,
-        .dark .quickview-panel input,
-        [data-theme="dark"] .quickview-panel input,
-        .dark .quickview-panel textarea,
-        [data-theme="dark"] .quickview-panel textarea,
-        .dark .quickview-panel select,
-        [data-theme="dark"] .quickview-panel select {
-          background: rgba(255, 255, 255, 0.06) !important;
+
+        .quickview-close-btn {
+          box-shadow: 0 2px 8px rgba(133, 76, 111, 0.15);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
+        .quickview-close-btn:hover {
+          transform: scale(1.1) rotate(90deg) !important;
+          background-color: var(--color-primary) !important;
+          color: white !important;
+        }
+        
+        .gallery-arrow-btn {
+          opacity: 0.8;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+          border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+        .gallery-arrow-btn:hover {
+          opacity: 1 !important;
+          background-color: var(--color-primary) !important;
+          color: white !important;
+          transform: scale(1.08) !important;
+        }
+
+        /* Review and Form Visual Enhancement */
+        .quickview-review-card {
+          transition: all 0.25s ease;
+          border: 1px solid var(--quickview-line-strong);
+        }
+        .quickview-review-card:hover {
+          border-color: var(--color-primary);
+          box-shadow: 0 4px 16px rgba(111, 31, 47, 0.04);
+        }
+
         @media (max-width: 767px) {
           .quickview-mobile-gallery {
-            min-height: 42vh;
+            min-height: 44vh;
             border-right: 0;
             border-bottom: 1px solid var(--quickview-line);
           }
           .quickview-mobile-image img {
             object-fit: contain !important;
-            padding: 10px;
+            padding: 12px;
           }
           .quickview-mobile-thumbs {
-            height: 76px;
+            height: 80px;
           }
           .quickview-panel {
             border-radius: 24px !important;
-            max-height: 92vh;
+            max-height: 94vh;
+          }
+          .quickview-panel [class*="md:w-[42%]"],
+          .quickview-panel [class*="lg:w-[38%]"] {
+            border-left: 0;
+            border-top: 1px solid var(--quickview-line);
           }
         }
       `}</style>
@@ -590,11 +621,10 @@ const QuickView = ({ product, onClose }) => {
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full transition-all hover:scale-110 flex items-center justify-center bg-[var(--color-surface)]/80 backdrop-blur-sm hover:bg-[var(--color-primary)] hover:text-white group"
-          style={{ boxShadow: "0 2px 8px rgba(133,76,111,0.15)" }}
+          className="quickview-close-btn absolute top-4 right-4 z-20 w-10 h-10 rounded-full flex items-center justify-center bg-[var(--color-surface)]/80 backdrop-blur-sm group"
         >
           <span
-            className="text-[20px] group-hover:text-white transition-colors"
+            className="text-[20px] transition-colors"
             style={{ color: "var(--color-primary)" }}
           >
             ✕
@@ -645,14 +675,14 @@ const QuickView = ({ product, onClose }) => {
             <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-300">
               <button
                 onClick={prev}
-                className="pointer-events-auto w-10 h-10 rounded-full transition-all hover:scale-110 flex items-center justify-center bg-[var(--color-surface)]/90 shadow-lg"
+                className="gallery-arrow-btn pointer-events-auto w-10 h-10 rounded-full flex items-center justify-center bg-[var(--color-surface)]/95 shadow-md"
                 style={{ color: "var(--color-primary)" }}
               >
                 <span className="text-2xl">←</span>
               </button>
               <button
                 onClick={next}
-                className="pointer-events-auto w-10 h-10 rounded-full transition-all hover:scale-110 flex items-center justify-center bg-[var(--color-surface)]/90 shadow-lg"
+                className="gallery-arrow-btn pointer-events-auto w-10 h-10 rounded-full flex items-center justify-center bg-[var(--color-surface)]/95 shadow-md"
                 style={{ color: "var(--color-primary)" }}
               >
                 <span className="text-2xl">→</span>
@@ -680,7 +710,7 @@ const QuickView = ({ product, onClose }) => {
                   opacity: activeIdx === i ? 1 : 0.55,
                 }}
               >
-                <img src={img} alt="" className="w-full h-full object-cover transition-transform duration-500 hover:scale-[1.08]" />
+                <img src={img} alt="" className="w-full h-full object-cover transition-transform duration-500" />
               </button>
             ))}
           </div>
@@ -904,7 +934,7 @@ const QuickView = ({ product, onClose }) => {
               {reviewList.length ? (
                 <div className="space-y-3">
                   {reviewList.slice(0, 3).map((review) => (
-                    <div key={review.id} className="rounded-2xl border border-[var(--color-outline-variant)] bg-[var(--color-surface)]/70 p-4">
+                    <div key={review.id} className="quickview-review-card rounded-2xl border bg-[var(--color-surface)]/70 p-4">
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <div className="text-[13px] font-semibold text-[var(--color-on-surface)]">{review.user?.username || "Customer"}</div>
@@ -995,7 +1025,7 @@ const QuickView = ({ product, onClose }) => {
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-primary)")}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--color-on-surface)")}
               >
-                {!selectedSize ? "Select a Size" : outOfStock ? "Out of Stock" : added ? "Added to Bag" : "Add to Bag"}
+                {!selectedSize ? "Select a Size" : outOfStock ? "Out of Stock" : added ? "Added to Cart" : "Add to Cart"}
               </button>
               
               <button
@@ -1066,7 +1096,7 @@ const QuickView = ({ product, onClose }) => {
 
             {/* Additional cute note */}
             <p className="text-center text-[9px] text-[var(--color-outline)] pt-2">
-              💕 Ethically crafted with love and care 💕
+               Ethically crafted with love and care 
             </p>
           </div>
         </div>

@@ -164,17 +164,17 @@ button, input, textarea, select {
 
 .image-zoom:hover > img,
 .image-zoom:hover .image-zoom__img {
-  transform: scale(1.08);
+  transform: scale(1);
 }
 
 .image-zoom--soft:hover > img,
 .image-zoom--soft:hover .image-zoom__img {
-  transform: scale(1.04);
+  transform: scale(1);
 }
 
 .image-zoom--subtle:hover > img,
 .image-zoom--subtle:hover .image-zoom__img {
-  transform: scale(1.02);
+  transform: scale(1);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -21,6 +21,7 @@ function ProductCard({ product, onQuickView }) {
           wrapperClassName="h-full w-full"
           imgClassName="h-full w-full object-cover"
           zoom={1.18}
+          showTooltip={true}
         />
         {product.seasonalBatch ? (
           <div

@@ -5,33 +5,23 @@ export default function HoverRevealImage({
   alt = "",
   wrapperClassName = "",
   imgClassName = "",
-  zoom = 1.18,
+  zoom = 1,
   fit = "cover",
   style = {},
   imgStyle = {},
   onClick,
+  showTooltip = false,
+  tooltipText = "Quick View",
 }) {
   const [hovered, setHovered] = useState(false);
-  const [position, setPosition] = useState("50% 50%");
-
-  const handleMove = (event) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * 100;
-    const y = ((event.clientY - rect.top) / rect.height) * 100;
-    setPosition(`${Math.max(0, Math.min(100, x))}% ${Math.max(0, Math.min(100, y))}%`);
-  };
 
   return (
     <div
-      className={wrapperClassName}
-      onMouseEnter={() => setHovered(true)}
-      onMouseMove={handleMove}
-      onMouseLeave={() => {
-        setHovered(false);
-        setPosition("50% 50%");
-      }}
+      className={`relative ${wrapperClassName}`}
       onClick={onClick}
-      style={{ cursor: hovered ? "move" : "zoom-in", ...style }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ cursor: onClick ? "pointer" : "default", ...style }}
     >
       <img
         src={src}
@@ -39,14 +29,54 @@ export default function HoverRevealImage({
         className={imgClassName}
         style={{
           objectFit: fit,
-          objectPosition: hovered ? position : "50% 50%",
-          transform: hovered ? `scale(${zoom})` : "scale(1)",
-          transformOrigin: hovered ? position : "center",
-          transition: "transform 0.75s cubic-bezier(0.22, 1, 0.36, 1), object-position 0.2s ease",
-          willChange: "transform, object-position",
+          width: "100%",
+          height: "100%",
+          display: "block",
           ...imgStyle,
         }}
       />
+      {showTooltip && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "rgba(0, 0, 0, 0.12)",
+            opacity: hovered ? 1 : 0,
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            pointerEvents: "none",
+            borderRadius: "inherit",
+          }}
+        >
+          <span
+            style={{
+              transform: hovered ? "translateY(0)" : "translateY(6px)",
+              opacity: hovered ? 1 : 0,
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.05s",
+              backgroundColor: "rgba(255, 255, 255, 0.92)",
+              backdropFilter: "blur(8px)",
+              color: "var(--color-primary)",
+              fontSize: "10px",
+              fontWeight: "750",
+              textTransform: "uppercase",
+              letterSpacing: "0.14em",
+              padding: "7px 14px",
+              borderRadius: "999px",
+              boxShadow: "0 10px 20px rgba(0, 0, 0, 0.12)",
+              border: "1px solid rgba(255, 255, 255, 0.25)",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "5px",
+            }}
+          >
+            <i className="ti ti-eye" style={{ fontSize: "11px" }}></i>
+            {tooltipText}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
+

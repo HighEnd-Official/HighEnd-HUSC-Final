@@ -99,9 +99,10 @@ function App() {
               <Route path="/register" element={<Registration />} />
             </Route>
 
+            <Route path="/my-orders" element={<MyOrders />} />
+
             {/* ── Protected: any authenticated user ── */}
             <Route element={<ProtectedRoute />}>
-              <Route path="/my-orders"    element={<MyOrders />} />
               <Route path="/profile"      element={<Profile />} />
             </Route>
 

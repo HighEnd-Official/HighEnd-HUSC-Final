@@ -136,6 +136,15 @@ const STYLES = `
     transition: all .3s;
   }
   .pay-btn-outline:hover { background: var(--color-primary); color: var(--color-on-primary); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(168,56,94,0.28); }
+  .pay-btn-outline:disabled {
+    border-color: var(--color-outline-variant);
+    color: var(--color-outline);
+    cursor: not-allowed;
+    opacity: 0.6;
+    pointer-events: none;
+    transform: none !important;
+    box-shadow: none !important;
+  }
 
   /* shipping radio card */
   .ship-card {
@@ -484,6 +493,7 @@ const { toast, showToast, hideToast } = useToast();
                           navigate("/bank-deposit");
                         }}
                         className="pay-btn-outline"
+                        disabled={!items || items.length === 0}
                       >
                         Confirm — Bank Deposit
                       </button>

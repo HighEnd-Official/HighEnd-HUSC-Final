@@ -278,7 +278,7 @@ export default function Home() {
           transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
           will-change: transform;
         }
-        .hero:hover .hero-img { transform: scale(1.06); }
+        .hero:hover .hero-img { transform: scale(1); }
         .hero-overlay {
           position: absolute; inset: 0;
           background: linear-gradient(to top, rgba(58,25,40,0.62) 0%, rgba(58,25,40,0.12) 60%, transparent 100%);
@@ -366,21 +366,14 @@ export default function Home() {
           box-shadow: 0 10px 30px var(--home-shadow);
         }
         .product-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; display: block; }
-        .product-card:hover .product-img { transform: scale(1.07); }
+        .product-card:hover .product-img { transform: scale(1); }
         .product-badge {
           position: absolute; top: 10px; left: 10px;
           font-size: 9px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
           padding: 4px 10px; border-radius: 12px; color: white;
           backdrop-filter: blur(4px);
         }
-        .quick-view {
-          position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%) translateY(8px);
-          background: var(--color-on-surface); color: var(--color-surface); padding: 8px 20px; border-radius: 20px;
-          font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
-          opacity: 0; transition: all 0.3s; white-space: nowrap; border: none; cursor: pointer;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-        }
-        .product-card:hover .quick-view { opacity: 1; transform: translateX(-50%) translateY(0); }
+
         .heart-btn {
           position: absolute; top: 10px; right: 10px; width: 32px; height: 32px;
           background: var(--home-surface-strong); border-radius: 50%; border: 0.5px solid var(--home-border-bright); cursor: pointer;
@@ -468,7 +461,7 @@ export default function Home() {
         .bento-img { aspect-ratio: 16/9; }
         .bento-img-sq { aspect-ratio: 1/1; }
         .bento-card:hover .bento-img,
-        .bento-card:hover .bento-img-sq { transform: scale(1.05); }
+        .bento-card:hover .bento-img-sq { transform: scale(1); }
         .bento-body {
           position: relative;
           display: flex;
@@ -568,7 +561,7 @@ export default function Home() {
           transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
           will-change: transform;
         }
-        .editorial-img-wrap:hover .editorial-img { transform: scale(1.05); }
+        .editorial-img-wrap:hover .editorial-img { transform: scale(1); }
         .editorial-img-wrap:first-child { margin-top: 40px; }
         @media (max-width: 768px) {
           .editorial-img-wrap:first-child { margin-top: 0; }
@@ -660,6 +653,7 @@ export default function Home() {
                   wrapperClassName="image-zoom image-zoom--soft h-full w-full"
                   imgClassName="product-img"
                   zoom={1.2}
+                  showTooltip={true}
                 />
                 {p.seasonalBatch ? (
                   <div
@@ -682,15 +676,6 @@ export default function Home() {
                 <span className="product-badge" style={{ background: outOfStock ? "var(--home-muted)" : p.badgeColor }}>
                   {outOfStock ? "Out of Stock" : p.badge}
                 </span>
-                <button
-                  className="quick-view"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedProduct(p);
-                  }}
-                >
-                  Quick View
-                </button>
                 <button
                   className="heart-btn"
                   onClick={(e) => {
