@@ -1040,11 +1040,19 @@ export default function NavBar() {
           }
           .hues-logo {
             position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 40%;
+            top: 50%;
+            transform: translate(-50%, -50%);
             z-index: 1;
+            display: flex;
+            align-items: center;
+            line-height: 0;
           }
-          .hues-logo__image { height: 36px; }
+          .hues-logo__image { 
+            height: 36px;
+            width: auto;
+            display: block;
+          }
           .hues-nav__right {
             gap: 6px;
             flex: 0 0 auto;
@@ -1876,7 +1884,9 @@ export default function NavBar() {
               <IconMenu />
             </button>
 
-            <Logo isDark={theme === "dark"} />
+            <Link to="/" className="hues-logo" aria-label="HUES home">
+              <Logo isDark={theme === "dark"} />
+            </Link>
 
             <ul className="hues-links">
               {PUBLIC_LINKS.map(link => (

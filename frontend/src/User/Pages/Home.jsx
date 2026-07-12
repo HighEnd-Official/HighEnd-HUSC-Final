@@ -273,7 +273,7 @@ export default function Home() {
           margin: 0;
         }
         .hero-img {
-          width: 100%; height: 100%; object-fit: cover;
+          width: 100%; height: 100%; object-fit: cover; object-position: center center;
           filter: brightness(0.75) saturate(1.05);
           transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
           will-change: transform;
@@ -349,6 +349,14 @@ export default function Home() {
           display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
           padding: 0 40px 64px; max-width: 1200px; margin: 0 auto;
         }
+        @media (max-width: 768px) {
+          .hero { height: auto; min-height: 72vh; }
+          .hero-overlay { padding-bottom: 46px; }
+          .hero-title { font-size: clamp(32px, 8vw, 56px); }
+          .hero-subtitle { max-width: 100%; margin: 0 auto 32px; padding: 0 10px; }
+          .section-header { padding: 64px 20px 36px; }
+          .filter-row { padding: 0 20px 36px; }
+        }
         @media (max-width: 1024px) {
           .product-grid { grid-template-columns: repeat(3, 1fr); }
         }
@@ -362,10 +370,36 @@ export default function Home() {
         .product-card { cursor: pointer; }
         .product-img-wrap {
           position: relative; aspect-ratio: 3/4; border-radius: 16px; overflow: hidden;
+          min-height: 0;
           background: var(--home-surface-soft);
           box-shadow: 0 10px 30px var(--home-shadow);
         }
-        .product-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; display: block; }
+        .product-img { width: 100%; height: 100%; object-fit: cover; object-position: center center; transition: transform 0.6s ease; display: block; }
+        .mobile-quickview-btn {
+          position: absolute;
+          left: 50%;
+          bottom: 16px;
+          transform: translateX(-50%);
+          display: none;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 10px 16px;
+          border-radius: 999px;
+          border: 1px solid rgba(255,255,255,0.6);
+          background: rgba(0, 0, 0, 0.18);
+          color: white;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          backdrop-filter: blur(10px);
+          cursor: pointer;
+          z-index: 15;
+          transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+        .mobile-quickview-btn:hover { transform: translateX(-50%) translateY(-1px); }
+        @media (max-width: 768px) { .mobile-quickview-btn { display: inline-flex; } }
         .product-card:hover .product-img { transform: scale(1); }
         .product-badge {
           position: absolute; top: 10px; left: 10px;
@@ -566,6 +600,10 @@ export default function Home() {
         @media (max-width: 768px) {
           .editorial-img-wrap:first-child { margin-top: 0; }
         }
+        @media (max-width: 640px) {
+          .editorial-images { grid-template-columns: 1fr; }
+          .editorial-img-wrap { width: 100%; }
+        }
 
         /* NEWSLETTER */
         .newsletter {
@@ -655,6 +693,18 @@ export default function Home() {
                   zoom={1.2}
                   showTooltip={true}
                 />
+                <button
+                  type="button"
+                  className="mobile-quickview-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedProduct(p);
+                  }}
+                  aria-label={`Quick view ${p.name}`}
+                >
+                  <i className="ti ti-eye" aria-hidden="true"></i>
+                  Quick View
+                </button>
                 {p.seasonalBatch ? (
                   <div
                     className="absolute bottom-3 right-3 z-10 rounded-[18px] border border-white/20 px-3 py-2 text-white shadow-[0_12px_28px_rgba(0,0,0,0.18)] backdrop-blur-md"

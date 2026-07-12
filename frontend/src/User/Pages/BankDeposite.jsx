@@ -382,7 +382,7 @@ const BankDeposit = () => {
         <div className="flex flex-col lg:flex-row gap-8 items-start">
 
           {/* ═══ LEFT column ═══ */}
-          <div className="w-full lg:w-[58%] flex flex-col gap-6">
+          <div className="w-full lg:w-[58%] flex flex-col gap-6 order-2 lg:order-1">
 
             {/* Bank info card */}
             <div className="bd-glass p-8 md:p-10 relative overflow-hidden bd-fade-2">
@@ -647,8 +647,8 @@ const BankDeposit = () => {
           </div>
 
           {/* ═══ RIGHT: Order summary ═══ */}
-          <div className="w-full lg:w-[42%]" style={{ position:"sticky", top:110 }}>
-            <div className="bd-glass p-8 md:p-10 flex flex-col gap-6">
+          <div className="w-full lg:w-[42%] order-1 lg:order-2" style={{ position: "static" }}>
+            <div className="bd-glass p-8 md:p-10 flex flex-col gap-6 lg:sticky lg:top-[110px]">
 
               <h2 className="bd-display" style={{ fontSize:28, fontWeight:300, color:"var(--color-on-surface)", marginBottom:4 }}>
                 Order Summary

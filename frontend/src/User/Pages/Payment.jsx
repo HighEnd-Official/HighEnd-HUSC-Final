@@ -207,6 +207,23 @@ const STYLES = `
   }
   .bank-row:last-child { border-bottom: none; padding-bottom: 0; }
 
+  .mobile-bank-row {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 18px 0;
+    border-bottom: 1px solid rgba(210,155,185,0.20);
+  }
+  .mobile-bank-row:last-child { border-bottom: none; }
+  .mobile-bank-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 9.5px; font-weight: 700; letter-spacing: .20em;
+    text-transform: uppercase; color: var(--color-primary);
+  }
+  .mobile-bank-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px; font-weight: 400;
+    color: var(--color-on-surface); letter-spacing: .02em;
+  }
+
   /* decorative petal */
   @keyframes driftPetal { 0%,100%{ transform:translateY(0) rotate(0deg); } 50%{ transform:translateY(-10px) rotate(6deg); } }
   .petal { animation: driftPetal 5s ease-in-out infinite; pointer-events:none; user-select:none; }
@@ -229,8 +246,9 @@ const bankDetails = [
 /* ─── Underline Field ─────────────────────────────────────────────────────── */
 function Field({ label, name, type = "text", placeholder, value, onChange, maxLength, half, required }) {
   return (
-    <div className={`flex flex-col gap-2${half ? "" : ""}`}>
+    <div className="flex flex-col gap-2 min-w-0">
       <label
+        className="whitespace-nowrap"
         style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 10, fontWeight: 700, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--color-outline)" }}
       >
         {label}{required ? " *" : ""}
@@ -366,9 +384,9 @@ const { toast, showToast, hideToast } = useToast();
     {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
     <NavBar />
 
-      <main className="max-w-[1440px] mx-auto px-6 md:px-14 lg:px-20 pt-[100px] pb-24">
+      <main className="max-w-[1440px] mx-auto px-6 md:px-14 lg:px-20 pt-[100px] pb-24 flex flex-col">
         {/* ── Page header ── */}
-        <div className="text-center pt-14 pb-12 fade-1">
+        <div className="text-center pt-14 pb-12 fade-1 order-0">
           <div
             className="inline-flex items-center gap-2 px-5 py-2 rounded-full mb-6"
             style={{ background: "rgba(200,120,160,0.10)", border: "1px solid rgba(200,120,160,0.22)", fontSize: 11, fontWeight: 700, letterSpacing: ".20em", textTransform: "uppercase", color: "var(--color-primary)", fontFamily: "'Cormorant Garamond', serif" }}
@@ -386,10 +404,10 @@ const { toast, showToast, hideToast } = useToast();
         </div>
 
         {/* ── Two-column layout ── */}
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-8 items-start order-1">
 
           {/* ═══ LEFT: Payment form ═══ */}
-          <div className="w-full lg:w-[58%] fade-2">
+          <div className="w-full lg:w-[58%] fade-2 order-3 lg:order-2">
             <div className="pay-glass p-8 md:p-12 relative overflow-hidden">
               <Petal style={{ top: 18, right: 24, animationDelay: "0s" }} />
               <Petal style={{ bottom: 20, left: 18, fontSize: 15, animationDelay: "1.8s" }} />
@@ -419,7 +437,7 @@ const { toast, showToast, hideToast } = useToast();
                       <Field label="Email (optional)" name="email" placeholder="email@example.com" value={customer.email} onChange={handleCustomerChange} /> 
                       <Field label="Address Line 1" name="addressLine1" placeholder="House no, street" value={customer.addressLine1} onChange={handleCustomerChange} required /> 
                       <Field label="Address Line 2 (optional)" name="addressLine2" placeholder="Apartment, landmark" value={customer.addressLine2} onChange={handleCustomerChange} /> 
-                      <div className="grid grid-cols-3 gap-8"> 
+                      <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-8">
                         <Field label="City" name="city" placeholder="Colombo" value={customer.city} onChange={handleCustomerChange} required /> 
                         <Field label="Postal Code" name="postalCode" placeholder="00100" value={customer.postalCode} onChange={handleCustomerChange} required /> 
                         <Field label="Country" name="country" placeholder="Sri Lanka" value={customer.country} onChange={handleCustomerChange} required /> 
@@ -473,10 +491,32 @@ const { toast, showToast, hideToast } = useToast();
                       <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, color: "var(--color-outline)", lineHeight: 1.7 }}>
                         Transfer the total amount to the account below. Your order will be processed once funds are cleared.
                       </p>
-                      <div style={{ background: "rgba(240,175,210,0.09)", border: "1px solid rgba(210,155,185,0.28)", borderRadius: 16, padding: "24px 28px" }}>
+                      <div className="block sm:hidden">
+                        <div className="pay-glass p-8 relative overflow-hidden">
+                          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
+                            <div style={{
+                              width: 36, height: 36, borderRadius: "50%",
+                              background: "linear-gradient(135deg,rgba(200,120,160,0.15),rgba(240,180,210,0.10))",
+                              border: "1.5px solid rgba(210,155,185,0.30)",
+                              display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16,
+                            }}>🏛️</div>
+                            <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:10, fontWeight:700, letterSpacing: ".20em", textTransform: "uppercase", color: "var(--color-primary)" }}>
+                              Account Details
+                            </span>
+                          </div>
+
+                          {bankDetails.map(({ label, value }) => (
+                            <div key={label} className="mobile-bank-row">
+                              <span className="mobile-bank-label">{label}</span>
+                              <span className="mobile-bank-value">{value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="hidden sm:block" style={{ background: "rgba(240,175,210,0.09)", border: "1px solid rgba(210,155,185,0.28)", borderRadius: 16, padding: "24px 28px" }}>
                         {bankDetails.map(({ label, value }) => (
                           <div key={label} className="bank-row">
-                            <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:10, fontWeight:700, letterSpacing:".16em", textTransform:"uppercase", color:"var(--color-outline)" }}>{label}</span>
+                            <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize:10, fontWeight:700, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--color-outline)" }}>{label}</span>
                             <span style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:18, color:"var(--color-on-surface)" }}>{value}</span>
                           </div>
                         ))}
@@ -505,7 +545,7 @@ const { toast, showToast, hideToast } = useToast();
           </div>
 
           {/* ═══ RIGHT: Order summary ═══ */}
-          <div className="w-full lg:w-[42%] fade-3" style={{ position: "sticky", top: 120 }}>
+          <div className="w-full lg:w-[42%] fade-3 order-1 lg:order-3" style={{ position: "sticky", top: 120 }}>
             <div className="pay-glass p-8 md:p-10 flex flex-col gap-6">
               <h2 className="pay-display" style={{ fontSize: 28, fontWeight: 300, color: "var(--color-on-surface)", marginBottom: 4 }}>
                 Order Summary

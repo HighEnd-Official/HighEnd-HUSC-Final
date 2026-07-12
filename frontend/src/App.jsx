@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 
 // ── Auth & Theme ──────────────────────────────────────────────────────────
 import { AuthProvider } from "./context/AuthContext";
@@ -48,11 +49,33 @@ import Products     from "./admin/pages/Products";
 import Orders       from "./admin/pages/Orders";
 import Messages     from "./admin/pages/Messages";
 
+function ScrollToTop() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+
+    window.scrollTo(0, 0);
+
+    const handlePageShow = () => {
+      window.scrollTo(0, 0);
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, [location.pathname]);
+
+  return null;
+}
+
 function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <CartProvider>
           <Routes>
 
