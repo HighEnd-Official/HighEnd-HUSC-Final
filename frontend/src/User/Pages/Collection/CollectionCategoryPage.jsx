@@ -23,18 +23,6 @@ function ProductCard({ product, onQuickView }) {
           zoom={1.18}
           showTooltip={true}
         />
-        <button
-          type="button"
-          className="mobile-quickview-btn"
-          onClick={(e) => {
-            e.stopPropagation();
-            onQuickView(product);
-          }}
-          aria-label={`Quick view ${product.name}`}
-        >
-          <i className="ti ti-eye" aria-hidden="true"></i>
-          Quick View
-        </button>
         {product.seasonalBatch ? (
           <div
             className="absolute bottom-4 right-4 z-10 rounded-[18px] border border-white/20 px-3 py-2 text-white shadow-[0_12px_28px_rgba(0,0,0,0.18)] backdrop-blur-md"

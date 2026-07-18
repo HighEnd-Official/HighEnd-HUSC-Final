@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import LoadingScreen from "./components/LoadingScreen";
 
 // ── Auth & Theme ──────────────────────────────────────────────────────────
 import { AuthProvider } from "./context/AuthContext";
@@ -71,9 +72,12 @@ function ScrollToTop() {
 }
 
 function App() {
+  const [showLoader, setShowLoader] = useState(true);
+
   return (
     <ThemeProvider>
       <AuthProvider>
+        {showLoader && <LoadingScreen onComplete={() => setShowLoader(false)} />}
         <BrowserRouter>
           <ScrollToTop />
           <CartProvider>

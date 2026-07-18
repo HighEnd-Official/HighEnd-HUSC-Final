@@ -350,7 +350,8 @@ export default function Home() {
           padding: 0 40px 64px; max-width: 1200px; margin: 0 auto;
         }
         @media (max-width: 768px) {
-          .hero { height: auto; min-height: 72vh; }
+          .hero { height: 82vh; min-height: 480px; }
+          .hero-img { object-position: center 20% !important; }
           .hero-overlay { padding-bottom: 46px; }
           .hero-title { font-size: clamp(32px, 8vw, 56px); }
           .hero-subtitle { max-width: 100%; margin: 0 auto 32px; padding: 0 10px; }
@@ -639,7 +640,7 @@ export default function Home() {
         <HoverRevealImage
           wrapperClassName="absolute inset-0"
           imgClassName="hero-img"
-          src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1920&h=1080&fit=crop"
+          src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1600&q=80"
           alt="Hero fashion editorial"
           zoom={1.12}
         />
@@ -693,18 +694,6 @@ export default function Home() {
                   zoom={1.2}
                   showTooltip={true}
                 />
-                <button
-                  type="button"
-                  className="mobile-quickview-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedProduct(p);
-                  }}
-                  aria-label={`Quick view ${p.name}`}
-                >
-                  <i className="ti ti-eye" aria-hidden="true"></i>
-                  Quick View
-                </button>
                 {p.seasonalBatch ? (
                   <div
                     className="absolute bottom-3 right-3 z-10 rounded-[18px] border border-white/20 px-3 py-2 text-white shadow-[0_12px_28px_rgba(0,0,0,0.18)] backdrop-blur-md"

@@ -332,7 +332,7 @@ const BankDeposit = () => {
         saveCheckoutAddress(null, customer);
       }
       setSubmitted(true); 
-      setTimeout(() => { clear(); navigate("/my-orders", { replace: true }); }, 3500); 
+      setTimeout(() => { clear(); navigate(isAuthenticated ? "/my-orders" : "/", { replace: true }); }, 3500); 
     } catch (err) {
       showToast(err?.message || "Failed to place order.");
     }

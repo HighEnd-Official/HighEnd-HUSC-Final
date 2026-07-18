@@ -376,8 +376,6 @@ const { toast, showToast, hideToast } = useToast();
     }
   }; 
 
-  
-
   return (
     <div className="pay-body">
     <style>{STYLES}</style>
@@ -525,17 +523,22 @@ const { toast, showToast, hideToast } = useToast();
                         type="button"
                         onClick={() => {
                           if (!items?.length) return;
+                          if (!isAuthenticated) {
+                            saveCheckoutAddress(null, customer);
+                            navigate("/signin", { state: { from: "/payment" } });
+                            return;
+                          }
                           if (!isAddressComplete) {
                             showToast("Please complete your shipping address before continuing.");
                             return;
                           }
-                          saveCheckoutAddress(isAuthenticated ? user : null, customer);
+                          saveCheckoutAddress(user, customer);
                           navigate("/bank-deposit");
                         }}
                         className="pay-btn-outline"
                         disabled={!items || items.length === 0}
                       >
-                        Confirm — Bank Deposit
+                        {isAuthenticated ? "Confirm — Bank Deposit" : "Sign In to Confirm Deposit"}
                       </button>
                     </div>
                   )}
@@ -545,7 +548,7 @@ const { toast, showToast, hideToast } = useToast();
           </div>
 
           {/* ═══ RIGHT: Order summary ═══ */}
-          <div className="w-full lg:w-[42%] fade-3 order-1 lg:order-3" style={{ position: "sticky", top: 120 }}>
+          <div className="w-full lg:w-[42%] lg:sticky fade-3 order-1 lg:order-3" style={{ top: 120 }}>
             <div className="pay-glass p-8 md:p-10 flex flex-col gap-6">
               <h2 className="pay-display" style={{ fontSize: 28, fontWeight: 300, color: "var(--color-on-surface)", marginBottom: 4 }}>
                 Order Summary

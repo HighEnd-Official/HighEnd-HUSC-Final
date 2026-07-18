@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useCart } from "../../../context/CartContext";
 import { useNavigate } from "react-router-dom";
@@ -146,6 +146,17 @@ const QuickView = ({ product, onClose }) => {
   const [reviewError, setReviewError] = useState("");
   const [likeSaving, setLikeSaving] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
+  const [fsOpen, setFsOpen] = useState(false);          // fullscreen viewer open
+  const zoomImgRef = useRef(null);
+  const zoomContainerRef = useRef(null);
+  // ── Fullscreen pinch-to-zoom refs (all gesture state lives here — zero re-renders)
+  const fsImgRef = useRef(null);
+  const fsGesture = useRef({
+    scale: 1, panX: 0, panY: 0,
+    startDist: 0, startScale: 1,
+    startX: 0, startY: 0, startPanX: 0, startPanY: 0,
+    pointers: {},
+  });
 
   const { addItem, toggleWishlist, isInWishlist } = useCart();
   const productId = activeProduct?.id || activeProduct?.name;
@@ -340,6 +351,14 @@ const QuickView = ({ product, onClose }) => {
     setActiveIdx(0);
   }, [selectedColor]);
 
+  // Reset zoom whenever the active image changes (thumbnail click / arrow nav)
+  useEffect(() => {
+    if (zoomImgRef.current) {
+      zoomImgRef.current.style.transform = "scale(1)";
+      zoomImgRef.current.style.transformOrigin = "center center";
+    }
+  }, [activeIdx]);
+
   useEffect(() => {
     setSelectedColor(colorVariants[0] || null);
     setActiveIdx(0);
@@ -379,6 +398,85 @@ const QuickView = ({ product, onClose }) => {
 
   if (!displayProduct) return null;
 
+  /* ── Fullscreen viewer helpers ── */
+  const applyFsTransform = () => {
+    if (!fsImgRef.current) return;
+    const { scale, panX, panY } = fsGesture.current;
+    fsImgRef.current.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+  };
+
+  const openFs = () => {
+    const g = fsGesture.current;
+    g.scale = 1; g.panX = 0; g.panY = 0;
+    setFsOpen(true);
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeFs = () => {
+    setFsOpen(false);
+    // QuickView itself keeps body overflow hidden — restore only fs-specific block
+  };
+
+  const getTouchDist = (touches) => {
+    const [a, b] = Object.values(touches);
+    if (!a || !b) return 0;
+    return Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+  };
+
+  const onFsTouchStart = (e) => {
+    e.preventDefault();
+    const g = fsGesture.current;
+    Array.from(e.changedTouches).forEach(t => { g.pointers[t.identifier] = t; });
+    const pCount = Object.keys(g.pointers).length;
+    if (pCount === 2) {
+      g.startDist = getTouchDist(g.pointers);
+      g.startScale = g.scale;
+    } else if (pCount === 1) {
+      const t = Object.values(g.pointers)[0];
+      g.startX = t.clientX;
+      g.startY = t.clientY;
+      g.startPanX = g.panX;
+      g.startPanY = g.panY;
+    }
+  };
+
+  const onFsTouchMove = (e) => {
+    e.preventDefault();
+    const g = fsGesture.current;
+    Array.from(e.changedTouches).forEach(t => { g.pointers[t.identifier] = t; });
+    const pCount = Object.keys(g.pointers).length;
+    const MAX_SCALE = 4;
+    if (pCount === 2) {
+      const dist = getTouchDist(g.pointers);
+      if (g.startDist > 0) {
+        g.scale = Math.min(MAX_SCALE, Math.max(1, g.startScale * (dist / g.startDist)));
+      }
+    } else if (pCount === 1 && g.scale > 1) {
+      const t = Object.values(g.pointers)[0];
+      g.panX = g.startPanX + (t.clientX - g.startX);
+      g.panY = g.startPanY + (t.clientY - g.startY);
+    }
+    applyFsTransform();
+  };
+
+  const onFsTouchEnd = (e) => {
+    e.preventDefault();
+    const g = fsGesture.current;
+    Array.from(e.changedTouches).forEach(t => { delete g.pointers[t.identifier]; });
+    if (g.scale <= 1.05) {
+      g.scale = 1; g.panX = 0; g.panY = 0;
+      applyFsTransform();
+    }
+    // Reset single-touch start refs for next move
+    const remaining = Object.values(g.pointers);
+    if (remaining.length === 1) {
+      g.startX = remaining[0].clientX;
+      g.startY = remaining[0].clientY;
+      g.startPanX = g.panX;
+      g.startPanY = g.panY;
+    }
+  };
+
   return createPortal(
     <div
       className="fixed inset-0 z-[500] grid place-items-center p-4 md:p-16"
@@ -391,8 +489,9 @@ const QuickView = ({ product, onClose }) => {
       onClick={onClose}
     >
       <style>{`
-        @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+        @keyframes fadeIn  { from { opacity:0 } to { opacity:1 } }
         @keyframes slideUp { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:translateY(0) } }
+        @keyframes fsIn    { from { opacity:0; transform:scale(0.96) } to { opacity:1; transform:scale(1) } }
         @keyframes gentlePulse { 
           0%, 100% { transform: scale(1); }
           50% { transform: scale(1.05); }
@@ -580,21 +679,135 @@ const QuickView = ({ product, onClose }) => {
         }
 
         @media (max-width: 767px) {
+          /* ── Mobile gallery shell ── */
           .quickview-mobile-gallery {
-            min-height: 44vh;
+            height: 56vw !important;
+            min-height: 280px !important;
+            max-height: 370px !important;
+            flex-shrink: 0;
             border-right: 0;
-            border-bottom: 1px solid var(--quickview-line);
+            border-bottom: none;
+            position: relative;
           }
-          .quickview-mobile-image img {
-            object-fit: contain !important;
-            padding: 12px;
+          .quickview-mobile-gallery .flex-1 {
+            flex: 1 1 0%;
+            min-height: 0;
+            position: relative;
+            overflow: hidden;
           }
+          /* ── Mobile image ── */
+          .qv-mob-img-wrap {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+          }
+          .qv-mob-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center top;
+            display: block;
+            transition: opacity 0.25s ease;
+          }
+          /* ── Bottom gradient vignette ── */
+          .qv-mob-vignette {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(
+              to bottom,
+              transparent 45%,
+              rgba(10,4,6,0.55) 100%
+            );
+          }
+          /* ── Dot pagination ── */
+          .qv-mob-dots {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            pointer-events: none;
+          }
+          .qv-mob-dot {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.45);
+            transition: all 0.25s ease;
+            flex-shrink: 0;
+          }
+          .qv-mob-dot.active {
+            width: 18px;
+            border-radius: 3px;
+            background: #fff;
+          }
+          /* ── Frosted tap arrows ── */
+          .qv-mob-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.18);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 10;
+            transition: background 0.2s ease, transform 0.15s ease;
+          }
+          .qv-mob-arrow:active {
+            background: rgba(255,255,255,0.35);
+            transform: translateY(-50%) scale(0.93);
+          }
+          .qv-mob-arrow-left  { left: 10px; }
+          .qv-mob-arrow-right { right: 10px; }
+          /* ── Thumbnail strip ── */
           .quickview-mobile-thumbs {
-            height: 80px;
+            height: 50px !important;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            overflow-x: auto;
+            background: linear-gradient(
+              to bottom,
+              var(--color-surface-container-low),
+              var(--color-surface)
+            );
+            border-top: 1px solid rgba(111,31,47,0.08);
           }
+          .qv-thumb-btn {
+            flex-shrink: 0;
+            height: 100%;
+            aspect-ratio: 3/4;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+          }
+          .qv-thumb-btn.active {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(111,31,47,0.18);
+            opacity: 1 !important;
+          }
+          .qv-thumb-btn:not(.active) { opacity: 0.5; }
+          .qv-thumb-btn img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            display: block;
+          }
+          /* ── Panel ── */
           .quickview-panel {
-            border-radius: 24px !important;
-            max-height: 94vh;
+            border-radius: 22px !important;
+            max-height: 96vh;
+            overflow-y: auto;
           }
           .quickview-panel [class*="md:w-[42%]"],
           .quickview-panel [class*="lg:w-[38%]"] {
@@ -632,82 +845,156 @@ const QuickView = ({ product, onClose }) => {
         </button>
 
         {/* LEFT: Gallery */}
-        <div className="quickview-mobile-gallery w-full md:w-[58%] lg:w-[62%] flex flex-col h-[52vh] md:h-auto bg-gradient-to-br from-[var(--color-surface-container-low)] to-[var(--color-surface)]">
-          {/* Main image */}
+        <div className="quickview-mobile-gallery w-full md:w-[58%] lg:w-[62%] flex flex-col md:h-auto bg-gradient-to-br from-[var(--color-surface-container-low)] to-[var(--color-surface)]">
+          {/* Main image area */}
           <div className="flex-1 relative overflow-hidden group">
+            {/* Seasonal badge */}
             {displayProduct.seasonalBatch ? (
               <div
                 className="absolute left-4 top-4 z-20 rounded-[18px] border border-white/20 px-3 py-2 text-white shadow-[0_12px_28px_rgba(0,0,0,0.18)] backdrop-blur-md"
                 style={{ background: "linear-gradient(135deg, rgba(111,31,47,0.96), rgba(69,18,29,0.88))" }}
               >
-                <div className="text-[8px] font-semibold uppercase tracking-[0.24em] opacity-80">
-                  Seasonal
-                </div>
-                <div className="text-[13px] font-semibold leading-none">
-                  {displayProduct.seasonalBadgeText || "Seasonal"}
-                </div>
-                <div className="text-[8px] font-semibold uppercase tracking-[0.18em] opacity-70">
-                  Batch
-                </div>
+                <div className="text-[8px] font-semibold uppercase tracking-[0.24em] opacity-80">Seasonal</div>
+                <div className="text-[13px] font-semibold leading-none">{displayProduct.seasonalBadgeText || "Seasonal"}</div>
+                <div className="text-[8px] font-semibold uppercase tracking-[0.18em] opacity-70">Batch</div>
               </div>
             ) : null}
+
             {imageCount > 0 ? (
-              <HoverRevealImage
-                src={currentImages[activeIdx]}
-                alt={displayProduct.name}
-                wrapperClassName="quickview-mobile-image absolute inset-0 z-0"
-                imgClassName="w-full h-full"
-                fit={isMobileView ? "contain" : "cover"}
-                zoom={isMobileView ? 1.04 : 1.28}
-                style={{ backgroundColor: "var(--color-surface)" }}
-                imgStyle={{ opacity: fading ? 0 : 1 }}
-              />
+              isMobileView ? (
+                /* ── Mobile: Full-bleed editorial image — tap to open fullscreen ── */
+                <>
+                  <div
+                    className="qv-mob-img-wrap"
+                    onClick={openFs}
+                    style={{ cursor: "zoom-in" }}
+                  >
+                    <img
+                      src={currentImages[activeIdx]}
+                      alt={displayProduct.name}
+                      className="qv-mob-img"
+                      style={{ opacity: fading ? 0 : 1 }}
+                    />
+                    {/* Tap-to-zoom hint */}
+                    <div style={{
+                      position: "absolute", bottom: 44, right: 12,
+                      background: "rgba(0,0,0,0.38)", backdropFilter: "blur(6px)",
+                      borderRadius: 999, padding: "4px 10px",
+                      color: "#fff", fontSize: 10, fontWeight: 700,
+                      letterSpacing: "0.1em", textTransform: "uppercase",
+                      pointerEvents: "none", opacity: 0.85,
+                    }}>⊕ Tap to zoom</div>
+                  </div>
+
+                  {/* Bottom gradient vignette */}
+                  <div className="qv-mob-vignette" />
+
+                  {/* Tap arrow: prev */}
+                  {imageCount > 1 && (
+                    <button className="qv-mob-arrow qv-mob-arrow-left" onClick={prev} aria-label="Previous image">
+                      ‹
+                    </button>
+                  )}
+                  {/* Tap arrow: next */}
+                  {imageCount > 1 && (
+                    <button className="qv-mob-arrow qv-mob-arrow-right" onClick={next} aria-label="Next image">
+                      ›
+                    </button>
+                  )}
+
+                  {/* Dot pagination */}
+                  {imageCount > 1 && (
+                    <div className="qv-mob-dots">
+                      {currentImages.map((_, i) => (
+                        <div key={i} className={`qv-mob-dot${i === activeIdx ? " active" : ""}`} />
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                /* ── Desktop: Amazon-style mouse-follow zoom ── */
+                <div
+                  ref={zoomContainerRef}
+                  className="absolute inset-0 z-0 overflow-hidden"
+                  style={{ backgroundColor: "var(--color-surface)", cursor: "crosshair" }}
+                  onMouseMove={(e) => {
+                    const rect = zoomContainerRef.current?.getBoundingClientRect();
+                    if (!rect || !zoomImgRef.current) return;
+                    const x = clamp(((e.clientX - rect.left) / rect.width) * 100, 0, 100);
+                    const y = clamp(((e.clientY - rect.top) / rect.height) * 100, 0, 100);
+                    zoomImgRef.current.style.transformOrigin = `${x}% ${y}%`;
+                    zoomImgRef.current.style.transform = "scale(2)";
+                  }}
+                  onMouseLeave={() => {
+                    if (!zoomImgRef.current) return;
+                    zoomImgRef.current.style.transform = "scale(1)";
+                    zoomImgRef.current.style.transformOrigin = "center center";
+                  }}
+                >
+                  <img
+                    ref={zoomImgRef}
+                    src={currentImages[activeIdx]}
+                    alt={displayProduct.name}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      display: "block",
+                      transform: "scale(1)",
+                      transformOrigin: "center center",
+                      transition: "transform 0.18s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.25s ease",
+                      opacity: fading ? 0 : 1,
+                      willChange: "transform",
+                    }}
+                  />
+                </div>
+              )
             ) : (
               <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-surface-container-low)] text-[var(--color-on-surface-variant)]">
                 No preview available
               </div>
             )}
-            
-            {/* Decorative overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/5 via-transparent to-transparent pointer-events-none" />
-            
-            {/* Arrow controls */}
-            <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-300">
-              <button
-                onClick={prev}
-                className="gallery-arrow-btn pointer-events-auto w-10 h-10 rounded-full flex items-center justify-center bg-[var(--color-surface)]/95 shadow-md"
-                style={{ color: "var(--color-primary)" }}
-              >
-                <span className="text-2xl">←</span>
-              </button>
-              <button
-                onClick={next}
-                className="gallery-arrow-btn pointer-events-auto w-10 h-10 rounded-full flex items-center justify-center bg-[var(--color-surface)]/95 shadow-md"
-                style={{ color: "var(--color-primary)" }}
-              >
-                <span className="text-2xl">→</span>
-              </button>
-            </div>
-            
-            {/* Image counter */}
-            {imageCount > 0 ? (
-              <div className="absolute bottom-3 right-4 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1 text-[10px] font-semibold tracking-widest text-white/90 uppercase">
-                {activeIdx + 1} / {imageCount}
-              </div>
-            ) : null}
+
+            {/* Desktop-only decorative overlay + arrow controls */}
+            {!isMobileView && (
+              <>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/5 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-300">
+                  <button
+                    onClick={prev}
+                    className="gallery-arrow-btn pointer-events-auto w-10 h-10 rounded-full flex items-center justify-center bg-[var(--color-surface)]/95 shadow-md"
+                    style={{ color: "var(--color-primary)" }}
+                  >
+                    <span className="text-2xl">←</span>
+                  </button>
+                  <button
+                    onClick={next}
+                    className="gallery-arrow-btn pointer-events-auto w-10 h-10 rounded-full flex items-center justify-center bg-[var(--color-surface)]/95 shadow-md"
+                    style={{ color: "var(--color-primary)" }}
+                  >
+                    <span className="text-2xl">→</span>
+                  </button>
+                </div>
+                {imageCount > 0 && (
+                  <div className="absolute bottom-3 right-4 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1 text-[10px] font-semibold tracking-widest text-white/90 uppercase pointer-events-none">
+                    {activeIdx + 1} / {imageCount}
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
-          {/* Thumbnails */}
-          <div className="quickview-mobile-thumbs h-24 md:h-28 bg-[var(--color-surface)]/50 backdrop-blur-sm flex items-center gap-2 px-4 py-2 overflow-x-auto custom-scrollbar border-t border-[rgba(215,197,198,0.2)]">
+          {/* Thumbnail strip — hidden on mobile (dot pagination used instead), shown on desktop */}
+          <div className="hidden md:flex quickview-mobile-thumbs h-28 bg-[var(--color-surface)]/50 backdrop-blur-sm items-center gap-2 px-4 py-2 overflow-x-auto custom-scrollbar border-t border-[rgba(215,197,198,0.2)]">
             {currentImages.map((img, i) => (
               <button
                 key={i}
                 onClick={() => switchImage(i)}
-                className="flex-shrink-0 h-full transition-all duration-200 rounded-lg overflow-hidden shadow-md hover:shadow-xl"
+                className={`qv-thumb-btn flex-shrink-0 h-full transition-all duration-200 rounded-lg overflow-hidden shadow-md hover:shadow-xl${activeIdx === i ? " active" : ""}`}
                 style={{
                   aspectRatio: "3/4",
                   border: `2px solid ${activeIdx === i ? "var(--color-primary)" : "transparent"}`,
-                  opacity: activeIdx === i ? 1 : 0.55,
+                  opacity: activeIdx === i ? 1 : 0.5,
                 }}
               >
                 <img src={img} alt="" className="w-full h-full object-cover transition-transform duration-500" />
@@ -730,14 +1017,29 @@ const QuickView = ({ product, onClose }) => {
                   {displayProduct.collection || "The Atelier Collection"}
                 </p>
               </div>
-              {displayProduct.badge ? (
-                <div
-                  className="inline-flex items-center rounded-full px-3 py-1 text-[10px] font-semibold tracking-[0.16em] uppercase"
-                  style={{ backgroundColor: displayProduct.badgeColor || "var(--color-primary)", color: "var(--color-on-primary)", width: "fit-content" }}
-                >
-                  {displayProduct.badge}
-                </div>
-              ) : null}
+              {/* Stock status badge */}
+              {(() => {
+                let dot, label, bgColor, textColor, borderColor;
+                if (outOfStock) {
+                  dot = "🔴"; label = "Out of Stock";
+                  bgColor = "rgba(220,38,38,0.08)"; textColor = "#dc2626"; borderColor = "rgba(220,38,38,0.22)";
+                } else if (hasStockLimit && stock <= 5) {
+                  dot = "🟡"; label = "Low Stock";
+                  bgColor = "rgba(217,119,6,0.08)"; textColor = "#d97706"; borderColor = "rgba(217,119,6,0.22)";
+                } else {
+                  dot = "🟢"; label = "In Stock";
+                  bgColor = "rgba(22,163,74,0.08)"; textColor = "#16a34a"; borderColor = "rgba(22,163,74,0.22)";
+                }
+                return (
+                  <div
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold tracking-[0.12em] uppercase"
+                    style={{ backgroundColor: bgColor, color: textColor, border: `1px solid ${borderColor}` }}
+                  >
+                    <span style={{ fontSize: "10px", lineHeight: 1 }}>{dot}</span>
+                    {label}
+                  </div>
+                );
+              })()}
               <h2
                 className="text-[32px] leading-snug text-[var(--color-on-surface)]"
                 style={{ fontFamily: "'Manrope', serif", fontWeight: 400 }}
@@ -765,9 +1067,7 @@ const QuickView = ({ product, onClose }) => {
               <p className="text-[12px] text-[var(--color-on-surface-variant)]">
                 {displayProduct.rating ? `${displayProduct.rating}/5` : "No rating"} · {reviewCount} reviews
               </p>
-              <p className="text-[11px] font-semibold tracking-[0.14em] uppercase" style={{ color: outOfStock ? "var(--color-primary)" : "var(--color-tertiary)" }}>
-                {outOfStock ? "Out of Stock" : hasStockLimit ? `${stock} in stock` : "In Stock"}
-              </p>
+
             </div>
 
             <div className="h-px w-full bg-gradient-to-r from-transparent via-[var(--color-outline-variant)] to-transparent" />
@@ -1019,11 +1319,19 @@ const QuickView = ({ product, onClose }) => {
                 }}
                 className="flex-1 py-4 rounded-full text-[12px] font-semibold tracking-[0.12em] uppercase transition-all duration-300 text-white shadow-lg hover:shadow-xl"
                 style={{ 
-                  backgroundColor: "var(--color-on-surface)",
+                  background: canAddToCart ? (added ? "linear-gradient(135deg, #16a34a 0%, #15803d 100%)" : "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%)") : "var(--color-outline)",
+                  cursor: canAddToCart ? "pointer" : "not-allowed",
+                  opacity: canAddToCart ? 1 : 0.72,
                   transform: added ? "scale(0.98)" : "scale(1)"
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-primary)")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--color-on-surface)")}
+                onMouseEnter={(e) => {
+                  if (canAddToCart && !added) {
+                    e.currentTarget.style.transform = "scale(1.02)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1)";
+                }}
               >
                 {!selectedSize ? "Select a Size" : outOfStock ? "Out of Stock" : added ? "Added to Cart" : "Add to Cart"}
               </button>
@@ -1101,6 +1409,127 @@ const QuickView = ({ product, onClose }) => {
           </div>
         </div>
       </div>
+
+      {/* ── Fullscreen image viewer (mobile only) ── */}
+      {fsOpen && createPortal(
+        <div
+          style={{
+            position: "fixed", inset: 0, zIndex: 9999,
+            background: "#000",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            animation: "fsIn 0.22s cubic-bezier(0.16,1,0.3,1) both",
+            touchAction: "none",
+            userSelect: "none",
+            WebkitUserSelect: "none",
+          }}
+          onClick={(e) => {
+            e.stopPropagation(); // prevent bubbling to QuickView backdrop
+            if (e.target === e.currentTarget) closeFs();
+          }}
+        >
+          {/* Image — gesture target */}
+          <img
+            ref={fsImgRef}
+            src={currentImages[activeIdx]}
+            alt={displayProduct.name}
+            onTouchStart={onFsTouchStart}
+            onTouchMove={onFsTouchMove}
+            onTouchEnd={onFsTouchEnd}
+            style={{
+              maxWidth: "100vw",
+              maxHeight: "100vh",
+              objectFit: "contain",
+              display: "block",
+              transform: "translate(0px,0px) scale(1)",
+              transformOrigin: "center center",
+              transition: "none",
+              touchAction: "none",
+              userSelect: "none",
+              WebkitUserSelect: "none",
+              willChange: "transform",
+            }}
+            draggable={false}
+          />
+
+          {/* Close button */}
+          <button
+            onClick={closeFs}
+            aria-label="Close fullscreen"
+            style={{
+              position: "absolute", top: 16, right: 16,
+              width: 40, height: 40, borderRadius: "50%",
+              background: "rgba(255,255,255,0.15)",
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
+              border: "1px solid rgba(255,255,255,0.25)",
+              color: "#fff", fontSize: 18,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "pointer", zIndex: 10,
+              lineHeight: 1,
+            }}
+          >
+            ✕
+          </button>
+
+          {/* Image counter */}
+          {imageCount > 1 && (
+            <div style={{
+              position: "absolute", bottom: 20, left: "50%",
+              transform: "translateX(-50%)",
+              background: "rgba(255,255,255,0.15)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              border: "1px solid rgba(255,255,255,0.2)",
+              borderRadius: 999, padding: "5px 14px",
+              color: "#fff", fontSize: 11, fontWeight: 700,
+              letterSpacing: "0.1em",
+            }}>
+              {activeIdx + 1} / {imageCount}
+            </div>
+          )}
+
+          {/* Prev/Next taps when at 1x */}
+          {imageCount > 1 && (
+            <>
+              <button
+                onClick={() => { closeFs(); setTimeout(() => { prev(); openFs(); }, 10); }}
+                aria-label="Previous"
+                style={{
+                  position:"absolute", left:10, top:"50%", transform:"translateY(-50%)",
+                  width:40, height:40, borderRadius:"50%",
+                  background:"rgba(255,255,255,0.15)", backdropFilter:"blur(8px)",
+                  WebkitBackdropFilter:"blur(8px)",
+                  border:"1px solid rgba(255,255,255,0.25)",
+                  color:"#fff", fontSize:20, display:"flex",
+                  alignItems:"center", justifyContent:"center", cursor:"pointer",
+                }}
+              >‹</button>
+              <button
+                onClick={() => { closeFs(); setTimeout(() => { next(); openFs(); }, 10); }}
+                aria-label="Next"
+                style={{
+                  position:"absolute", right:10, top:"50%", transform:"translateY(-50%)",
+                  width:40, height:40, borderRadius:"50%",
+                  background:"rgba(255,255,255,0.15)", backdropFilter:"blur(8px)",
+                  WebkitBackdropFilter:"blur(8px)",
+                  border:"1px solid rgba(255,255,255,0.25)",
+                  color:"#fff", fontSize:20, display:"flex",
+                  alignItems:"center", justifyContent:"center", cursor:"pointer",
+                }}
+              >›</button>
+            </>
+          )}
+
+          {/* Pinch hint */}
+          <div style={{
+            position:"absolute", bottom:56, left:"50%", transform:"translateX(-50%)",
+            color:"rgba(255,255,255,0.45)", fontSize:10, fontWeight:600,
+            letterSpacing:"0.1em", textTransform:"uppercase", whiteSpace:"nowrap",
+            pointerEvents:"none",
+          }}>Pinch to zoom · drag to pan</div>
+        </div>,
+        document.body
+      )}
     </div>,
     document.body
   );

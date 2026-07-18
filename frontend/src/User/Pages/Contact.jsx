@@ -75,7 +75,7 @@ const IconInstagram = (props) => (
 
 const IconFacebook = (props) => (
   <IconBase {...props}>
-    <path d="M15 8h-2a2 2 0 0 0-2 2v2H9v3h2v5h3v-5h2.2l.5-3H14v-1.5c0-.4.2-.5.6-.5H17V8h-2z" />
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
   </IconBase>
 );
 

@@ -1038,7 +1038,7 @@ export default function NavBar() {
             min-width: 0;
             flex: 1 1 0;
           }
-          .hues-logo {
+          .hues-nav__left .hues-logo {
             position: absolute;
             left: 40%;
             top: 50%;

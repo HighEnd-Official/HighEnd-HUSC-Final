@@ -37,10 +37,10 @@ export default function HoverRevealImage({
       />
       {showTooltip && (
         <div
+          className="hidden md:flex"
           style={{
             position: "absolute",
             inset: 0,
-            display: "flex",
             alignItems: "center",
             justifyContent: "center",
             backgroundColor: "rgba(0, 0, 0, 0.12)",
